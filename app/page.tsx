@@ -162,20 +162,151 @@ export default function MasterTufanOS() {
         }
     }, [globalSearch]);
 
-    // ==================== SMART LINK EMBEDDING & FOCUS ====================
-    const [pendingLink, setPendingLink] = useState<{ topicId: string, platformId: string, title: string, url: string } | null>(null);
-    const [showPinModal, setShowPinModal] = useState(false);
+    // ==================== SESSION HISTORY & PREVIEW SYSTEM ====================
+    const [sessionLinks, setSessionLinks] = useState<Array<{
+        id: string;
+        topicId: string;
+        platformId: string;
+        title: string;
+        originalTitle: string;
+        url: string;
+        thumbnail?: string;
+        timestamp: number;
+    }>>([]);
 
-    // Detect return to tab to trigger modal
+    const [showSessionPanel, setShowSessionPanel] = useState(false);
+    const [showThresholdModal, setShowThresholdModal] = useState(false);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    // Auto-trigger threshold alert when 5 links are collected
     useEffect(() => {
-        const handleFocus = () => {
-            if (pendingLink) {
-                setShowPinModal(true);
+        if (sessionLinks.length > 0 && sessionLinks.length % 5 === 0) {
+            setShowThresholdModal(true);
+        }
+    }, [sessionLinks.length]);
+
+    // Helper: Fetch Metadata (NoEmbed for Youtube, etc.)
+    const fetchAndAddLink = async (platform: string, topic: string, topicId: string, url: string) => {
+        let title = `${topic} (${PLATFORMS.find(p => p.id === platform)?.name})`;
+        let thumbnail = "";
+
+        // Attempt strict scraping via NoEmbed proxy
+        if (url.includes('youtube') || url.includes('youtu.be')) {
+            try {
+                const res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
+                const data = await res.json();
+                if (data.title) title = data.title;
+                if (data.thumbnail_url) thumbnail = data.thumbnail_url;
+            } catch (e) {
+                console.warn("Metadata fetch failed", e);
             }
+        } else if (platform === 'reddit') {
+            title = `Reddit: ${topic}`;
+        }
+
+        const newLink = {
+            id: Date.now().toString(),
+            topicId,
+            platformId: platform,
+            title,
+            originalTitle: topic,
+            url,
+            thumbnail,
+            timestamp: Date.now()
         };
-        window.addEventListener('focus', handleFocus);
-        return () => window.removeEventListener('focus', handleFocus);
-    }, [pendingLink]);
+
+        setSessionLinks(prev => {
+            if (prev.some(l => l.url === url)) return prev; // Avoid duplicates
+            return [...prev, newLink];
+        });
+    };
+
+    // --- COMPONENT: PREVIEW MODAL ---
+    const PreviewModal = () => {
+        if (!previewUrl) return null;
+        const safeUrl = previewUrl.includes('youtube.com') || previewUrl.includes('youtu.be')
+            ? previewUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')
+            : `https://www.printfriendly.com/print?url=${encodeURIComponent(previewUrl)}`;
+
+        return (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-6xl h-[85vh] bg-slate-900 rounded-2xl border border-slate-700 flex flex-col shadow-2xl overflow-hidden">
+                    <div className="p-3 border-b border-slate-700 flex justify-between items-center bg-slate-800">
+                        <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2"><BookOpen size={16} className="text-blue-400" /> Önizleme</h3>
+                        <div className="flex gap-2">
+                            <a href={previewUrl} target="_blank" className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-500 transition">Orjinalini Aç</a>
+                            <button onClick={() => setPreviewUrl(null)} className="p-1 hover:bg-slate-700 rounded text-slate-400"><X size={20} /></button>
+                        </div>
+                    </div>
+                    <div className="flex-1 bg-white relative">
+                        <iframe src={safeUrl} className="w-full h-full" title="Preview" sandbox="allow-same-origin allow-scripts allow-popups allow-forms" />
+                    </div>
+                </motion.div>
+            </div>
+        );
+    };
+
+    // --- COMPONENT: THRESHOLD ALERT ---
+    const ThresholdModal = () => {
+        if (!showThresholdModal) return null;
+        return (
+            <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+                <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-slate-900 border border-amber-500/50 p-6 rounded-2xl max-w-lg w-full shadow-2xl">
+                    <div className="text-center">
+                        <div className="w-16 h-16 bg-amber-900/40 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-400"><Book size={32} /></div>
+                        <h3 className="text-2xl font-bold text-white mb-2">Verimli Bir Oturum! 🔥</h3>
+                        <p className="text-slate-300 mb-6">Şu ana kadar <span className="text-amber-400 font-bold">{sessionLinks.length} farklı kaynağa</span> göz attın. Oturum Çantanda biriktiler. İncelemek ister misin?</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setShowThresholdModal(false)} className="flex-1 py-3 bg-slate-800 text-slate-400 rounded-xl hover:bg-slate-700 font-medium">Sonra</button>
+                            <button onClick={() => { setShowThresholdModal(false); setShowSessionPanel(true); }} className="flex-1 py-3 bg-amber-600 text-white rounded-xl hover:bg-amber-500 font-bold shadow-lg">Listeyi İncele</button>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        )
+    }
+
+    // --- COMPONENT: SESSION HISTORY PANEL ---
+    const SessionHistoryPanel = () => {
+        if (!showSessionPanel) return (
+            <button onClick={() => setShowSessionPanel(true)} className="fixed bottom-6 right-6 z-40 bg-emerald-600 text-white p-4 rounded-full shadow-2xl hover:bg-emerald-500 hover:scale-105 transition-all flex items-center gap-2 group">
+                <div className="relative"><Layout size={24} />{sessionLinks.length > 0 && (<span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">{sessionLinks.length}</span>)}</div>
+                <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 whitespace-nowrap px-0 group-hover:px-2">Oturum Geçmişi</span>
+            </button>
+        );
+
+        return (
+            <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} className="fixed bottom-6 right-6 z-50 w-96 max-h-[80vh] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                <div className="p-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
+                    <h3 className="font-bold text-white flex items-center gap-2"><Layout size={18} className="text-emerald-400" /> Oturum Çantası</h3>
+                    <div className="flex gap-2">
+                        <button onClick={() => { if (confirm("Temizle?")) setSessionLinks([]); }} className="text-xs text-red-400 hover:text-red-300">Temizle</button>
+                        <button onClick={() => setShowSessionPanel(false)} className="text-slate-400 hover:text-white"><X size={20} /></button>
+                    </div>
+                </div>
+                <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar bg-slate-900/95">
+                    {sessionLinks.length === 0 ? (<div className="text-center py-10 text-slate-500 text-sm">Çanta boş.</div>) : (
+                        sessionLinks.map((link) => (
+                            <div key={link.id} className="bg-slate-800/50 p-3 rounded-lg border border-slate-700 hover:border-emerald-500/30 transition group">
+                                <div className="flex gap-3">
+                                    {link.thumbnail ? (<img src={link.thumbnail} alt="thumb" className="w-16 h-16 object-cover rounded bg-black" />) : (<div className="w-16 h-16 bg-slate-800 rounded flex items-center justify-center text-slate-600"><Globe size={24} /></div>)}
+                                    <div className="flex-1 min-w-0">
+                                        <input value={link.title} onChange={(e) => { const val = e.target.value; setSessionLinks(prev => prev.map(p => p.id === link.id ? { ...p, title: val } : p)); }} className="w-full bg-transparent text-sm text-slate-200 font-medium focus:outline-none border-b border-transparent focus:border-emerald-500 pb-1 mb-1 truncate" />
+                                        <p className="text-xs text-slate-500 truncate">{link.url}</p>
+                                        <div className="flex gap-2 mt-2">
+                                            <button onClick={async () => { await saveLink({ topic_id: link.topicId, title: link.title, url: link.url, platform: link.platformId }); loadLinksForTopic(link.topicId); setSessionLinks(prev => prev.filter(p => p.id !== link.id)); }} className="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] px-2 py-1 rounded flex items-center gap-1"><Pin size={10} /> Kaydet</button>
+                                            {(link.url.includes('youtube') || link.url.includes('youtu.be')) && (<button onClick={() => window.open(link.url.replace('youtube.com', 'ssyoutube.com').replace('youtu.be/', 'ssyoutube.com/'), '_blank')} className="bg-red-600 hover:bg-red-500 text-white text-[10px] px-2 py-1 rounded flex items-center gap-1"><Pin size={10} className="rotate-180" /> İndir</button>)}
+                                            <button onClick={() => setSessionLinks(prev => prev.filter(p => p.id !== link.id))} className="bg-slate-700 hover:bg-slate-600 text-slate-300 text-[10px] px-2 py-1 rounded ml-auto"><Trash2 size={10} /></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </motion.div>
+        );
+    };
 
     const PinConfirmationModal = () => {
         // Only show if both pending link exists AND the modal is triggered (by focus)
@@ -785,8 +916,10 @@ export default function MasterTufanOS() {
 
     return (
         <div className="flex h-screen bg-slate-900 text-slate-100">
-            {/* PIN CONFIRMATION MODAL */}
-            <PinConfirmationModal />
+            {/* MODALS */}
+            <PreviewModal />
+            <ThresholdModal />
+            <SessionHistoryPanel />
 
             {/* TUTORIAL & ABOUT MODALS */}
             <TutorialOverlay
