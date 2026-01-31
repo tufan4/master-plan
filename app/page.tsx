@@ -8,8 +8,7 @@ const TutorialOverlay = dynamic(() => import("@/components/TutorialOverlay"), { 
 const AboutModal = dynamic(() => import("@/components/AboutModal"), { ssr: false });
 
 import {
-    syncCompletedTopics, fetchCompletedTopics, cacheImage, getCachedImages, cacheKeywords, getCachedKeywords,
-    saveLink, getSavedLinks, deleteLink, SavedLink
+    syncCompletedTopics, fetchCompletedTopics, cacheImage, getCachedImages, cacheKeywords, getCachedKeywords
 } from "@/lib/supabaseClient";
 import CURRICULUM from "@/data/master-curriculum.json";
 import { useState, useEffect } from "react";
@@ -18,8 +17,9 @@ import {
     Search, ChevronDown, ChevronRight, CheckCircle2, Circle,
     Youtube, FileText, Book, X, Image as ImageIcon,
     Globe, MessageCircle, Sparkles, BookOpen, Info, Instagram, Linkedin,
-    Github, Lightbulb, Pin, Trash2, HelpCircle, Layout, Settings, Download, FileType
+    Github, Lightbulb, HelpCircle, Layout, Settings, Download
 } from "lucide-react";
+import { generateDiverseKeywords } from "@/lib/geminiClient";
 
 // ==================== PLATFORMS ====================
 const PLATFORMS = [
@@ -41,7 +41,7 @@ export default function MasterTufanOS() {
     const [activeControlPanel, setActiveControlPanel] = useState<string | null>(null);
     const [showDictionary, setShowDictionary] = useState(false);
     const [activePlatformPanel, setActivePlatformPanel] = useState<{ topicId: string; platform: string } | null>(null);
-    const [keywordThreshold, setKeywordThreshold] = useState(25);
+
     const [language, setLanguage] = useState<'tr' | 'en'>('en');
     const [showImageGallery, setShowImageGallery] = useState<string | null>(null);
     const [imageThreshold, setImageThreshold] = useState(10);
@@ -66,7 +66,6 @@ export default function MasterTufanOS() {
     const [generatedKeywords, setGeneratedKeywords] = useState<Record<string, string[]>>({});
     const [showAboutModal, setShowAboutModal] = useState(false);
     const [runTutorial, setRunTutorial] = useState(false);
-    const [savedLinks, setSavedLinks] = useState<Record<string, SavedLink[]>>({});
 
     // DATA RECOVERY: Supabase → localStorage → Default
     useEffect(() => {
@@ -183,142 +182,9 @@ export default function MasterTufanOS() {
         }
     }, [globalSearch, parentMap]);
 
-    // ==================== PREVIEW SYSTEM ====================
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-    // Helper: Fetch Metadata (NoEmbed for Youtube, etc.)
-    const fetchAndAddLink = async (platform: string, topic: string, topicId: string, url: string) => {
-        // SMART URL CLEANING (Anti-Redirect)
-        let cleanUrl = url;
-
-        // Remove Google redirect wrappers
-        if (url.includes('google.com/url?')) {
-            const urlParams = new URLSearchParams(url.split('?')[1]);
-            cleanUrl = urlParams.get('url') || urlParams.get('q') || url;
-        }
-
-        // Decode URI components
-        try {
-            cleanUrl = decodeURIComponent(cleanUrl);
-        } catch (e) {
-            // Keep original if decode fails
-        }
-
-        let title = `${topic} (${PLATFORMS.find(p => p.id === platform)?.name})`;
-        let thumbnail = "";
-
-        // Attempt strict scraping via NoEmbed proxy
-        if (cleanUrl.includes('youtube') || cleanUrl.includes('youtu.be')) {
-            try {
-                const res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(cleanUrl)}`);
-                const data = await res.json();
-                if (data.title) title = data.title;
-                if (data.thumbnail_url) thumbnail = data.thumbnail_url;
-            } catch (e) {
-                console.warn("Metadata fetch failed", e);
-            }
-        } else if (platform === 'reddit') {
-            title = `Reddit: ${topic}`;
-        }
-
-        // Save directly to Supabase (no format validation - accept all links)
-        try {
-            await saveLink({
-                topic_id: topicId,
-                platform: platform,
-                url: cleanUrl,
-                title: title
-            });
-            // Reload links for this topic to reflect new addition
-            loadLinksForTopic(topicId);
-        } catch (error) {
-            console.error('Failed to save link:', error);
-        }
-    };
-
-    // --- COMPONENT: PREVIEW MODAL ---
-    const PreviewModal = () => {
-        if (!previewUrl) return null;
-        const safeUrl = previewUrl.includes('youtube.com') || previewUrl.includes('youtu.be')
-            ? previewUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')
-            : `https://www.printfriendly.com/print?url=${encodeURIComponent(previewUrl)}`;
-
-        return (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-[95%] sm:w-full sm:max-w-6xl h-[70vh] sm:h-[85vh] bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-700 flex flex-col shadow-2xl overflow-hidden">
-                    <div className="p-3 border-b border-slate-700 flex justify-between items-center bg-slate-800">
-                        <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2"><BookOpen size={16} className="text-blue-400" /> Önizleme</h3>
-                        <div className="flex gap-2">
-                            <a href={previewUrl} target="_blank" className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-500 transition">Orjinalini Aç</a>
-                            <button onClick={() => setPreviewUrl(null)} className="p-1 hover:bg-slate-700 rounded text-slate-400"><X size={20} /></button>
-                        </div>
-                    </div>
-                    <div className="flex-1 bg-white relative">
-                        <iframe src={safeUrl} className="w-full h-full" title="Preview" sandbox="allow-same-origin allow-scripts allow-popups allow-forms" />
-                    </div>
-                </motion.div>
-            </div>
-        );
-    };
 
 
 
-
-
-
-
-
-
-
-
-
-    const PreviewModal_OLD = () => {
-        if (!previewUrl) return null;
-        // Use PrintFriendly for article-like content as a proxy previewer
-        const safeUrl = previewUrl.includes('youtube.com')
-            ? previewUrl.replace('watch?v=', 'embed/')
-            : `https://www.printfriendly.com/print?url=${encodeURIComponent(previewUrl)}`;
-
-        return (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="w-full max-w-6xl h-[85vh] bg-slate-900 rounded-2xl border border-slate-700 flex flex-col shadow-2xl overflow-hidden"
-                >
-                    <div className="p-3 border-b border-slate-700 flex justify-between items-center bg-slate-800">
-                        <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-                            <BookOpen size={16} className="text-blue-400" /> Quick Preview
-                        </h3>
-                        <div className="flex gap-2">
-                            <a
-                                href={previewUrl}
-                                target="_blank"
-                                className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-500 transition"
-                            >
-                                Open Original
-                            </a>
-                            <button onClick={() => setPreviewUrl(null)} className="p-1 hover:bg-slate-700 rounded text-slate-400">
-                                <X size={20} />
-                            </button>
-                        </div>
-                    </div>
-                    <div className="flex-1 bg-white relative">
-                        <iframe
-                            src={safeUrl}
-                            className="w-full h-full"
-                            title="Preview"
-                            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                        />
-                    </div>
-                </motion.div>
-            </div>
-        );
-    };
-    const loadLinksForTopic = async (topicId: string) => {
-        const links = await getSavedLinks(topicId);
-        setSavedLinks(prev => ({ ...prev, [topicId]: links }));
-    };
 
     const getTotalCount = () => {
         let count = 0;
@@ -391,26 +257,7 @@ export default function MasterTufanOS() {
         }
 
         try {
-            const keywords = new Set(baseKeywords);
-            // Add language specific keywords
-            const langSuffix = language === 'tr' ? ' ders anlatımı' : ' tutorial';
-            keywords.add(topic + langSuffix);
-
-            // AI-style keyword expansion (fallback logic until Gemini API is connected)
-            const variations = [
-                topic,
-                `${topic} ${language === 'tr' ? 'nedir' : 'explained'}`,
-                `${topic} ${language === 'tr' ? 'kullanımı' : 'guide'}`,
-                `${topic} ${language === 'tr' ? 'örnekler' : 'examples'}`,
-                `${topic} ${language === 'tr' ? 'uygulamalar' : 'applications'}`,
-                `${topic} ${language === 'tr' ? 'mühendislik' : 'engineering'}`
-            ];
-
-            variations.forEach(v => {
-                if (keywords.size < threshold) keywords.add(v);
-            });
-
-            const result = Array.from(keywords).slice(0, threshold);
+            const result = await generateDiverseKeywords(topic, language);
 
             // Cache keywords in both memory and localStorage
             setGeneratedKeywords(prev => ({ ...prev, [topicId]: result }));
@@ -463,46 +310,7 @@ export default function MasterTufanOS() {
             const placeholders = Array.from({ length: count }, (_, i) =>
                 `https://via.placeholder.com/400x300/1e293b/94a3b8?text=${encodeURIComponent(topic)}+${i + 1}`
             );
-            setGalleryImages(placeholders);
-            setLoadingImages(false);
         }
-    };
-
-    const getPlatformUrl = (platform: string, topic: string, keywords: string[]) => {
-        const isPDF = platform === "google";
-        const enhancedKeywords = isPDF ? keywords.map(k => `${k} filetype:pdf`) : keywords;
-
-        // Language filtering
-        let langQuery = "";
-        if (language === 'tr') langQuery = " site:tr OR language:tr";
-
-        const query = enhancedKeywords.join(" OR ") + langQuery;
-
-        // Detailed Language Params for specific sites
-        const hl = language === 'tr' ? '&hl=tr&gl=tr' : '&hl=en&gl=us';
-
-        switch (platform) {
-            case "reddit": return `https://www.reddit.com/search/?q=${encodeURIComponent(query)}`;
-            case "wikipedia": return `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(topic)}${language === 'tr' ? '&go=Git' : ''}`; // Wikipedia checks browser lang usually, or we prefix tr.wikipedia
-            case "youtube": return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-            case "google": return `https://www.google.com/search?q=${encodeURIComponent(query)}${hl}`;
-            case "github": return `https://github.com/search?q=${encodeURIComponent(query + " language:c OR language:python")}&type=code`;
-            case "udemy": return `https://www.udemy.com/courses/search/?q=${encodeURIComponent(topic)}&lang=${language}`;
-            case "ieee": return `https://ieeexplore.ieee.org/search/searchresult.jsp?newsearch=true&queryText=${encodeURIComponent(topic)}`;
-            case "pinterest": return `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(topic + " schematics diagram")}`;
-            default: return `https://google.com/search?q=${encodeURIComponent(query)}`;
-        }
-    };
-
-    const handlePlatformClick = (platform: string, topic: string, topicId: string, keywords: string[]) => {
-        // NEW FLOW: Just redirect to search results, user will pick and paste
-        const url = getPlatformUrl(platform, topic, keywords);
-        window.open(url, '_blank');
-    };
-
-    // Old manual save function reserved for context menu if needed, but replaced by modal flow largely
-    const saveCurrentResource = async (topicId: string, platformId: string, topicTitle: string, keywords: string[]) => {
-        // ... existing implementation
     };
 
     const renderRecursive = (item: any, depth: number = 0) => {
@@ -527,7 +335,6 @@ export default function MasterTufanOS() {
                         }`}
                     onClick={() => {
                         setActiveControlPanel(showPanel ? null : item.id);
-                        if (!showPanel) loadLinksForTopic(item.id);
                     }}
                 >
                     {hasChildren && (
@@ -567,31 +374,18 @@ export default function MasterTufanOS() {
                                     return (
                                         <div key={plat.id} className="relative group/tooltip flex flex-col items-center gap-1">
                                             <button
-                                                onClick={async () => {
+                                                onClick={async (e) => {
+                                                    e.stopPropagation();
                                                     setActivePlatformPanel({ topicId: item.id, platform: plat.id });
-                                                    await generateKeywordsWithAI(item.title, item.id, keywordThreshold, item.keywords || []);
-                                                    // NEW FLOW: Don't open external link here - only expand keyword panel
-                                                    // User will click a keyword which calls handlePlatformClick
+                                                    await generateKeywordsWithAI(item.title, item.id, 20, item.keywords || []);
                                                 }}
                                                 className={`p-2 rounded-lg transition-all relative ${isActive ? 'bg-blue-600' : 'bg-slate-700/30 hover:bg-slate-600/50'
                                                     }`}
                                             >
                                                 <Icon size={16} className={`text-${plat.color}-400`} />
-
-                                                {/* QUICK PIN BUTTON ON HOVER */}
-                                                <div
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        saveCurrentResource(item.id, plat.id, item.title, item.keywords || []);
-                                                    }}
-                                                    className="absolute -right-2 -top-2 bg-slate-900 border border-slate-700 rounded-full p-1 opacity-0 group-hover/tooltip:opacity-100 transition-opacity hover:bg-emerald-600 z-10"
-                                                    title="Pin to System"
-                                                >
-                                                    <Pin size={8} className="text-white" />
-                                                </div>
                                             </button>
 
-                                            {/* DYNAMIC LABEL (Click-to-Reveal / Hover) */}
+                                            {/* DYNAMIC LABEL */}
                                             <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-black/90 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
                                                 {plat.name}
                                                 <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-black/90" />
@@ -600,7 +394,8 @@ export default function MasterTufanOS() {
                                     );
                                 })}
                                 <button
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                        e.stopPropagation();
                                         const newState = showImageGallery === item.id ? null : item.id;
                                         setShowImageGallery(newState);
                                         if (newState) {
@@ -615,7 +410,7 @@ export default function MasterTufanOS() {
                                 </button>
                             </div>
 
-                            {/* PLATFORM PANEL WITH SLIDER & LANGUAGE */}
+                            {/* PLATFORM PANEL WITH KEYWORDS */}
                             {activePlatformPanel?.topicId === item.id && (
                                 <motion.div
                                     initial={{ opacity: 0 }}
@@ -623,38 +418,20 @@ export default function MasterTufanOS() {
                                     className="mb-3 p-3 bg-slate-700/30 rounded-lg border border-blue-500/20"
                                 >
                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs text-slate-400 font-semibold">Keyword Threshold: {keywordThreshold}</span>
+                                        <span className="text-xs text-blue-400 font-bold uppercase tracking-wider">AI Anahtar Kelimeler (20)</span>
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={() => setLanguage('tr')}
                                                 className={`px-3 py-1 rounded text-xs font-medium transition-all ${language === 'tr' ? 'bg-blue-600 text-white' : 'bg-slate-600 text-slate-300'
                                                     }`}
-                                            >
-                                                TR
-                                            </button>
+                                            >TR</button>
                                             <button
                                                 onClick={() => setLanguage('en')}
                                                 className={`px-3 py-1 rounded text-xs font-medium transition-all ${language === 'en' ? 'bg-blue-600 text-white' : 'bg-slate-600 text-slate-300'
                                                     }`}
-                                            >
-                                                EN
-                                            </button>
+                                            >EN</button>
                                         </div>
                                     </div>
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max="50"
-                                        value={keywordThreshold}
-                                        onChange={async (e) => {
-                                            const val = Number(e.target.value);
-                                            setKeywordThreshold(val);
-                                            if (activePlatformPanel) {
-                                                await generateKeywordsWithAI(item.title, item.id, val, item.keywords || []);
-                                            }
-                                        }}
-                                        className="w-full mb-3 accent-blue-500"
-                                    />
 
                                     {/* LOADING BAR */}
                                     <div className="h-2 bg-slate-800 rounded-full overflow-hidden mb-3">
@@ -674,184 +451,55 @@ export default function MasterTufanOS() {
 
                                     {generatingKeywords ? (
                                         <div className="text-center text-blue-400 text-sm font-medium animate-pulse">
-                                            🔄 Generating keywords...
+                                            🔄 Generating 20 keywords with AI...
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 max-h-48 overflow-y-auto p-2 bg-slate-800/30 rounded">
-                                            {generatedKeywords[item.id]?.slice(0, keywordThreshold).map((kw, idx) => (
+                                            {generatedKeywords[item.id]?.slice(0, 20).map((kw, idx) => (
                                                 <button
                                                     key={idx}
-                                                    onClick={() => activePlatformPanel && handlePlatformClick(activePlatformPanel.platform, item.title, item.id, [kw])}
-                                                    className="px-3 py-1 bg-blue-900/40 text-blue-300 rounded-full text-xs hover:bg-blue-900/60 transition-all hover:scale-105 truncate"
+                                                    onClick={async () => {
+                                                        if (!activePlatformPanel) return;
+                                                        const platform = activePlatformPanel.platform;
+                                                        const searchQuery = `${kw} ${item.title}`;
+                                                        const randomUrls: Record<string, string> = {
+                                                            youtube: `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}&sp=CAI%253D`,
+                                                            google: `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}+filetype:pdf`,
+                                                            reddit: `https://www.reddit.com/search/?q=${encodeURIComponent(searchQuery)}&sort=relevance`,
+                                                            pinterest: `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(searchQuery)}`,
+                                                            wikipedia: `https://${language}.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(kw)}`,
+                                                            ieee: `https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=${encodeURIComponent(searchQuery)}`,
+                                                            udemy: `https://www.udemy.com/courses/search/?q=${encodeURIComponent(searchQuery)}`,
+                                                            github: `https://github.com/search?q=${encodeURIComponent(searchQuery)}&type=repositories`
+                                                        };
+                                                        const url = randomUrls[platform] || randomUrls.youtube;
+                                                        window.open(url, '_blank');
+                                                    }}
+                                                    className="px-3 py-1 bg-blue-900/40 text-blue-300 rounded-full text-[10px] hover:bg-blue-900/60 transition-all hover:scale-105 truncate text-left"
                                                     title={kw}
-                                                >
-                                                    {kw}
-                                                </button>
+                                                >{kw}</button>
                                             ))}
                                         </div>
                                     )}
                                 </motion.div>
                             )}
 
-                            {/* EMBEDDED RESOURCES - Saved Links Only */}
-                            {(() => {
-                                const allResources = [
-                                    ...(savedLinks[item.id] || []).map((l: any) => ({ ...l, type: 'saved' }))
-                                ];
-
-                                if (allResources.length === 0) return null;
-
-                                return (
-                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 space-y-3">
-                                        {PLATFORMS.map(plat => {
-                                            const resources = allResources.filter((l: any) => (l.platformId || l.platform) === plat.id);
-                                            if (resources.length === 0) return null;
-                                            const Icon = plat.icon;
-
-                                            return (
-                                                <div key={plat.id} className="bg-slate-900/40 rounded-lg border border-slate-700/50 overflow-hidden">
-                                                    <div className={`px-3 py-2 bg-slate-800/50 border-b border-slate-700/50 flex items-center gap-2`}>
-                                                        <Icon size={14} className={`text-${plat.color}-400`} />
-                                                        <span className={`text-[10px] font-bold text-${plat.color}-300 uppercase tracking-wider`}>{plat.name} Resources</span>
-                                                        <span className="ml-auto text-[10px] text-slate-500 bg-slate-800 px-1.5 rounded">{resources.length}</span>
-                                                    </div>
-                                                    <div className="p-2 space-y-2">
-                                                        {resources.map((link: any) => {
-                                                            const isReddit = plat.id === 'reddit';
-                                                            return (
-                                                                <div key={link.id} className={`${isReddit ? 'grid grid-cols-1 sm:grid-cols-2 gap-2' : 'flex items-center justify-between'} bg-slate-800/30 p-2 rounded hover:bg-slate-800/50 transition relative group/link`}>
-                                                                    {/* Reddit Dual View */}
-                                                                    {isReddit ? (
-                                                                        <>
-                                                                            <div className="text-xs text-slate-300 pr-2 border-r border-slate-700/50 flex flex-col justify-between">
-                                                                                <a href={link.url} target="_blank" className="hover:text-amber-400 font-medium line-clamp-2 no-underline">{link.title}</a>
-                                                                                <span className="text-[9px] text-slate-500 mt-1">Reddit Post</span>
-                                                                            </div>
-                                                                            <div className="h-20 bg-black/50 rounded flex items-center justify-center text-slate-600 text-[10px] relative overflow-hidden group/media">
-                                                                                {link.thumbnail ? <img src={link.thumbnail} className="w-full h-full object-cover opacity-70 group-hover/media:opacity-100 transition" /> : <div className="flex flex-col items-center"><ImageIcon size={16} /><span>Preview</span></div>}
-                                                                            </div>
-                                                                        </>
-                                                                    ) : (
-                                                                        // Standard View
-                                                                        <a href={link.url} target="_blank" className="text-xs text-slate-300 hover:text-white truncate flex-1 mr-2 no-underline flex items-center gap-2">
-                                                                            {link.title}
-                                                                        </a>
-                                                                    )}
-
-                                                                    {/* Actions */}
-                                                                    <div className={`${isReddit ? 'absolute top-1 right-1' : 'flex gap-1'} opacity-0 group-hover/link:opacity-100 transition-opacity bg-slate-900/80 rounded p-0.5`}>
-                                                                        {plat.id === 'youtube' && (
-                                                                            <>
-                                                                                <button
-                                                                                    onClick={(e) => {
-                                                                                        e.preventDefault();
-                                                                                        const videoId = link.url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1];
-                                                                                        if (videoId) window.open(`https://www.y2mate.com/youtube/${videoId}`, '_blank');
-                                                                                        else alert("Video ID bulunamadı");
-                                                                                    }}
-                                                                                    className="p-1 hover:text-red-400"
-                                                                                    title="Video İndir"
-                                                                                >
-                                                                                    <Download size={12} />
-                                                                                </button>
-                                                                                <button
-                                                                                    onClick={(e) => {
-                                                                                        e.preventDefault();
-                                                                                        const videoId = link.url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1];
-                                                                                        if (videoId) {
-                                                                                            // Use YouTube transcript API or third-party service
-                                                                                            window.open(`https://youtubetranscript.com?v=${videoId}`, '_blank');
-                                                                                        } else alert("Video ID bulunamadı");
-                                                                                    }}
-                                                                                    className="p-1 hover:text-blue-400"
-                                                                                    title="Transkript PDF"
-                                                                                >
-                                                                                    <FileText size={12} />
-                                                                                </button>
-                                                                                <button
-                                                                                    onClick={(e) => {
-                                                                                        e.preventDefault();
-                                                                                        const videoId = link.url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1];
-                                                                                        if (videoId) {
-                                                                                            // Use YouTube transcript API or third-party service
-                                                                                            window.open(`https://youtubetranscript.com?v=${videoId}`, '_blank');
-                                                                                        } else alert("Video ID bulunamadı");
-                                                                                    }}
-                                                                                    className="p-1 hover:text-green-400"
-                                                                                    title="Transkript DOC"
-                                                                                >
-                                                                                    <FileType size={12} />
-                                                                                </button>
-                                                                            </>
-                                                                        )}
-                                                                        {plat.id === 'google' && link.url.includes('.pdf') && (
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.preventDefault();
-                                                                                    window.open(link.url, '_blank');
-                                                                                }}
-                                                                                className="p-1 hover:text-orange-400"
-                                                                                title="PDF İndir"
-                                                                            >
-                                                                                <Download size={12} />
-                                                                            </button>
-                                                                        )}
-                                                                        <button onClick={() => deleteLink(link.id).then(() => loadLinksForTopic(item.id))} className="p-1 hover:text-red-400"><Trash2 size={12} /></button>
-                                                                    </div>
-                                                                </div>
-                                                            )
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
-
-                                        {(() => {
-                                            const otherLinks = allResources.filter((l: any) => !PLATFORMS.some(p => p.id === (l.platformId || l.platform)));
-                                            if (otherLinks.length === 0) return null;
-                                            return (
-                                                <div className="bg-slate-900/40 rounded-lg border border-slate-700/50 overflow-hidden">
-                                                    <div className="px-3 py-2 bg-slate-800/50 border-b border-slate-700/50 flex items-center gap-2">
-                                                        <Pin size={14} className="text-slate-400" />
-                                                        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">OTHER Resources</span>
-                                                        <span className="ml-auto text-[10px] text-slate-500 bg-slate-800 px-1.5 rounded">{otherLinks.length}</span>
-                                                    </div>
-                                                    <div className="p-1 space-y-1">
-                                                        {otherLinks.map((link: any) => (
-                                                            <div key={link.id} className="flex justify-between items-center group/link p-2 hover:bg-slate-800 rounded transition-colors">
-                                                                <a href={link.url} target="_blank" rel="noreferrer" className="text-xs text-slate-300 hover:text-white truncate flex-1 mr-2 no-underline">{link.title}</a>
-                                                                <div className="flex gap-1 opacity-0 group-hover/link:opacity-100 transition-opacity">
-                                                                    <button onClick={() => deleteLink(link.id).then(() => loadLinksForTopic(item.id))} className="p-1 hover:bg-red-900/30 text-slate-500 hover:text-red-400 rounded transition"><Trash2 size={12} /></button>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })()}
-                                    </motion.div>
-                                );
-                            })()}
-
-                            {/* IMAGE GALLERY - DIRECT INJECTION */}
+                            {/* IMAGE GALLERY */}
                             {showImageGallery === item.id && (
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
-                                    className="p-3 bg-slate-700/30 rounded-lg border border-purple-500/20"
+                                    className="mt-3 p-3 bg-slate-700/30 rounded-lg border border-purple-500/20"
                                 >
                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs text-slate-400 font-semibold">Images: {imageThreshold}</span>
-                                        <button
-                                            onClick={() => setShowImageGallery(null)}
-                                            className="hover:bg-slate-600 rounded p-1"
-                                        >
+                                        <span className="text-xs text-purple-400 font-bold uppercase tracking-wider">Engineering Diagrams ({imageThreshold})</span>
+                                        <button onClick={() => setShowImageGallery(null)} className="hover:bg-slate-600 rounded p-1">
                                             <X size={14} className="text-slate-400" />
                                         </button>
                                     </div>
                                     <input
                                         type="range"
-                                        min="0"
+                                        min="1"
                                         max="25"
                                         value={imageThreshold}
                                         onChange={(e) => {
@@ -862,17 +510,15 @@ export default function MasterTufanOS() {
                                         className="w-full mb-3 accent-purple-500"
                                     />
                                     {loadingImages ? (
-                                        <div className="text-center text-purple-400 text-sm font-medium animate-pulse">
-                                            🖼️ Loading images...
-                                        </div>
+                                        <div className="text-center text-purple-400 text-sm font-medium animate-pulse">🖼️ Loading images...</div>
                                     ) : (
-                                        <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto p-2 bg-slate-800/30 rounded">
+                                        <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto p-1">
                                             {galleryImages.slice(0, imageThreshold).map((imgUrl, i) => (
                                                 <motion.img
                                                     key={i}
                                                     src={imgUrl}
                                                     alt={`${item.title} ${i + 1}`}
-                                                    className="w-full aspect-video object-cover rounded-lg cursor-pointer shadow-lg"
+                                                    className="w-full aspect-video object-cover rounded-lg cursor-pointer shadow-lg hover:ring-2 hover:ring-purple-500 transition-all"
                                                     whileHover={{ scale: 1.05 }}
                                                     onClick={() => window.open(imgUrl, '_blank')}
                                                 />
@@ -885,7 +531,6 @@ export default function MasterTufanOS() {
                     )}
                 </AnimatePresence>
 
-                {/* RECURSIVE CHILDREN */}
                 <AnimatePresence>
                     {hasChildren && isExpanded && (
                         <motion.div
@@ -897,7 +542,7 @@ export default function MasterTufanOS() {
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </div >
+            </div>
         );
     };
 
@@ -905,13 +550,6 @@ export default function MasterTufanOS() {
 
     return (
         <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
-            {/* FIXED UI ELEMENTS */}
-            <button
-                onClick={() => setRunTutorial(true)}
-                className="fixed top-4 right-4 z-[60] bg-blue-600/90 backdrop-blur-md text-white px-4 py-2 rounded-full text-xs font-bold border border-blue-400/50 shadow-[0_0_20px_rgba(59,130,246,0.5)] animate-pulse hover:animate-none hover:bg-blue-500 hover:scale-105 transition-all flex items-center gap-2"
-            >
-                <HelpCircle size={16} /> How to Use?
-            </button>
 
             {/* MOBILE STRIP SIDEBAR (ALWAYS VISIBLE ON MOBILE) */}
             <div className="lg:hidden fixed left-0 top-0 bottom-0 w-[60px] bg-slate-900/90 backdrop-blur border-r border-slate-700/50 z-[45] flex flex-col items-center py-6 gap-4" onClick={(e) => e.stopPropagation()}>
@@ -927,7 +565,7 @@ export default function MasterTufanOS() {
             </div>
 
             {/* MODALS */}
-            <PreviewModal />
+
 
             {/* SessionHistoryPanel Removed - Integrated into topic view */}
 
