@@ -247,19 +247,54 @@ export default function MasterTufanOS() {
     };
 
     // --- COMPONENT: THRESHOLD ALERT ---
+    // --- COMPONENT: THRESHOLD ALERT (LINK EMBEDDING MODAL) ---
     const ThresholdModal = () => {
         if (!showThresholdModal) return null;
+        const pendingLinks = sessionLinks.slice(-5); // Show last 5 to review
+
         return (
             <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-                <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-slate-900 border border-amber-500/50 p-6 rounded-2xl w-[90%] max-w-lg shadow-2xl">
-                    <div className="text-center">
-                        <div className="w-16 h-16 bg-amber-900/40 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-400"><Book size={32} /></div>
-                        <h3 className="text-2xl font-bold text-white mb-2">Verimli Bir Oturum! 🔥</h3>
-                        <p className="text-slate-300 mb-6">Şu ana kadar <span className="text-amber-400 font-bold">{sessionLinks.length} farklı kaynağa</span> göz attın. Oturum Çantanda biriktiler. İncelemek ister misin?</p>
-                        <div className="flex gap-3">
-                            <button onClick={() => setShowThresholdModal(false)} className="flex-1 py-3 bg-slate-800 text-slate-400 rounded-xl hover:bg-slate-700 font-medium">Sonra</button>
-                            <button onClick={() => { setShowThresholdModal(false); setShowSessionPanel(true); }} className="flex-1 py-3 bg-amber-600 text-white rounded-xl hover:bg-amber-500 font-bold shadow-lg">Listeyi İncele</button>
-                        </div>
+                <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-slate-900 border border-emerald-500/50 p-6 rounded-2xl w-[90%] max-w-lg shadow-2xl relative">
+                    <button onClick={() => setShowThresholdModal(false)} className="absolute top-4 right-4 text-slate-500 hover:text-white"><X size={20} /></button>
+
+                    <div className="text-center mb-6">
+                        <div className="w-12 h-12 bg-emerald-900/40 rounded-full flex items-center justify-center mx-auto mb-2 text-emerald-400"><Pin size={24} /></div>
+                        <h3 className="text-xl font-bold text-white">Linkleri Konuya Göm? 🧐</h3>
+                        <p className="text-xs text-slate-400 mt-1">5 yeni kaynağa baktın. Bunları kalıcı olarak kaydetmek ister misin?</p>
+                    </div>
+
+                    <div className="space-y-2 mb-6 max-h-60 overflow-y-auto custom-scrollbar bg-slate-950/50 p-2 rounded-xl border border-slate-800">
+                        {pendingLinks.map(link => (
+                            <div key={link.id} className="flex items-center gap-3 bg-slate-900 p-2 rounded-lg border border-slate-800 hover:border-slate-700 transition">
+                                <img src={link.thumbnail || `https://via.placeholder.com/40?text=${link.platformId}`} className="w-10 h-10 rounded object-cover bg-black shrink-0" onError={(e) => e.currentTarget.src = 'https://via.placeholder.com/40'} />
+                                <div className="flex-1 min-w-0 text-left">
+                                    <p className="text-xs text-slate-200 truncate font-medium">{link.title}</p>
+                                    <p className="text-[10px] text-slate-500 truncate flex items-center gap-1">
+                                        {link.platformId.toUpperCase()}
+                                    </p>
+                                </div>
+                                <div className="flex gap-1 shrink-0">
+                                    <button
+                                        onClick={() => setSessionLinks(prev => prev.filter(p => p.id !== link.id))}
+                                        className="w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-red-900/50 text-slate-400 hover:text-red-400 rounded-lg transition"
+                                        title="Listeden Çıkar"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            await saveLink({ topic_id: link.topicId, title: link.title, url: link.url, platform: link.platformId });
+                                            loadLinksForTopic(link.topicId);
+                                            setSessionLinks(prev => prev.filter(p => p.id !== link.id));
+                                        }}
+                                        className="w-8 h-8 flex items-center justify-center bg-emerald-900/30 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-lg transition"
+                                        title="Konuya Göm (Kaydet)"
+                                    >
+                                        <CheckCircle2 size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </motion.div>
             </div>
@@ -539,10 +574,15 @@ export default function MasterTufanOS() {
 
     const handlePlatformClick = (platform: string, topic: string, topicId: string, keywords: string[]) => {
         const url = getPlatformUrl(platform, topic, keywords);
-        window.open(url, '_blank');
+        // window.open(url, '_blank'); // REMOVED as requested
 
         // Add to session history silently
         fetchAndAddLink(platform, topic, topicId, url);
+
+        // Expand the item to show the panel/thresholds
+        setExpandedItems(prev => new Set(prev).add(topicId));
+        // Open the control panel to show the saved resources area ("eşikler")
+        setActiveControlPanel(topicId);
     };
 
     // Old manual save function reserved for context menu if needed, but replaced by modal flow largely
@@ -729,62 +769,43 @@ export default function MasterTufanOS() {
                                 </motion.div>
                             )}
 
-                            {/* SAVED LINKS SECTION */}
+                            {/* SAVED LINKS SECTION (GROUPED BY PLATFORM) */}
                             {savedLinks[item.id] && savedLinks[item.id].length > 0 && (
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
-                                    className="mt-3 p-3 bg-slate-900/40 rounded-lg border border-emerald-500/20"
+                                    className="mt-3 space-y-3"
                                 >
-                                    <h4 className="text-xs font-bold text-emerald-400 mb-2 flex items-center gap-2">
-                                        <Pin size={12} /> SAVED RESOURCES
-                                    </h4>
-                                    <div className="space-y-1">
-                                        {savedLinks[item.id].map((link) => (
-                                            <div key={link.id} className="flex justify-between items-center group/link p-2 hover:bg-slate-800 rounded">
-                                                <a
-                                                    href={link.url}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="text-xs text-slate-300 hover:text-emerald-300 truncate flex-1 mr-2"
-                                                >
-                                                    {link.title}
-                                                </a>
-                                                <div className="flex gap-1 opacity-0 group-hover/link:opacity-100 transition-opacity">
-                                                    {/* PRINT / PDF VIEW */}
-                                                    <button
-                                                        onClick={() => window.open(`https://www.printfriendly.com/print?url=${encodeURIComponent(link.url)}`, '_blank')}
-                                                        className="p-1 hover:bg-slate-700 rounded text-slate-400 hover:text-blue-400"
-                                                        title="View as PDF / Print Friendly"
-                                                    >
-                                                        <FileText size={12} />
-                                                    </button>
-                                                    {/* DOWNLOAD (If applicable, attempts download) */}
-                                                    <a
-                                                        href={link.url}
-                                                        download
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="p-1 hover:bg-slate-700 rounded text-slate-400 hover:text-emerald-400"
-                                                        title="Download Source"
-                                                    >
-                                                        <Pin size={12} className="rotate-180" /> {/* Reuse Pin icon rotated as download symbol style */}
-                                                    </a>
-                                                    {/* DELETE */}
-                                                    <button
-                                                        onClick={() => {
-                                                            deleteLink(link.id);
-                                                            loadLinksForTopic(item.id);
-                                                        }}
-                                                        className="p-1 hover:bg-slate-700 rounded text-slate-400 hover:text-red-400"
-                                                        title="Remove Pin"
-                                                    >
-                                                        <Trash2 size={12} />
-                                                    </button>
+                                    {PLATFORMS.map(plat => {
+                                        const platformLinks = savedLinks[item.id].filter((l: any) => l.platform === plat.id);
+                                        if (platformLinks.length === 0) return null;
+                                        const Icon = plat.icon;
+                                        return (
+                                            <div key={plat.id} className="bg-slate-900/40 rounded-lg border border-slate-700/50 overflow-hidden">
+                                                <div className={`px-3 py-2 bg-slate-800/50 border-b border-slate-700/50 flex items-center gap-2`}>
+                                                    <Icon size={14} className={`text-${plat.color}-400`} />
+                                                    <span className={`text-[10px] font-bold text-${plat.color}-300 uppercase tracking-wider`}>{plat.name}</span>
+                                                    <span className="ml-auto text-[10px] text-slate-500 bg-slate-800 px-1.5 rounded">{platformLinks.length}</span>
+                                                </div>
+                                                <div className="p-1 space-y-1">
+                                                    {platformLinks.map((link: any) => (
+                                                        <div key={link.id} className="flex justify-between items-center group/link p-2 hover:bg-slate-800 rounded transition-colors">
+                                                            <a href={link.url} target="_blank" rel="noreferrer" className="text-xs text-slate-300 hover:text-white truncate flex-1 mr-2 no-underline">
+                                                                {link.title}
+                                                            </a>
+                                                            <div className="flex gap-1 opacity-0 group-hover/link:opacity-100 transition-opacity">
+                                                                {(link.url.includes('youtube') || link.url.includes('youtu.be')) && (
+                                                                    <button onClick={() => window.open(link.url.replace('youtube.com', 'ssyoutube.com').replace('youtu.be/', 'ssyoutube.com/'), '_blank')} className="p-1 hover:text-red-400" title="İndir"><Pin size={12} className="rotate-180" /></button>
+                                                                )}
+                                                                <button onClick={() => window.open(`https://www.printfriendly.com/print?url=${encodeURIComponent(link.url)}`, '_blank')} className="p-1 hover:text-blue-400" title="PDF"><FileText size={12} /></button>
+                                                                <button onClick={() => deleteLink(link.id).then(() => loadLinksForTopic(item.id))} className="p-1 hover:bg-red-900/30 text-slate-500 hover:text-red-400 rounded transition"><Trash2 size={12} /></button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
+                                        )
+                                    })}
                                 </motion.div>
                             )}
 

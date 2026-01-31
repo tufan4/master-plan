@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Master Tufan OS",
     description: "Engineering Mastermind System",
     icons: {
-        icon: '/master_tufan_logo.png?v=2'
+        icon: '/master_tufan_logo_v3.png'
     }
 };
 
