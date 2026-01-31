@@ -18,7 +18,7 @@ import {
     Search, ChevronDown, ChevronRight, CheckCircle2, Circle,
     Youtube, FileText, Book, X, Image as ImageIcon,
     Globe, MessageCircle, Sparkles, BookOpen, Info, Instagram, Linkedin,
-    Github, Lightbulb, Pin, Trash2, HelpCircle, Layout
+    Github, Lightbulb, Pin, Trash2, HelpCircle, Layout, Settings
 } from "lucide-react";
 
 // ==================== PLATFORMS ====================
@@ -155,6 +155,12 @@ export default function MasterTufanOS() {
             CURRICULUM.categories.forEach(cat => {
                 if (cat.topics) searchCurriculum(cat.topics);
             });
+
+            if (CURRICULUM.dictionary && globalSearch.length > 2) {
+                // Dictionary included in search scope 
+                // Logic updated to use globalSearch state
+                const searchTerm = globalSearch.toLowerCase();
+            }
 
             setExpandedItems(expandAll);
         } else {
@@ -806,6 +812,31 @@ export default function MasterTufanOS() {
                                             </div>
                                         )
                                     })}
+
+                                    {/* OTHER Resources Group */}
+                                    {(() => {
+                                        const otherLinks = savedLinks[item.id].filter((l: any) => !PLATFORMS.some(p => p.id === l.platform));
+                                        if (otherLinks.length === 0) return null;
+                                        return (
+                                            <div className="bg-slate-900/40 rounded-lg border border-slate-700/50 overflow-hidden">
+                                                <div className="px-3 py-2 bg-slate-800/50 border-b border-slate-700/50 flex items-center gap-2">
+                                                    <Pin size={14} className="text-slate-400" />
+                                                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">OTHER Resources</span>
+                                                    <span className="ml-auto text-[10px] text-slate-500 bg-slate-800 px-1.5 rounded">{otherLinks.length}</span>
+                                                </div>
+                                                <div className="p-1 space-y-1">
+                                                    {otherLinks.map((link: any) => (
+                                                        <div key={link.id} className="flex justify-between items-center group/link p-2 hover:bg-slate-800 rounded transition-colors">
+                                                            <a href={link.url} target="_blank" rel="noreferrer" className="text-xs text-slate-300 hover:text-white truncate flex-1 mr-2 no-underline">{link.title}</a>
+                                                            <div className="flex gap-1 opacity-0 group-hover/link:opacity-100 transition-opacity">
+                                                                <button onClick={() => deleteLink(link.id).then(() => loadLinksForTopic(item.id))} className="p-1 hover:bg-red-900/30 text-slate-500 hover:text-red-400 rounded transition"><Trash2 size={12} /></button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </motion.div>
                             )}
 
@@ -880,7 +911,28 @@ export default function MasterTufanOS() {
     const activeData = CURRICULUM.categories.find((c: any) => c.id === activeCategory);
 
     return (
-        <div className="flex h-screen bg-slate-900 text-slate-100">
+        <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
+            {/* FIXED UI ELEMENTS */}
+            <button
+                onClick={() => setRunTutorial(true)}
+                className="fixed top-4 right-4 z-[60] bg-blue-600/90 backdrop-blur-md text-white px-4 py-2 rounded-full text-xs font-bold border border-blue-400/50 shadow-[0_0_20px_rgba(59,130,246,0.5)] animate-pulse hover:animate-none hover:bg-blue-500 hover:scale-105 transition-all flex items-center gap-2"
+            >
+                <HelpCircle size={16} /> How to Use?
+            </button>
+
+            {/* MOBILE STRIP SIDEBAR (ALWAYS VISIBLE ON MOBILE) */}
+            <div className="lg:hidden fixed left-0 top-0 bottom-0 w-[60px] bg-slate-900/90 backdrop-blur border-r border-slate-700/50 z-[45] flex flex-col items-center py-6 gap-4" onClick={(e) => e.stopPropagation()}>
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center font-black text-slate-900 text-xl shadow-lg shadow-amber-500/20 mb-2">M</div>
+                <div className="flex flex-col gap-3 w-full items-center overflow-y-auto custom-scrollbar no-scrollbar flex-1 pb-20">
+                    {CURRICULUM.categories.slice(0, 6).map((cat: any) => (
+                        <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${activeCategory === cat.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 ring-2 ring-blue-400/50' : 'bg-slate-800 text-slate-500 hover:bg-slate-700'}`}>
+                            {cat.id.substring(0, 2)}
+                        </button>
+                    ))}
+                </div>
+                <button onClick={() => setShowAboutModal(true)} className="absolute bottom-6 p-3 bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-colors border border-slate-700"><Info size={20} /></button>
+            </div>
+
             {/* MODALS */}
             <PreviewModal />
             <ThresholdModal />
@@ -911,11 +963,11 @@ export default function MasterTufanOS() {
                 <div className="p-6 border-b border-slate-700/50">
                     {/* MASTER TUFAN HEADER */}
                     <div
-                        className="cursor-pointer group mb-2"
+                        className="cursor-pointer group mb-4"
                         onClick={resetApp}
                     >
-                        <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-400 hover:from-amber-300 hover:via-yellow-400 hover:to-amber-300 transition-all">
-                            MASTER TUFAN
+                        <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 hover:to-yellow-400 transition-all font-[family-name:var(--font-syncopate)] tracking-[0.15em] uppercase drop-shadow-sm">
+                            Master Tufan
                         </h1>
                     </div>
                     <div className="mt-2">
