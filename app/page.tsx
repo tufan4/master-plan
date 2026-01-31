@@ -501,7 +501,7 @@ export default function MasterTufanOS() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="ml-8 mt-2 bg-slate-800/50 rounded-lg p-4 border border-slate-700/50"
+                            className="ml-0 sm:ml-8 mt-2 bg-slate-800/50 rounded-lg p-2 sm:p-4 border border-slate-700/50"
                         >
                             {/* AI SMART KEY BUTTON */}
 
