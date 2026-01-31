@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import { Inter, Dancing_Script } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
-const dancingScript = Dancing_Script({ subsets: ["latin"], variable: '--font-dancing' });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "MASTER TUFAN OS - Engineering Portal",
-    description: "5000+ Technical Topics Research System",
+    title: "Master Tufan OS",
+    description: "Engineering Mastermind System",
+    icons: {
+        icon: '/master_tufan_logo.png' // Assumed generated image path
+    }
 };
 
 export default function RootLayout({
@@ -17,7 +19,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={inter.className}>{children}</body>
+            <body className={spaceGrotesk.className}>{children}</body>
         </html>
     );
 }

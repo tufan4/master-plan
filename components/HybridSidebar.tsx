@@ -71,7 +71,7 @@ export default function HybridSidebar({
                 initial={false}
                 animate={{ width: isExpanded ? 280 : 60 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="fixed top-0 left-0 h-full bg-slate-900 border-r border-slate-800 z-50 flex flex-col lg:hidden overflow-hidden shadow-2xl"
+                className="fixed top-0 left-0 h-full bg-slate-900 border-r border-slate-800 z-50 flex flex-col lg:hidden overflow-hidden shadow-2xl will-change-transform"
             // On swipe right logic could be added here with pan handlers if needed, 
             // but for now relying on tap to expand
             >

@@ -78,3 +78,83 @@ export function getCachedKeywords(topicId: string): string[] | null {
         return null;
     }
 }
+
+// ==================== LINK EMBEDDING SYSTEM ====================
+
+export interface SavedLink {
+    id: string;
+    topic_id: string;
+    title: string;
+    url: string;
+    platform: string;
+    created_at?: string;
+}
+
+export async function saveLink(link: Omit<SavedLink, 'id' | 'created_at'>): Promise<SavedLink | null> {
+    const newLink = { ...link, id: crypto.randomUUID(), created_at: new Date().toISOString() };
+
+    // 1. LocalStorage (Immediate UI update & Offline support)
+    try {
+        const existing = JSON.parse(localStorage.getItem('saved_links') || '[]');
+        const updated = [...existing, newLink];
+        localStorage.setItem('saved_links', JSON.stringify(updated));
+    } catch (e) {
+        console.error("Local save failed", e);
+    }
+
+    // 2. Supabase (Cloud Sync)
+    try {
+        const { error } = await supabase
+            .from('saved_links')
+            .insert([{
+                user_id: 'default_user',
+                topic_id: link.topic_id,
+                title: link.title,
+                url: link.url,
+                platform: link.platform
+            }]);
+
+        if (error) throw error;
+    } catch (err) {
+        console.warn('Supabase link save failed (falling back to local):', err);
+    }
+
+    return newLink;
+}
+
+export async function getSavedLinks(topicId: string): Promise<SavedLink[]> {
+    // 1. Try Supabase first
+    try {
+        const { data, error } = await supabase
+            .from('saved_links')
+            .select('*')
+            .eq('user_id', 'default_user')
+            .eq('topic_id', topicId);
+
+        if (!error && data) return data;
+    } catch (err) {
+        // Silent fail to local
+    }
+
+    // 2. Fallback to LocalStorage
+    try {
+        const all = JSON.parse(localStorage.getItem('saved_links') || '[]');
+        return all.filter((l: SavedLink) => l.topic_id === topicId);
+    } catch (e) {
+        return [];
+    }
+}
+
+export async function deleteLink(id: string) {
+    // Local
+    try {
+        const all = JSON.parse(localStorage.getItem('saved_links') || '[]');
+        const filtered = all.filter((l: SavedLink) => l.id !== id);
+        localStorage.setItem('saved_links', JSON.stringify(filtered));
+    } catch (e) { }
+
+    // Cloud
+    try {
+        await supabase.from('saved_links').delete().eq('id', id);
+    } catch (e) { }
+}

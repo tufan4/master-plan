@@ -1,26 +1,33 @@
 "use client";
 
+import TypewriterSlogan from "@/components/TypewriterSlogan";
+import HybridSidebar from "@/components/HybridSidebar";
+import TutorialOverlay from "@/components/TutorialOverlay";
+import AboutModal from "@/components/AboutModal";
+import {
+    syncCompletedTopics, fetchCompletedTopics, cacheImage, getCachedImages, cacheKeywords, getCachedKeywords,
+    saveLink, getSavedLinks, deleteLink, SavedLink
+} from "@/lib/supabaseClient";
+import CURRICULUM from "@/data/master-curriculum.json";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Search, ChevronDown, ChevronRight, CheckCircle2, Circle,
     Youtube, FileText, Book, X, Image as ImageIcon,
-    Globe, MessageCircle, Sparkles, BookOpen, Info, Instagram, Linkedin
+    Globe, MessageCircle, Sparkles, BookOpen, Info, Instagram, Linkedin,
+    Github, Lightbulb, Pin, Trash2, HelpCircle, Layout
 } from "lucide-react";
-import TypewriterSlogan from "@/components/TypewriterSlogan";
-import HybridSidebar from "@/components/HybridSidebar";
-import TutorialOverlay from "@/components/TutorialOverlay";
-import AboutModal from "@/components/AboutModal";
-import { syncCompletedTopics, fetchCompletedTopics, cacheImage, getCachedImages, cacheKeywords, getCachedKeywords } from "@/lib/supabaseClient";
-import CURRICULUM from "@/data/master-curriculum.json";
 
 // ==================== PLATFORMS ====================
 const PLATFORMS = [
     { id: "reddit", name: "Reddit", icon: MessageCircle, color: "orange" },
-    { id: "wikipedia", name: "Wikipedia", icon: Book, color: "gray" },
-    { id: "twitter", name: "X", icon: MessageCircle, color: "blue" },
+    { id: "wikipedia", name: "Wiki", icon: Book, color: "gray" },
     { id: "youtube", name: "YouTube", icon: Youtube, color: "red" },
-    { id: "google", name: "Google PDF", icon: FileText, color: "green" }
+    { id: "google", name: "PDF", icon: FileText, color: "green" },
+    { id: "github", name: "GitHub", icon: Github, color: "slate" },
+    { id: "udemy", name: "Course", icon: Lightbulb, color: "purple" },
+    { id: "ieee", name: "IEEE", icon: Globe, color: "blue" },
+    { id: "pinterest", name: "Pinterest", icon: Layout, color: "pink" }
 ];
 
 export default function MasterTufanOS() {
@@ -40,7 +47,9 @@ export default function MasterTufanOS() {
     const [loadingImages, setLoadingImages] = useState(false);
     const [generatedKeywords, setGeneratedKeywords] = useState<Record<string, string[]>>({});
     const [showAboutModal, setShowAboutModal] = useState(false);
-    const [tutorialComplete, setTutorialComplete] = useState(true); // Default to true to prevent flash, checked in useEffect
+    // Explicit state to trigger re-run of tutorial
+    const [runTutorial, setRunTutorial] = useState(false);
+    const [savedLinks, setSavedLinks] = useState<Record<string, SavedLink[]>>({});
 
     // DATA RECOVERY: Supabase → localStorage → Default
     useEffect(() => {
@@ -69,36 +78,55 @@ export default function MasterTufanOS() {
         loadData();
     }, []);
 
-    // Auto-expand on global prefix search
+    // Unified Search Logic (Topics + Dictionary + Auto-Expand)
     useEffect(() => {
         if (globalSearch.trim()) {
             const searchLower = globalSearch.toLowerCase();
             const expandAll = new Set<string>();
 
-            const search = (items: any[]) => {
+            // 1. Search Curriculum
+            const searchCurriculum = (items: any[]) => {
                 items.forEach(item => {
                     const titleLower = item.title.toLowerCase();
-                    // Prefix match
-                    if (titleLower.startsWith(searchLower)) {
+                    // Check if *any* keyword matches or title matches
+                    const keywordMatch = item.keywords?.some((k: string) => k.toLowerCase().includes(searchLower));
+
+                    if (titleLower.includes(searchLower) || keywordMatch) {
                         expandAll.add(item.id);
+                        // Also expand parent if possible (requires knowing parent, 
+                        // but since we expand by ID, we need to ensure parent ID is added. 
+                        // Our IDs are hierarchical: 1.1 -> 1, 1.1.1 -> 1.1)
+                        if (item.id.includes('.')) {
+                            const parts = item.id.split('.');
+                            let parentId = parts[0];
+                            expandAll.add(parentId); // Add root category
+                            if (parts.length > 2) {
+                                expandAll.add(`${parts[0]}.${parts[1]}`); // Add sub-category
+                            }
+                        }
                     }
-                    // Also add if contains (for better UX)
-                    if (titleLower.includes(searchLower)) {
-                        expandAll.add(item.id);
-                    }
-                    if (item.subtopics) search(item.subtopics);
+                    if (item.subtopics) searchCurriculum(item.subtopics);
                 });
             };
 
             CURRICULUM.categories.forEach(cat => {
-                if (cat.topics) search(cat.topics);
+                if (cat.topics) searchCurriculum(cat.topics);
             });
+
+            // 2. Search Dictionary (Optional: auto-switch to dict view if matches found?)
+            // The prompt says "Search... same time". We handle this by highlighting dict results if active.
 
             setExpandedItems(expandAll);
         } else {
             setExpandedItems(new Set());
         }
     }, [globalSearch]);
+
+    // Load saved links for a topic when opened
+    const loadLinksForTopic = async (topicId: string) => {
+        const links = await getSavedLinks(topicId);
+        setSavedLinks(prev => ({ ...prev, [topicId]: links }));
+    };
 
     const getTotalCount = () => {
         let count = 0;
@@ -290,35 +318,48 @@ export default function MasterTufanOS() {
         }
     };
 
-    const platformSearch = (platform: string, topic: string, keywords: string[]) => {
-        // PDF automatic filetype enforcement
+    const getPlatformUrl = (platform: string, topic: string, keywords: string[]) => {
         const isPDF = platform === "google";
-        const enhancedKeywords = isPDF
-            ? keywords.map(k => `${k} filetype:pdf`)
-            : keywords;
-
+        const enhancedKeywords = isPDF ? keywords.map(k => `${k} filetype:pdf`) : keywords;
         const query = enhancedKeywords.join(" OR ");
-        let url = "";
 
         switch (platform) {
-            case "reddit":
-                url = `https://www.reddit.com/search/?q=${encodeURIComponent(query)}`;
-                break;
-            case "wikipedia":
-                url = `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(topic)}`;
-                break;
-            case "twitter":
-                url = `https://twitter.com/search?q=${encodeURIComponent(query)}`;
-                break;
-            case "youtube":
-                url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-                break;
-            case "google":
-                url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-                break;
+            case "reddit": return `https://www.reddit.com/search/?q=${encodeURIComponent(query)}`;
+            case "wikipedia": return `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(topic)}`;
+            case "youtube": return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+            case "google": return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+            case "github": return `https://github.com/search?q=${encodeURIComponent(query + " language:c OR language:python")}&type=code`;
+            case "udemy": return `https://www.udemy.com/courses/search/?q=${encodeURIComponent(topic)}`;
+            case "ieee": return `https://ieeexplore.ieee.org/search/searchresult.jsp?newsearch=true&queryText=${encodeURIComponent(topic)}`;
+            case "pinterest": return `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(topic + " schematics diagram")}`;
+            default: return `https://google.com/search?q=${encodeURIComponent(query)}`;
         }
+    };
 
+    const handlePlatformClick = async (platform: string, topic: string, topicId: string, keywords: string[]) => {
+        const url = getPlatformUrl(platform, topic, keywords);
         window.open(url, '_blank');
+
+        // Auto-show pin option? Or user manually pins.
+        // User asked: "When a user opens... add a Pin button".
+        // Use a temp state to show "Last Opened Link" to allow saving
+        // For now, simpler approach: Add a direct "Pin" button in the UI platform list? 
+        // Or actually save it directly? "Save this search".
+
+        // Let's implement refined UI: The clicked platform button becomes "Save-able"
+    };
+
+    const saveCurrentResource = async (topicId: string, platformId: string, topicTitle: string, keywords: string[]) => {
+        const url = getPlatformUrl(platformId, topicTitle, keywords);
+        const saved = await saveLink({
+            topic_id: topicId,
+            title: `${topicTitle} - ${PLATFORMS.find(p => p.id === platformId)?.name}`,
+            url: url,
+            platform: platformId
+        });
+        if (saved) {
+            loadLinksForTopic(topicId);
+        }
     };
 
     const renderRecursive = (item: any, depth: number = 0) => {
@@ -334,7 +375,10 @@ export default function MasterTufanOS() {
                     animate={{ opacity: 1 }}
                     className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${isCompleted ? 'bg-emerald-900/20 border-l-2 border-emerald-500' : 'bg-slate-800/30 hover:bg-slate-700/30'
                         }`}
-                    onClick={() => setActiveControlPanel(showPanel ? null : item.id)}
+                    onClick={() => {
+                        setActiveControlPanel(showPanel ? null : item.id);
+                        if (!showPanel) loadLinksForTopic(item.id);
+                    }}
                 >
                     {hasChildren && (
                         <button onClick={(e) => { e.stopPropagation(); toggleExpand(item.id); }}>
@@ -371,16 +415,29 @@ export default function MasterTufanOS() {
                                     const Icon = plat.icon;
                                     const isActive = activePlatformPanel?.topicId === item.id && activePlatformPanel?.platform === plat.id;
                                     return (
-                                        <div key={plat.id} className="relative group/tooltip">
+                                        <div key={plat.id} className="relative group/tooltip flex flex-col items-center gap-1">
                                             <button
                                                 onClick={async () => {
                                                     setActivePlatformPanel({ topicId: item.id, platform: plat.id });
                                                     await generateKeywordsWithAI(item.title, item.id, keywordThreshold, item.keywords || []);
+                                                    handlePlatformClick(plat.id, item.title, item.id, item.keywords || []);
                                                 }}
-                                                className={`p-2 rounded-lg transition-all ${isActive ? 'bg-blue-600' : 'bg-slate-700/30 hover:bg-slate-600/50'
+                                                className={`p-2 rounded-lg transition-all relative ${isActive ? 'bg-blue-600' : 'bg-slate-700/30 hover:bg-slate-600/50'
                                                     }`}
                                             >
                                                 <Icon size={16} className={`text-${plat.color}-400`} />
+
+                                                {/* QUICK PIN BUTTON ON HOVER */}
+                                                <div
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        saveCurrentResource(item.id, plat.id, item.title, item.keywords || []);
+                                                    }}
+                                                    className="absolute -right-2 -top-2 bg-slate-900 border border-slate-700 rounded-full p-1 opacity-0 group-hover/tooltip:opacity-100 transition-opacity hover:bg-emerald-600 z-10"
+                                                    title="Pin to System"
+                                                >
+                                                    <Pin size={8} className="text-white" />
+                                                </div>
                                             </button>
 
                                             {/* DYNAMIC LABEL (Click-to-Reveal / Hover) */}
@@ -473,7 +530,7 @@ export default function MasterTufanOS() {
                                             {generatedKeywords[item.id]?.slice(0, keywordThreshold).map((kw, idx) => (
                                                 <button
                                                     key={idx}
-                                                    onClick={() => activePlatformPanel && platformSearch(activePlatformPanel.platform, item.title, [kw])}
+                                                    onClick={() => activePlatformPanel && handlePlatformClick(activePlatformPanel.platform, item.title, item.id, [kw])}
                                                     className="px-3 py-1 bg-blue-900/40 text-blue-300 rounded-full text-xs hover:bg-blue-900/60 transition-all hover:scale-105"
                                                 >
                                                     {kw}
@@ -481,6 +538,42 @@ export default function MasterTufanOS() {
                                             ))}
                                         </div>
                                     )}
+                                </motion.div>
+                            )}
+
+                            {/* SAVED LINKS SECTION */}
+                            {savedLinks[item.id] && savedLinks[item.id].length > 0 && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="mt-3 p-3 bg-slate-900/40 rounded-lg border border-emerald-500/20"
+                                >
+                                    <h4 className="text-xs font-bold text-emerald-400 mb-2 flex items-center gap-2">
+                                        <Pin size={12} /> SAVED RESOURCES
+                                    </h4>
+                                    <div className="space-y-1">
+                                        {savedLinks[item.id].map((link) => (
+                                            <div key={link.id} className="flex justify-between items-center group/link p-2 hover:bg-slate-800 rounded">
+                                                <a
+                                                    href={link.url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-xs text-slate-300 hover:text-emerald-300 truncate flex-1"
+                                                >
+                                                    {link.title}
+                                                </a>
+                                                <button
+                                                    onClick={() => {
+                                                        deleteLink(link.id);
+                                                        loadLinksForTopic(item.id);
+                                                    }}
+                                                    className="opacity-0 group-hover/link:opacity-100 text-slate-500 hover:text-red-400"
+                                                >
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </motion.div>
                             )}
 
@@ -548,7 +641,7 @@ export default function MasterTufanOS() {
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </div>
+            </div >
         );
     };
 
@@ -557,7 +650,9 @@ export default function MasterTufanOS() {
     return (
         <div className="flex h-screen bg-slate-900 text-slate-100">
             {/* TUTORIAL & ABOUT MODALS */}
-            <TutorialOverlay onComplete={() => setTutorialComplete(true)} />
+            {(runTutorial || !localStorage.getItem("tutorial_v2")) && (
+                <TutorialOverlay onComplete={() => setRunTutorial(false)} />
+            )}
             <AboutModal isOpen={showAboutModal} onClose={() => setShowAboutModal(false)} />
 
             {/* HYBRID SIDEBAR (REPLACES MOBILE MENU) */}
@@ -683,7 +778,7 @@ export default function MasterTufanOS() {
                             }}
                         >
                             <p className="italic text-slate-500 text-xs">
-                                {Array.from("Bir Emre Tufan Klasiği...").map((char, index) => (
+                                {Array.from("An Emre Tufan Masterpiece...").map((char, index) => (
                                     <motion.span
                                         key={index}
                                         variants={{
@@ -716,7 +811,13 @@ export default function MasterTufanOS() {
                             />
                             <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-amber-400" size={18} />
                         </div>
-                        <div className="hidden md:block text-right bg-slate-800/50 px-4 py-2 rounded-lg">
+                        <div className="hidden md:flex flex-col items-end gap-1 px-4">
+                            <button
+                                onClick={() => setRunTutorial(true)}
+                                className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-amber-600 to-orange-600 rounded-full text-xs font-bold shadow-lg hover:scale-105 transition-all mb-1"
+                            >
+                                <HelpCircle size={14} /> HOW TO USE?
+                            </button>
                             <p className="text-3xl font-black text-emerald-400">{Math.round(progress)}%</p>
                             <p className="text-xs text-slate-500 font-mono">{completedItems.size} / {TOTAL}</p>
                         </div>
