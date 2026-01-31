@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function TypewriterSlogan() {
     const [text, setText] = useState("");
-    const fullText = "An Emre Tufan Masterpiece...";
+    const fullText = "Bir Emre Tufan Klasiği...";
 
     useEffect(() => {
         let currentIndex = 0;
@@ -23,16 +23,17 @@ export default function TypewriterSlogan() {
     return (
         <div className="overflow-hidden">
             <p
-                className="slogan-responsive text-amber-500 whitespace-nowrap font-bold uppercase tracking-widest"
+                className="slogan-responsive italic text-amber-400 whitespace-nowrap"
                 style={{
-                    fontFamily: 'var(--font-syncopate), sans-serif',
-                    fontSize: 'clamp(0.65rem, 2vw, 0.75rem)',
-                    textShadow: '0 0 10px rgba(245, 158, 11, 0.3)'
+                    fontFamily: "'Dancing Script', cursive",
+                    letterSpacing: text.length > 10 ? '0.05em' : '0.1em',
+                    transition: 'letter-spacing 0.3s ease',
+                    fontSize: 'clamp(0.75rem, 3vw, 0.875rem)'
                 }}
             >
                 {text}
                 {text.length < fullText.length && (
-                    <span className="animate-pulse ml-1 text-amber-300">|</span>
+                    <span className="animate-pulse">|</span>
                 )}
             </p>
         </div>

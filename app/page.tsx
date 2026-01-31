@@ -18,7 +18,7 @@ import {
     Search, ChevronDown, ChevronRight, CheckCircle2, Circle,
     Youtube, FileText, Book, X, Image as ImageIcon,
     Globe, MessageCircle, Sparkles, BookOpen, Info, Instagram, Linkedin,
-    Github, Lightbulb, Pin, Trash2, HelpCircle, Layout, Settings
+    Github, Lightbulb, Pin, Trash2, HelpCircle, Layout, Settings, Download, FileType
 } from "lucide-react";
 
 // ==================== PLATFORMS ====================
@@ -49,6 +49,7 @@ export default function MasterTufanOS() {
     const [generatingKeywords, setGeneratingKeywords] = useState(false);
     const [loadingImages, setLoadingImages] = useState(false);
     const [parentMap, setParentMap] = useState<Map<string, string>>(new Map());
+    const [pulsingMatch, setPulsingMatch] = useState<string | null>(null);
 
     useEffect(() => {
         const map = new Map<string, string>();
@@ -144,13 +145,16 @@ export default function MasterTufanOS() {
                 );
             };
 
-            // Search categories
+            // Dynamic Search with Progressive Filtering
+            const matchedIds: string[] = [];
+
             const searchCurriculum = (items: any[]) => {
                 items.forEach(item => {
                     const term = globalSearch.toLowerCase();
                     const match = item.title.toLowerCase().includes(term) || (item.keywords && item.keywords.some((k: any) => k.toLowerCase().includes(term)));
 
                     if (match) {
+                        matchedIds.push(item.id);
                         expandAll.add(item.id);
                         // Smart Parent Expansion using parentMap
                         let curr = parentMap.get(item.id);
@@ -164,13 +168,17 @@ export default function MasterTufanOS() {
                 if (cat.topics) searchCurriculum(cat.topics);
             });
 
-            if (CURRICULUM.dictionary && globalSearch.length > 2) {
-                const searchTerm = globalSearch.toLowerCase();
+            // If only ONE result, trigger neon pulsing
+            if (matchedIds.length === 1) {
+                setPulsingMatch(matchedIds[0]);
+            } else {
+                setPulsingMatch(null);
             }
 
             setExpandedItems(expandAll);
         } else {
             setExpandedItems(new Set());
+            setPulsingMatch(null);
         }
     }, [globalSearch, parentMap]);
 
@@ -588,7 +596,8 @@ export default function MasterTufanOS() {
 
     const handlePlatformClick = (platform: string, topic: string, topicId: string, keywords: string[]) => {
         const url = getPlatformUrl(platform, topic, keywords);
-        window.open(url, '_blank');
+        // User explicitly requested: NO external link opening on platform click
+        // Only trigger threshold panel
 
         // Add to session history silently
         fetchAndAddLink(platform, topic, topicId, url);
@@ -609,13 +618,20 @@ export default function MasterTufanOS() {
         const isCompleted = completedItems.has(item.id);
         const hasChildren = item.subtopics && item.subtopics.length > 0;
         const showPanel = activeControlPanel === item.id;
+        const isPulsing = pulsingMatch === item.id;
 
         return (
             <div key={item.id} style={{ marginLeft: `${depth * 16}px` }} className="mb-1">
                 <motion.div
                     initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${isCompleted ? 'bg-emerald-900/20 border-l-2 border-emerald-500' : 'bg-slate-800/30 hover:bg-slate-700/30'
+                    animate={{
+                        opacity: 1,
+                        boxShadow: isPulsing ? ['0 0 0px rgba(6, 182, 212, 0)', '0 0 20px rgba(6, 182, 212, 0.8)', '0 0 0px rgba(6, 182, 212, 0)'] : 'none'
+                    }}
+                    transition={isPulsing ? { duration: 1.5, repeat: Infinity, ease: 'easeInOut' } : {}}
+                    className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${isPulsing ? 'bg-cyan-900/30 border-2 border-cyan-400 ring-2 ring-cyan-400/50' :
+                        isCompleted ? 'bg-emerald-900/20 border-l-2 border-emerald-500' :
+                            'bg-slate-800/30 hover:bg-slate-700/30'
                         }`}
                     onClick={() => {
                         setActiveControlPanel(showPanel ? null : item.id);
@@ -768,12 +784,13 @@ export default function MasterTufanOS() {
                                             🔄 Generating keywords...
                                         </div>
                                     ) : (
-                                        <div className="flex gap-2 flex-wrap max-h-48 overflow-y-auto p-2 bg-slate-800/30 rounded">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 max-h-48 overflow-y-auto p-2 bg-slate-800/30 rounded">
                                             {generatedKeywords[item.id]?.slice(0, keywordThreshold).map((kw, idx) => (
                                                 <button
                                                     key={idx}
                                                     onClick={() => activePlatformPanel && handlePlatformClick(activePlatformPanel.platform, item.title, item.id, [kw])}
-                                                    className="px-3 py-1 bg-blue-900/40 text-blue-300 rounded-full text-xs hover:bg-blue-900/60 transition-all hover:scale-105"
+                                                    className="px-3 py-1 bg-blue-900/40 text-blue-300 rounded-full text-xs hover:bg-blue-900/60 transition-all hover:scale-105 truncate"
+                                                    title={kw}
                                                 >
                                                     {kw}
                                                 </button>

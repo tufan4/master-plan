@@ -41,23 +41,23 @@ export default function TutorialOverlay({ onComplete, forceRun }: TutorialProps)
         },
         {
             title: "Akıllı Arama & Keşif",
-            desc: "İstediğin konuyu yaz (örn: 'elektirik'). Sistem sadece konuyu değil, alt başlıkları ve sözlüğü de tarayıp sana en uygun haritayı açar.",
+            desc: "İstediğin konuyu yaz (örn: 'elektrik'). Sistem sadece konuyu değil, alt başlıkları ve sözlüğü de tarayıp sana en uygun haritayı açar.",
             icon: <Search size={48} className="text-blue-400" />
         },
         {
-            title: "Oturum Çantası & Geçmiş",
-            desc: "Linklere tıkladığında işin bölünmez. Sistem onları sağ alttaki 'Oturum Çantasına' atar. Biriktir, sonra hepsini tek seferde incele.",
+            title: "Platforma Özel İndirme",
+            desc: "YouTube linki mi? 3 buton: Video İndir, Transkript PDF, Transkript Doc. Reddit mi? Sosyal tartışma formatında anahtar kelimeler. PDF mi? Direkt indir.",
             icon: <BookOpen size={48} className="text-amber-400" />
         },
         {
-            title: "Otomatik Başlık & İndirme",
-            desc: "YouTube linki mi? Başlığı ve kapağı otomatik gelir, indirme butonu belirir. Reddit mi? Başlığı temizlenir. Her şey senin için.",
+            title: "Akıllı Gömme Sistemi",
+            desc: "Platform ikonlarına tıkla, sistem ilgili konunun altına kaynağı otomatik gömer. YouTube, Reddit, PDF... hepsi kendi kategorisinde düzenli.",
             icon: <Pin size={48} className="text-purple-400" />
         },
         {
-            title: "5'li Limit Uyarısı",
-            desc: "Çok fazla sekme açıp kaybolma diye, 5 link biriktirdiğinde sistem seni nazikçe uyarır: 'Hey, bunları kaydetmek ister misin?'",
-            icon: <CheckCircle2 size={48} className="text-red-400" />
+            title: "Dinamik Filtreleme",
+            desc: "Arama yaptıkça sonuçlar Google gibi daralır. Tek sonuç kaldığında neon mavi ile yanıp söner. 277 konu + alt başlıklar canlı filtrelenir.",
+            icon: <CheckCircle2 size={48} className="text-cyan-400" />
         }
     ];
 
