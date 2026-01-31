@@ -17,21 +17,50 @@ import {
     Search, ChevronDown, ChevronRight, CheckCircle2, Circle,
     Youtube, FileText, Book, X, Image as ImageIcon,
     Globe, MessageCircle, Sparkles, BookOpen, Info, Instagram, Linkedin,
-    Github, Lightbulb, HelpCircle, Layout, Settings, Download
+    Github, Lightbulb, HelpCircle, Layout, Settings, Download, Leaf
 } from "lucide-react";
 import { generateDiverseKeywords } from "@/lib/geminiClient";
 import { getDeepDiscoveryLink } from "@/lib/deepDiscovery";
 
 // ==================== PLATFORMS ====================
+// ==================== PLATFORMS (25 ACADEMIC & ENGINEERING SITES) ====================
 const PLATFORMS = [
-    { id: "reddit", name: "Reddit", icon: MessageCircle, color: "orange" },
-    { id: "wikipedia", name: "Wiki", icon: Book, color: "gray" },
+    // --- CORE ---
     { id: "youtube", name: "YouTube", icon: Youtube, color: "red" },
     { id: "google", name: "PDF", icon: FileText, color: "green" },
+    { id: "reddit", name: "Reddit", icon: MessageCircle, color: "orange" },
+    { id: "wikipedia", name: "Wiki", icon: Book, color: "gray" },
     { id: "github", name: "GitHub", icon: Github, color: "slate" },
-    { id: "udemy", name: "Course", icon: Lightbulb, color: "purple" },
+
+    // --- ACADEMIC / PAPERS ---
+    { id: "arxiv", name: "ArXiv", icon: FileText, color: "red" },
     { id: "ieee", name: "IEEE", icon: Globe, color: "blue" },
-    { id: "pinterest", name: "Pinterest", icon: Layout, color: "pink" }
+    { id: "semantic", name: "Semantic", icon: BookOpen, color: "cyan" },
+    { id: "researchgate", name: "R.Gate", icon: Globe, color: "emerald" },
+    { id: "sciencedirect", name: "SciDirect", icon: Book, color: "orange" },
+
+    // --- CODING / DEV ---
+    { id: "stackoverflow", name: "StackOver", icon: Layout, color: "orange" },
+    { id: "mdn", name: "MDN Docs", icon: FileText, color: "black" },
+    { id: "devto", name: "Dev.to", icon: Layout, color: "black" },
+    { id: "leetcode", name: "LeetCode", icon: Settings, color: "yellow" },
+
+    // --- COURSES ---
+    { id: "udemy", name: "Udemy", icon: Lightbulb, color: "purple" },
+    { id: "coursera", name: "Coursera", icon: Globe, color: "blue" },
+    { id: "mitocw", name: "MIT OCW", icon: BookOpen, color: "slate" },
+    { id: "khan", name: "Khan Acad", icon: Leaf, color: "green" },
+
+    // --- TOOLS & MATH ---
+    { id: "wolfram", name: "Wolfram", icon: Sparkles, color: "red" },
+    { id: "desmos", name: "Desmos", icon: Layout, color: "green" },
+    { id: "geogebra", name: "GeoGebra", icon: Circle, color: "blue" },
+
+    // --- HARDWARE / MAKER ---
+    { id: "arduino", name: "Arduino", icon: Settings, color: "cyan" },
+    { id: "hackster", name: "Hackster", icon: Layout, color: "pink" },
+    { id: "instructables", name: "Instruct", icon: Lightbulb, color: "yellow" },
+    { id: "pinterest", name: "Pinterest", icon: Layout, color: "red" }
 ];
 
 export default function MasterTufanOS() {
@@ -377,30 +406,28 @@ export default function MasterTufanOS() {
                             {/* AI SMART KEY BUTTON */}
 
 
-                            <div className="flex gap-2 mb-3 flex-wrap">
+                            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 mb-4">
                                 {PLATFORMS.map(plat => {
                                     const Icon = plat.icon;
                                     const isActive = activePlatformPanel?.topicId === item.id && activePlatformPanel?.platform === plat.id;
                                     return (
-                                        <div key={plat.id} className="relative group/tooltip flex flex-col items-center gap-1">
-                                            <button
-                                                onClick={async (e) => {
-                                                    e.stopPropagation();
-                                                    setActivePlatformPanel({ topicId: item.id, platform: plat.id });
-                                                    await generateKeywordsWithAI(item.title, item.id, 20, item.keywords || []);
-                                                }}
-                                                className={`p-2 rounded-lg transition-all relative ${isActive ? 'bg-blue-600' : 'bg-slate-700/30 hover:bg-slate-600/50'
-                                                    }`}
-                                            >
-                                                <Icon size={16} className={`text-${plat.color}-400`} />
-                                            </button>
-
-                                            {/* DYNAMIC LABEL */}
-                                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-black/90 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                                        <button
+                                            key={plat.id}
+                                            onClick={async (e) => {
+                                                e.stopPropagation();
+                                                setActivePlatformPanel({ topicId: item.id, platform: plat.id });
+                                                await generateKeywordsWithAI(item.title, item.id, 20, item.keywords || []);
+                                            }}
+                                            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all border ${isActive
+                                                ? 'bg-blue-600/20 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]'
+                                                : 'bg-slate-800/50 border-slate-700 hover:bg-slate-700 hover:border-slate-600'
+                                                }`}
+                                        >
+                                            <Icon size={20} className={`mb-1 transition-colors ${isActive ? 'text-blue-400' : `text-${plat.color}-400`}`} />
+                                            <span className={`text-[9px] font-medium tracking-wide uppercase ${isActive ? 'text-blue-100' : 'text-slate-400'}`}>
                                                 {plat.name}
-                                                <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-black/90" />
-                                            </div>
-                                        </div>
+                                            </span>
+                                        </button>
                                     );
                                 })}
                                 <button
@@ -476,12 +503,22 @@ export default function MasterTufanOS() {
                                                         const cleanTitle = item.title.toLowerCase();
                                                         const searchQuery = cleanKw.includes(cleanTitle) ? kw : `${kw} ${item.title}`;
 
-                                                        // Deep Random Discovery for ALL platforms (YouTube, PDF, Reddit, Wiki)
-                                                        // Attempts to find a direct video/article/post instead of a search page.
+                                                        // Deep Random Discovery with "Open-then-Redirect" to bypass pop-up blockers
+                                                        const newTab = window.open('', '_blank');
+                                                        if (newTab) {
+                                                            newTab.document.write(`
+                                                                <style>body{background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column} .loader{border:4px solid #334155;border-top:4px solid #3b82f6;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin-bottom:1rem} @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>
+                                                                <div class="loader"></div>
+                                                                <div>Master Tufan: İçerik Bulunuyor...</div>
+                                                                <div style="margin-top:0.5rem;font-size:0.8rem;opacity:0.7">Platform: ${platform.toUpperCase()}</div>
+                                                            `);
+                                                        }
+
                                                         try {
                                                             const deepLink = await getDeepDiscoveryLink(platform, searchQuery, language);
-                                                            if (deepLink && deepLink.success) {
-                                                                window.open(deepLink.url, '_blank');
+
+                                                            if (deepLink && deepLink.success && newTab) {
+                                                                newTab.location.href = deepLink.url;
                                                                 return;
                                                             }
                                                         } catch (e) {
@@ -498,8 +535,13 @@ export default function MasterTufanOS() {
                                                             udemy: `https://www.udemy.com/courses/search/?q=${encodeURIComponent(searchQuery)}`,
                                                             github: `https://github.com/search?q=${encodeURIComponent(searchQuery)}&type=repositories`
                                                         };
+
                                                         const url = randomUrls[platform] || randomUrls.youtube;
-                                                        window.open(url, '_blank');
+                                                        if (newTab) {
+                                                            newTab.location.href = url;
+                                                        } else {
+                                                            window.open(url, '_blank');
+                                                        }
                                                     }}
                                                     className="px-3 py-1 bg-blue-900/40 text-blue-300 rounded-full text-[10px] hover:bg-blue-900/60 transition-all hover:scale-105 truncate text-left"
                                                     title={kw}
@@ -761,9 +803,15 @@ export default function MasterTufanOS() {
                         <div className="hidden md:flex flex-col items-end gap-1 px-4">
                             <button
                                 onClick={() => setRunTutorial(true)}
-                                className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-amber-600 to-orange-600 rounded-full text-xs font-bold shadow-lg hover:scale-105 transition-all mb-1"
+                                className="group relative w-12 h-12 flex items-center justify-center bg-slate-800/50 rounded-lg hover:bg-slate-700/50 border border-slate-600 transition-all shadow-[0_0_15px_rgba(251,191,36,0.1)] hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] animate-pulse"
+                                title="Start Tutorial"
                             >
-                                <HelpCircle size={14} /> HOW TO USE?
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-amber-400 group-hover:scale-110 transition-transform">
+                                    <path d="M4 6H20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                    <path d="M12 6V20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                    <path d="M12 6L6 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.7" />
+                                    <path d="M12 6L18 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.7" />
+                                </svg>
                             </button>
                             <p className="text-3xl font-black text-emerald-400">{Math.round(progress)}%</p>
                             <p className="text-xs text-slate-500 font-mono">{completedItems.size} / {TOTAL}</p>
