@@ -8,7 +8,9 @@ import {
     Globe, MessageCircle, Sparkles, BookOpen, Info, Instagram, Linkedin
 } from "lucide-react";
 import TypewriterSlogan from "@/components/TypewriterSlogan";
-import MobileMenu from "@/components/MobileMenu";
+import HybridSidebar from "@/components/HybridSidebar";
+import TutorialOverlay from "@/components/TutorialOverlay";
+import AboutModal from "@/components/AboutModal";
 import { syncCompletedTopics, fetchCompletedTopics, cacheImage, getCachedImages, cacheKeywords, getCachedKeywords } from "@/lib/supabaseClient";
 import CURRICULUM from "@/data/master-curriculum.json";
 
@@ -37,6 +39,8 @@ export default function MasterTufanOS() {
     const [generatingKeywords, setGeneratingKeywords] = useState(false);
     const [loadingImages, setLoadingImages] = useState(false);
     const [generatedKeywords, setGeneratedKeywords] = useState<Record<string, string[]>>({});
+    const [showAboutModal, setShowAboutModal] = useState(false);
+    const [tutorialComplete, setTutorialComplete] = useState(true); // Default to true to prevent flash, checked in useEffect
 
     // DATA RECOVERY: Supabase → localStorage → Default
     useEffect(() => {
@@ -367,18 +371,24 @@ export default function MasterTufanOS() {
                                     const Icon = plat.icon;
                                     const isActive = activePlatformPanel?.topicId === item.id && activePlatformPanel?.platform === plat.id;
                                     return (
-                                        <button
-                                            key={plat.id}
-                                            onClick={async () => {
-                                                setActivePlatformPanel({ topicId: item.id, platform: plat.id });
-                                                await generateKeywordsWithAI(item.title, item.id, keywordThreshold, item.keywords || []);
-                                            }}
-                                            className={`p-2 rounded-lg transition-all ${isActive ? 'bg-blue-600' : 'bg-slate-700/30 hover:bg-slate-600/50'
-                                                }`}
-                                            title={plat.name}
-                                        >
-                                            <Icon size={16} className={`text-${plat.color}-400`} />
-                                        </button>
+                                        <div key={plat.id} className="relative group/tooltip">
+                                            <button
+                                                onClick={async () => {
+                                                    setActivePlatformPanel({ topicId: item.id, platform: plat.id });
+                                                    await generateKeywordsWithAI(item.title, item.id, keywordThreshold, item.keywords || []);
+                                                }}
+                                                className={`p-2 rounded-lg transition-all ${isActive ? 'bg-blue-600' : 'bg-slate-700/30 hover:bg-slate-600/50'
+                                                    }`}
+                                            >
+                                                <Icon size={16} className={`text-${plat.color}-400`} />
+                                            </button>
+
+                                            {/* DYNAMIC LABEL (Click-to-Reveal / Hover) */}
+                                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-black/90 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                                                {plat.name}
+                                                <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-black/90" />
+                                            </div>
+                                        </div>
                                     );
                                 })}
                                 <button
@@ -546,15 +556,22 @@ export default function MasterTufanOS() {
 
     return (
         <div className="flex h-screen bg-slate-900 text-slate-100">
-            {/* MOBILE MENU */}
-            <MobileMenu
+            {/* TUTORIAL & ABOUT MODALS */}
+            <TutorialOverlay onComplete={() => setTutorialComplete(true)} />
+            <AboutModal isOpen={showAboutModal} onClose={() => setShowAboutModal(false)} />
+
+            {/* HYBRID SIDEBAR (REPLACES MOBILE MENU) */}
+            <HybridSidebar
                 categories={CURRICULUM.categories}
                 activeCategory={activeCategory}
                 setActiveCategory={setActiveCategory}
                 setShowDictionary={setShowDictionary}
                 showDictionary={showDictionary}
                 dictionaryCount={CURRICULUM.dictionary.length}
+                openAbout={() => setShowAboutModal(true)}
             />
+            {/* Main content padding adjustment for mobile sidebar space */}
+            <div className="lg:hidden w-[60px] shrink-0 bg-slate-900" />
 
             {/* SIDEBAR */}
             <aside className="hidden lg:flex w-72 bg-slate-800/50 backdrop-blur-sm border-r border-slate-700/50 flex-col overflow-y-auto custom-scrollbar">
@@ -651,9 +668,34 @@ export default function MasterTufanOS() {
                             </a>
                         </div>
 
-                        <p className="text-center italic text-slate-500 pt-2 border-t border-slate-700/50">
-                            "Bir Emre Tufan Klasiği..."
-                        </p>
+                        <motion.div
+                            className="pt-2 border-t border-slate-700/50 text-center"
+                            initial="hidden"
+                            animate="visible"
+                            variants={{
+                                hidden: { opacity: 0 },
+                                visible: {
+                                    opacity: 1,
+                                    transition: {
+                                        staggerChildren: 0.05
+                                    }
+                                }
+                            }}
+                        >
+                            <p className="italic text-slate-500 text-xs">
+                                {Array.from("Bir Emre Tufan Klasiği...").map((char, index) => (
+                                    <motion.span
+                                        key={index}
+                                        variants={{
+                                            hidden: { opacity: 0, x: -10 },
+                                            visible: { opacity: 1, x: 0 }
+                                        }}
+                                    >
+                                        {char}
+                                    </motion.span>
+                                ))}
+                            </p>
+                        </motion.div>
                     </div>
                 </div>
             </aside>
