@@ -470,10 +470,16 @@ export default function MasterTufanOS() {
                                         </div>
                                     </div>
 
-                                    {/* LOADING BAR */}
+                                    {/* LOADING BAR (Dynamic Color) */}
                                     <div className="h-2 bg-slate-800 rounded-full overflow-hidden mb-3">
                                         <motion.div
-                                            className="h-full bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-500"
+                                            className={`h-full bg-gradient-to-r ${activePlatformPanel
+                                                    ? (() => {
+                                                        const color = PLATFORMS.find(p => p.id === activePlatformPanel.platform)?.color || 'blue';
+                                                        return `from-${color}-500 via-${color}-400 to-${color}-500`;
+                                                    })()
+                                                    : "from-blue-500 via-cyan-500 to-blue-500"
+                                                }`}
                                             initial={{ width: 0 }}
                                             animate={{
                                                 width: generatingKeywords ? '50%' : '100%',
