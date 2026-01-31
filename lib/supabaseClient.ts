@@ -62,15 +62,18 @@ export function getCachedImages(topicId: string): string[] | null {
 
 // Cache keywords
 export function cacheKeywords(topicId: string, keywords: string[]) {
-    try {
-        localStorage.setItem(`keywords_${topicId}`, JSON.stringify(keywords));
-    } catch (err) {
-        console.error('Cache failed:', err);
+    if (typeof window !== 'undefined') {
+        try {
+            localStorage.setItem(`keywords_${topicId}`, JSON.stringify(keywords));
+        } catch (err) {
+            console.error('Cache failed:', err);
+        }
     }
 }
 
 // Get cached keywords
 export function getCachedKeywords(topicId: string): string[] | null {
+    if (typeof window === 'undefined') return null;
     try {
         const cached = localStorage.getItem(`keywords_${topicId}`);
         return cached ? JSON.parse(cached) : null;
@@ -94,12 +97,14 @@ export async function saveLink(link: Omit<SavedLink, 'id' | 'created_at'>): Prom
     const newLink = { ...link, id: crypto.randomUUID(), created_at: new Date().toISOString() };
 
     // 1. LocalStorage (Immediate UI update & Offline support)
-    try {
-        const existing = JSON.parse(localStorage.getItem('saved_links') || '[]');
-        const updated = [...existing, newLink];
-        localStorage.setItem('saved_links', JSON.stringify(updated));
-    } catch (e) {
-        console.error("Local save failed", e);
+    if (typeof window !== 'undefined') {
+        try {
+            const existing = JSON.parse(localStorage.getItem('saved_links') || '[]');
+            const updated = [...existing, newLink];
+            localStorage.setItem('saved_links', JSON.stringify(updated));
+        } catch (e) {
+            console.error("Local save failed", e);
+        }
     }
 
     // 2. Supabase (Cloud Sync)
@@ -137,21 +142,26 @@ export async function getSavedLinks(topicId: string): Promise<SavedLink[]> {
     }
 
     // 2. Fallback to LocalStorage
-    try {
-        const all = JSON.parse(localStorage.getItem('saved_links') || '[]');
-        return all.filter((l: SavedLink) => l.topic_id === topicId);
-    } catch (e) {
-        return [];
+    if (typeof window !== 'undefined') {
+        try {
+            const all = JSON.parse(localStorage.getItem('saved_links') || '[]');
+            return all.filter((l: SavedLink) => l.topic_id === topicId);
+        } catch (e) {
+            return [];
+        }
     }
+    return [];
 }
 
 export async function deleteLink(id: string) {
     // Local
-    try {
-        const all = JSON.parse(localStorage.getItem('saved_links') || '[]');
-        const filtered = all.filter((l: SavedLink) => l.id !== id);
-        localStorage.setItem('saved_links', JSON.stringify(filtered));
-    } catch (e) { }
+    if (typeof window !== 'undefined') {
+        try {
+            const all = JSON.parse(localStorage.getItem('saved_links') || '[]');
+            const filtered = all.filter((l: SavedLink) => l.id !== id);
+            localStorage.setItem('saved_links', JSON.stringify(filtered));
+        } catch (e) { }
+    }
 
     // Cloud
     try {

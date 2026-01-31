@@ -650,9 +650,10 @@ export default function MasterTufanOS() {
     return (
         <div className="flex h-screen bg-slate-900 text-slate-100">
             {/* TUTORIAL & ABOUT MODALS */}
-            {(runTutorial || !localStorage.getItem("tutorial_v2")) && (
-                <TutorialOverlay onComplete={() => setRunTutorial(false)} />
-            )}
+            <TutorialOverlay
+                forceRun={runTutorial}
+                onComplete={() => setRunTutorial(false)}
+            />
             <AboutModal isOpen={showAboutModal} onClose={() => setShowAboutModal(false)} />
 
             {/* HYBRID SIDEBAR (REPLACES MOBILE MENU) */}

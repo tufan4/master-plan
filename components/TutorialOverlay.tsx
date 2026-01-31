@@ -8,17 +8,24 @@ import {
     Youtube, MessageCircle, Book, FileText
 } from "lucide-react";
 
-export default function TutorialOverlay({ onComplete }: { onComplete: () => void }) {
+export default function TutorialOverlay({ onComplete, forceRun = false }: { onComplete: () => void, forceRun?: boolean }) {
     const [step, setStep] = useState(0);
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
-        // Check for v2 specific tutorial completion
-        const done = localStorage.getItem("tutorial_v2");
-        if (!done) {
-            setIsVisible(true);
+        // Safe check for client-side
+        if (typeof window !== "undefined") {
+            if (forceRun) {
+                setIsVisible(true);
+                setStep(0);
+            } else {
+                const done = localStorage.getItem("tutorial_v2");
+                if (!done) {
+                    setIsVisible(true);
+                }
+            }
         }
-    }, []);
+    }, [forceRun]);
 
     const finishTutorial = () => {
         localStorage.setItem("tutorial_v2", "true");
