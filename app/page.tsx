@@ -561,59 +561,46 @@ export default function MasterTufanOS() {
                                         </button>
                                     </div>
 
-                                    {/* LOADING BAR (Dynamic Color) */}
-                                    <div className="h-2 bg-slate-800 rounded-full overflow-hidden mb-3">
-                                        <motion.div
-                                            className={`h-full bg-gradient-to-r ${activePlatformPanel
-                                                ? (() => {
-                                                    const color = PLATFORMS.find(p => p.id === activePlatformPanel.platform)?.color || 'blue';
-                                                    return `from-${color}-500 via-${color}-400 to-${color}-500`;
-                                                })()
-                                                : "from-blue-500 via-cyan-500 to-blue-500"
-                                                }`}
-                                            initial={{ width: 0 }}
-                                            animate={{
-                                                width: generatingKeywords ? '50%' : '100%',
-                                                backgroundPosition: generatingKeywords ? ['0%', '100%'] : '0%'
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2 bg-slate-800/30 rounded">
+                                        {/* TURKISH BUTTON */}
+                                        <button
+                                            onClick={() => {
+                                                if (!activePlatformPanel) return;
+                                                handleDeepDive(activePlatformPanel.platform, item.title, 'tr');
                                             }}
-                                            transition={{
-                                                width: { duration: 1 },
-                                                backgroundPosition: { duration: 2, repeat: Infinity }
-                                            }}
-                                        />
-                                    </div>
+                                            className="flex items-center justify-between p-3 bg-slate-800 border border-slate-600 hover:border-blue-500 hover:bg-slate-700/80 rounded-lg transition-all group w-full"
+                                        >
+                                            <div className="flex flex-col items-start overflow-hidden">
+                                                <span className="text-[10px] font-bold uppercase mb-0.5 text-blue-400">
+                                                    TÜRKÇE
+                                                </span>
+                                                <span className="text-sm font-medium text-slate-200 group-hover:text-white truncate w-full text-left">
+                                                    {item.title}
+                                                </span>
+                                            </div>
+                                            <ChevronRight size={16} className="text-slate-500 group-hover:text-white shrink-0 ml-2" />
+                                        </button>
 
-                                    {generatingKeywords ? (
-                                        <div className="flex items-center justify-center gap-2 py-4">
-                                            <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                                            <span className="text-blue-400 text-sm font-medium">Translating to English...</span>
-                                        </div>
-                                    ) : (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2 bg-slate-800/30 rounded">
-                                            {generatedKeywords[item.id]?.slice(0, 2).map((kw, idx) => (
-                                                <button
-                                                    key={`${kw}-${idx}`}
-                                                    onClick={() => {
-                                                        if (!activePlatformPanel) return;
-                                                        const isEnglish = idx === 1; // 0=TR, 1=EN
-                                                        handleDeepDive(activePlatformPanel.platform, kw, isEnglish ? 'en' : 'tr');
-                                                    }}
-                                                    className={`flex items-center justify-between p-3 bg-slate-800 border border-slate-600 hover:border-${idx === 0 ? 'blue' : 'emerald'}-500 hover:bg-slate-700/80 rounded-lg transition-all group w-full`}
-                                                    title={kw}
-                                                >
-                                                    <div className="flex flex-col items-start overflow-hidden">
-                                                        <span className={`text-[10px] font-bold uppercase mb-0.5 ${idx === 0 ? 'text-blue-400' : 'text-emerald-400'}`}>
-                                                            {idx === 0 ? 'TÜRKÇE' : 'ENGLISH (GLOBAL)'}
-                                                        </span>
-                                                        <span className="text-sm font-medium text-slate-200 group-hover:text-white truncate w-full text-left">
-                                                            {kw}
-                                                        </span>
-                                                    </div>
-                                                    <ChevronRight size={16} className="text-slate-500 group-hover:text-white shrink-0 ml-2" />
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
+                                        {/* ENGLISH BUTTON */}
+                                        <button
+                                            onClick={() => {
+                                                if (!activePlatformPanel) return;
+                                                // Default to title if en is missing (fallback)
+                                                handleDeepDive(activePlatformPanel.platform, item.en || item.title, 'en');
+                                            }}
+                                            className="flex items-center justify-between p-3 bg-slate-800 border border-slate-600 hover:border-emerald-500 hover:bg-slate-700/80 rounded-lg transition-all group w-full"
+                                        >
+                                            <div className="flex flex-col items-start overflow-hidden">
+                                                <span className="text-[10px] font-bold uppercase mb-0.5 text-emerald-400">
+                                                    ENGLISH (GLOBAL)
+                                                </span>
+                                                <span className="text-sm font-medium text-slate-200 group-hover:text-white truncate w-full text-left">
+                                                    {item.en || item.title}
+                                                </span>
+                                            </div>
+                                            <ChevronRight size={16} className="text-slate-500 group-hover:text-white shrink-0 ml-2" />
+                                        </button>
+                                    </div>
                                 </motion.div>
                             )}
 
