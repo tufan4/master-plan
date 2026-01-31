@@ -48,6 +48,20 @@ export default function MasterTufanOS() {
     const [galleryImages, setGalleryImages] = useState<string[]>([]);
     const [generatingKeywords, setGeneratingKeywords] = useState(false);
     const [loadingImages, setLoadingImages] = useState(false);
+    const [parentMap, setParentMap] = useState<Map<string, string>>(new Map());
+
+    useEffect(() => {
+        const map = new Map<string, string>();
+        const traverse = (items: any[], parentId: string | null) => {
+            items.forEach(item => {
+                if (parentId) map.set(item.id, parentId);
+                if (item.subtopics) traverse(item.subtopics, item.id);
+            });
+        };
+        CURRICULUM.categories.forEach(cat => { if (cat.topics) traverse(cat.topics, null); });
+        setParentMap(map);
+    }, []);
+
     const [generatedKeywords, setGeneratedKeywords] = useState<Record<string, string[]>>({});
     const [showAboutModal, setShowAboutModal] = useState(false);
     // Explicit state to trigger re-run of tutorial
@@ -130,23 +144,17 @@ export default function MasterTufanOS() {
                 );
             };
 
+            // Search categories
             const searchCurriculum = (items: any[]) => {
                 items.forEach(item => {
-                    const titleMatch = isFuzzyMatch(item.title);
-                    const keywordMatch = item.keywords?.some((k: string) => isFuzzyMatch(k));
+                    const term = globalSearch.toLowerCase();
+                    const match = item.title.toLowerCase().includes(term) || (item.keywords && item.keywords.some((k: any) => k.toLowerCase().includes(term)));
 
-                    if (titleMatch || keywordMatch) {
+                    if (match) {
                         expandAll.add(item.id);
-                        // Smart Parent Expansion
-                        if (item.id.includes('.')) {
-                            const parts = item.id.split('.');
-                            let runningId = parts[0];
-                            expandAll.add(runningId);
-                            for (let i = 1; i < parts.length; i++) {
-                                runningId += '.' + parts[i];
-                                expandAll.add(runningId);
-                            }
-                        }
+                        // Smart Parent Expansion using parentMap
+                        let curr = parentMap.get(item.id);
+                        while (curr) { expandAll.add(curr); curr = parentMap.get(curr); }
                     }
                     if (item.subtopics) searchCurriculum(item.subtopics);
                 });
@@ -157,8 +165,6 @@ export default function MasterTufanOS() {
             });
 
             if (CURRICULUM.dictionary && globalSearch.length > 2) {
-                // Dictionary included in search scope 
-                // Logic updated to use globalSearch state
                 const searchTerm = globalSearch.toLowerCase();
             }
 
@@ -166,7 +172,7 @@ export default function MasterTufanOS() {
         } else {
             setExpandedItems(new Set());
         }
-    }, [globalSearch]);
+    }, [globalSearch, parentMap]);
 
     // ==================== SESSION HISTORY & PREVIEW SYSTEM ====================
     const [sessionLinks, setSessionLinks] = useState<Array<{
@@ -184,12 +190,14 @@ export default function MasterTufanOS() {
     const [showThresholdModal, setShowThresholdModal] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-    // Auto-trigger threshold alert when 5 links are collected
+    // Auto-trigger removed as requested
+    /*
     useEffect(() => {
         if (sessionLinks.length > 0 && sessionLinks.length % 5 === 0) {
             setShowThresholdModal(true);
         }
     }, [sessionLinks.length]);
+    */
 
     // Helper: Fetch Metadata (NoEmbed for Youtube, etc.)
     const fetchAndAddLink = async (platform: string, topic: string, topicId: string, url: string) => {
@@ -580,7 +588,7 @@ export default function MasterTufanOS() {
 
     const handlePlatformClick = (platform: string, topic: string, topicId: string, keywords: string[]) => {
         const url = getPlatformUrl(platform, topic, keywords);
-        // window.open(url, '_blank'); // REMOVED as requested
+        window.open(url, '_blank');
 
         // Add to session history silently
         fetchAndAddLink(platform, topic, topicId, url);
@@ -775,70 +783,94 @@ export default function MasterTufanOS() {
                                 </motion.div>
                             )}
 
-                            {/* SAVED LINKS SECTION (GROUPED BY PLATFORM) */}
-                            {savedLinks[item.id] && savedLinks[item.id].length > 0 && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="mt-3 space-y-3"
-                                >
-                                    {PLATFORMS.map(plat => {
-                                        const platformLinks = savedLinks[item.id].filter((l: any) => l.platform === plat.id);
-                                        if (platformLinks.length === 0) return null;
-                                        const Icon = plat.icon;
-                                        return (
-                                            <div key={plat.id} className="bg-slate-900/40 rounded-lg border border-slate-700/50 overflow-hidden">
-                                                <div className={`px-3 py-2 bg-slate-800/50 border-b border-slate-700/50 flex items-center gap-2`}>
-                                                    <Icon size={14} className={`text-${plat.color}-400`} />
-                                                    <span className={`text-[10px] font-bold text-${plat.color}-300 uppercase tracking-wider`}>{plat.name}</span>
-                                                    <span className="ml-auto text-[10px] text-slate-500 bg-slate-800 px-1.5 rounded">{platformLinks.length}</span>
-                                                </div>
-                                                <div className="p-1 space-y-1">
-                                                    {platformLinks.map((link: any) => (
-                                                        <div key={link.id} className="flex justify-between items-center group/link p-2 hover:bg-slate-800 rounded transition-colors">
-                                                            <a href={link.url} target="_blank" rel="noreferrer" className="text-xs text-slate-300 hover:text-white truncate flex-1 mr-2 no-underline">
-                                                                {link.title}
-                                                            </a>
-                                                            <div className="flex gap-1 opacity-0 group-hover/link:opacity-100 transition-opacity">
-                                                                {(link.url.includes('youtube') || link.url.includes('youtu.be')) && (
-                                                                    <button onClick={() => window.open(link.url.replace('youtube.com', 'ssyoutube.com').replace('youtu.be/', 'ssyoutube.com/'), '_blank')} className="p-1 hover:text-red-400" title="İndir"><Pin size={12} className="rotate-180" /></button>
-                                                                )}
-                                                                <button onClick={() => window.open(`https://www.printfriendly.com/print?url=${encodeURIComponent(link.url)}`, '_blank')} className="p-1 hover:text-blue-400" title="PDF"><FileText size={12} /></button>
-                                                                <button onClick={() => deleteLink(link.id).then(() => loadLinksForTopic(item.id))} className="p-1 hover:bg-red-900/30 text-slate-500 hover:text-red-400 rounded transition"><Trash2 size={12} /></button>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
+                            {/* EMBEDDED RESOURCES (Saved + Session) - v3 Overhaul */}
+                            {(() => {
+                                const allResources = [
+                                    ...(savedLinks[item.id] || []).map((l: any) => ({ ...l, type: 'saved' })),
+                                    ...sessionLinks.filter(l => l.topicId === item.id).map(l => ({ ...l, type: 'session' }))
+                                ];
 
-                                    {/* OTHER Resources Group */}
-                                    {(() => {
-                                        const otherLinks = savedLinks[item.id].filter((l: any) => !PLATFORMS.some(p => p.id === l.platform));
-                                        if (otherLinks.length === 0) return null;
-                                        return (
-                                            <div className="bg-slate-900/40 rounded-lg border border-slate-700/50 overflow-hidden">
-                                                <div className="px-3 py-2 bg-slate-800/50 border-b border-slate-700/50 flex items-center gap-2">
-                                                    <Pin size={14} className="text-slate-400" />
-                                                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">OTHER Resources</span>
-                                                    <span className="ml-auto text-[10px] text-slate-500 bg-slate-800 px-1.5 rounded">{otherLinks.length}</span>
+                                if (allResources.length === 0) return null;
+
+                                return (
+                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 space-y-3">
+                                        {PLATFORMS.map(plat => {
+                                            const resources = allResources.filter((l: any) => (l.platformId || l.platform) === plat.id);
+                                            if (resources.length === 0) return null;
+                                            const Icon = plat.icon;
+
+                                            return (
+                                                <div key={plat.id} className="bg-slate-900/40 rounded-lg border border-slate-700/50 overflow-hidden">
+                                                    <div className={`px-3 py-2 bg-slate-800/50 border-b border-slate-700/50 flex items-center gap-2`}>
+                                                        <Icon size={14} className={`text-${plat.color}-400`} />
+                                                        <span className={`text-[10px] font-bold text-${plat.color}-300 uppercase tracking-wider`}>{plat.name} Resources</span>
+                                                        <span className="ml-auto text-[10px] text-slate-500 bg-slate-800 px-1.5 rounded">{resources.length}</span>
+                                                    </div>
+                                                    <div className="p-2 space-y-2">
+                                                        {resources.map((link: any) => {
+                                                            const isReddit = plat.id === 'reddit';
+                                                            return (
+                                                                <div key={link.id} className={`${isReddit ? 'grid grid-cols-1 sm:grid-cols-2 gap-2' : 'flex items-center justify-between'} bg-slate-800/30 p-2 rounded hover:bg-slate-800/50 transition relative group/link`}>
+                                                                    {/* Reddit Dual View */}
+                                                                    {isReddit ? (
+                                                                        <>
+                                                                            <div className="text-xs text-slate-300 pr-2 border-r border-slate-700/50 flex flex-col justify-between">
+                                                                                <a href={link.url} target="_blank" className="hover:text-amber-400 font-medium line-clamp-2 no-underline">{link.title}</a>
+                                                                                <span className="text-[9px] text-slate-500 mt-1">Reddit Post</span>
+                                                                            </div>
+                                                                            <div className="h-20 bg-black/50 rounded flex items-center justify-center text-slate-600 text-[10px] relative overflow-hidden group/media">
+                                                                                {link.thumbnail ? <img src={link.thumbnail} className="w-full h-full object-cover opacity-70 group-hover/media:opacity-100 transition" /> : <div className="flex flex-col items-center"><ImageIcon size={16} /><span>Preview</span></div>}
+                                                                            </div>
+                                                                        </>
+                                                                    ) : (
+                                                                        // Standard View
+                                                                        <a href={link.url} target="_blank" className="text-xs text-slate-300 hover:text-white truncate flex-1 mr-2 no-underline flex items-center gap-2">
+                                                                            {link.type === 'session' && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 animate-pulse" title="New Session Item" />}
+                                                                            {link.title}
+                                                                        </a>
+                                                                    )}
+
+                                                                    {/* Actions */}
+                                                                    <div className={`${isReddit ? 'absolute top-1 right-1' : 'flex gap-1'} opacity-0 group-hover/link:opacity-100 transition-opacity bg-slate-900/80 rounded p-0.5`}>
+                                                                        {plat.id === 'youtube' && (
+                                                                            <button onClick={(e) => { e.preventDefault(); alert("🤖 NotebookLM: Transkript analizi başlatılıyor..."); }} className="p-1 hover:text-blue-400" title="Transkripti İndir (AI)"><FileText size={12} /></button>
+                                                                        )}
+                                                                        <button onClick={() => deleteLink(link.id).then(() => { loadLinksForTopic(item.id); setSessionLinks(p => p.filter(x => x.id !== link.id)); })} className="p-1 hover:text-red-400"><Trash2 size={12} /></button>
+                                                                    </div>
+                                                                </div>
+                                                            )
+                                                        })}
+                                                    </div>
                                                 </div>
-                                                <div className="p-1 space-y-1">
-                                                    {otherLinks.map((link: any) => (
-                                                        <div key={link.id} className="flex justify-between items-center group/link p-2 hover:bg-slate-800 rounded transition-colors">
-                                                            <a href={link.url} target="_blank" rel="noreferrer" className="text-xs text-slate-300 hover:text-white truncate flex-1 mr-2 no-underline">{link.title}</a>
-                                                            <div className="flex gap-1 opacity-0 group-hover/link:opacity-100 transition-opacity">
-                                                                <button onClick={() => deleteLink(link.id).then(() => loadLinksForTopic(item.id))} className="p-1 hover:bg-red-900/30 text-slate-500 hover:text-red-400 rounded transition"><Trash2 size={12} /></button>
+                                            )
+                                        })}
+
+                                        {(() => {
+                                            const otherLinks = allResources.filter((l: any) => !PLATFORMS.some(p => p.id === (l.platformId || l.platform)));
+                                            if (otherLinks.length === 0) return null;
+                                            return (
+                                                <div className="bg-slate-900/40 rounded-lg border border-slate-700/50 overflow-hidden">
+                                                    <div className="px-3 py-2 bg-slate-800/50 border-b border-slate-700/50 flex items-center gap-2">
+                                                        <Pin size={14} className="text-slate-400" />
+                                                        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">OTHER Resources</span>
+                                                        <span className="ml-auto text-[10px] text-slate-500 bg-slate-800 px-1.5 rounded">{otherLinks.length}</span>
+                                                    </div>
+                                                    <div className="p-1 space-y-1">
+                                                        {otherLinks.map((link: any) => (
+                                                            <div key={link.id} className="flex justify-between items-center group/link p-2 hover:bg-slate-800 rounded transition-colors">
+                                                                <a href={link.url} target="_blank" rel="noreferrer" className="text-xs text-slate-300 hover:text-white truncate flex-1 mr-2 no-underline">{link.title}</a>
+                                                                <div className="flex gap-1 opacity-0 group-hover/link:opacity-100 transition-opacity">
+                                                                    <button onClick={() => deleteLink(link.id).then(() => loadLinksForTopic(item.id))} className="p-1 hover:bg-red-900/30 text-slate-500 hover:text-red-400 rounded transition"><Trash2 size={12} /></button>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    ))}
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    })()}
-                                </motion.div>
-                            )}
+                                            );
+                                        })()}
+                                    </motion.div>
+                                );
+                            })()}
 
                             {/* IMAGE GALLERY - DIRECT INJECTION */}
                             {showImageGallery === item.id && (
@@ -936,7 +968,8 @@ export default function MasterTufanOS() {
             {/* MODALS */}
             <PreviewModal />
             <ThresholdModal />
-            <SessionHistoryPanel />
+
+            {/* SessionHistoryPanel Removed - Integrated into topic view */}
 
             {/* TUTORIAL & ABOUT MODALS */}
             <TutorialOverlay

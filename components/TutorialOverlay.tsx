@@ -108,8 +108,16 @@ export default function TutorialOverlay({ onComplete, forceRun }: TutorialProps)
                         {steps[step].desc}
                     </motion.p>
 
-                    <div className="flex items-center gap-4 w-full">
-                        <div className="flex gap-2 justify-center flex-1">
+                    <div className="flex items-center justify-between w-full mt-auto gap-4">
+                        <button
+                            onClick={() => setStep(Math.max(0, step - 1))}
+                            disabled={step === 0}
+                            className={`px-4 py-2 rounded-lg font-bold text-slate-400 hover:text-white transition-colors flex items-center gap-2 hover:bg-slate-800 ${step === 0 ? 'opacity-0 pointer-events-none' : ''}`}
+                        >
+                            Geri
+                        </button>
+
+                        <div className="flex gap-2 justify-center">
                             {steps.map((_, i) => (
                                 <div
                                     key={i}
@@ -126,7 +134,7 @@ export default function TutorialOverlay({ onComplete, forceRun }: TutorialProps)
                                     handleComplete();
                                 }
                             }}
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 transition-all hover:scale-105 shadow-lg shadow-emerald-900/20"
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all hover:scale-105 shadow-lg shadow-emerald-900/20"
                         >
                             {step === steps.length - 1 ? "Sistemi Başlat" : "Devam Et"}
                             <ArrowRight size={20} />
