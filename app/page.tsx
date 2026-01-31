@@ -17,15 +17,9 @@ import {
     Search, ChevronDown, ChevronRight, CheckCircle2, Circle,
     Youtube, FileText, Book, X, Image as ImageIcon,
     Globe, MessageCircle, Sparkles, BookOpen, Info, Instagram, Linkedin,
-<<<<<<< HEAD
     Github, Lightbulb, HelpCircle, Layout, Settings, Download
 } from "lucide-react";
 import { generateDiverseKeywords } from "@/lib/geminiClient";
-=======
-    Github, Lightbulb, Pin, Trash2, HelpCircle, Layout, Settings, Download, FileType, Key
-} from "lucide-react";
-import { findSmartContent } from "@/lib/geminiClient";
->>>>>>> 4d2467a10146d7e69c6e98a1274d1b2410b6b3e9
 
 // ==================== PLATFORMS ====================
 const PLATFORMS = [
