@@ -209,13 +209,29 @@ export default function MasterTufanOS() {
 
     // Helper: Fetch Metadata (NoEmbed for Youtube, etc.)
     const fetchAndAddLink = async (platform: string, topic: string, topicId: string, url: string) => {
+        // SMART URL CLEANING (Anti-Redirect)
+        let cleanUrl = url;
+
+        // Remove Google redirect wrappers
+        if (url.includes('google.com/url?')) {
+            const urlParams = new URLSearchParams(url.split('?')[1]);
+            cleanUrl = urlParams.get('url') || urlParams.get('q') || url;
+        }
+
+        // Decode URI components
+        try {
+            cleanUrl = decodeURIComponent(cleanUrl);
+        } catch (e) {
+            // Keep original if decode fails
+        }
+
         let title = `${topic} (${PLATFORMS.find(p => p.id === platform)?.name})`;
         let thumbnail = "";
 
         // Attempt strict scraping via NoEmbed proxy
-        if (url.includes('youtube') || url.includes('youtu.be')) {
+        if (cleanUrl.includes('youtube') || cleanUrl.includes('youtu.be')) {
             try {
-                const res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
+                const res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(cleanUrl)}`);
                 const data = await res.json();
                 if (data.title) title = data.title;
                 if (data.thumbnail_url) thumbnail = data.thumbnail_url;
@@ -232,13 +248,13 @@ export default function MasterTufanOS() {
             platformId: platform,
             title,
             originalTitle: topic,
-            url,
+            url: cleanUrl,
             thumbnail,
             timestamp: Date.now()
         };
 
         setSessionLinks(prev => {
-            if (prev.some(l => l.url === url)) return prev; // Avoid duplicates
+            if (prev.some(l => l.url === cleanUrl)) return prev; // Avoid duplicates
             return [...prev, newLink];
         });
     };
@@ -850,7 +866,52 @@ export default function MasterTufanOS() {
                                                                     {/* Actions */}
                                                                     <div className={`${isReddit ? 'absolute top-1 right-1' : 'flex gap-1'} opacity-0 group-hover/link:opacity-100 transition-opacity bg-slate-900/80 rounded p-0.5`}>
                                                                         {plat.id === 'youtube' && (
-                                                                            <button onClick={(e) => { e.preventDefault(); alert("🤖 NotebookLM: Transkript analizi başlatılıyor..."); }} className="p-1 hover:text-blue-400" title="Transkripti İndir (AI)"><FileText size={12} /></button>
+                                                                            <>
+                                                                                <button
+                                                                                    onClick={(e) => {
+                                                                                        e.preventDefault();
+                                                                                        const videoId = link.url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1];
+                                                                                        if (videoId) window.open(`https://www.y2mate.com/youtube/${videoId}`, '_blank');
+                                                                                        else alert("Video ID bulunamadı");
+                                                                                    }}
+                                                                                    className="p-1 hover:text-red-400"
+                                                                                    title="Video İndir"
+                                                                                >
+                                                                                    <Download size={12} />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={(e) => {
+                                                                                        e.preventDefault();
+                                                                                        alert("📄 Transcript PDF: Yakında NotebookLM ile...");
+                                                                                    }}
+                                                                                    className="p-1 hover:text-blue-400"
+                                                                                    title="Transkript PDF"
+                                                                                >
+                                                                                    <FileText size={12} />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={(e) => {
+                                                                                        e.preventDefault();
+                                                                                        alert("📝 Transcript DOC: Yakında NotebookLM ile...");
+                                                                                    }}
+                                                                                    className="p-1 hover:text-green-400"
+                                                                                    title="Transkript DOC"
+                                                                                >
+                                                                                    <FileType size={12} />
+                                                                                </button>
+                                                                            </>
+                                                                        )}
+                                                                        {plat.id === 'google' && link.url.includes('.pdf') && (
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.preventDefault();
+                                                                                    window.open(link.url, '_blank');
+                                                                                }}
+                                                                                className="p-1 hover:text-orange-400"
+                                                                                title="PDF İndir"
+                                                                            >
+                                                                                <Download size={12} />
+                                                                            </button>
                                                                         )}
                                                                         <button onClick={() => deleteLink(link.id).then(() => { loadLinksForTopic(item.id); setSessionLinks(p => p.filter(x => x.id !== link.id)); })} className="p-1 hover:text-red-400"><Trash2 size={12} /></button>
                                                                     </div>
