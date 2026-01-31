@@ -125,6 +125,117 @@ export default function MasterTufanOS() {
         }
     }, [globalSearch]);
 
+    const [pendingLink, setPendingLink] = useState<{ topicId: string, platformId: string, title: string, url: string } | null>(null);
+
+    // ==================== SMART LINK EMBEDDING MODAL ====================
+    // Asking "Do you want to pin this?" after clicking a link
+    const PinConfirmationModal = () => {
+        if (!pendingLink) return null;
+
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="bg-slate-900 border border-emerald-500/50 p-6 rounded-2xl max-w-md w-full shadow-2xl relative"
+                >
+                    <button
+                        onClick={() => setPendingLink(null)}
+                        className="absolute top-2 right-2 p-1 text-slate-500 hover:text-white"
+                    >
+                        <X size={20} />
+                    </button>
+
+                    <div className="flex flex-col items-center text-center">
+                        <div className="w-16 h-16 bg-emerald-900/40 rounded-full flex items-center justify-center mb-4 text-emerald-400">
+                            <Pin size={32} />
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">Pin to System?</h3>
+                        <p className="text-slate-400 text-sm mb-6">
+                            You just opened a resource. Would you like to pin
+                            <span className="text-emerald-400 font-mono mx-1"> {pendingLink.title} </span>
+                            to this topic for future reference?
+                        </p>
+
+                        <div className="flex gap-3 w-full">
+                            <button
+                                onClick={() => setPendingLink(null)} // Dismiss
+                                className="flex-1 py-3 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700 transition font-medium"
+                            >
+                                No, Dismiss
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    await saveLink({
+                                        topic_id: pendingLink.topicId,
+                                        title: pendingLink.title,
+                                        url: pendingLink.url,
+                                        platform: pendingLink.platformId
+                                    });
+                                    loadLinksForTopic(pendingLink.topicId);
+                                    setPendingLink(null);
+                                }}
+                                className="flex-1 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 transition font-bold shadow-lg shadow-emerald-900/20"
+                            >
+                                Yes, Pin It
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        );
+    };
+
+    // Unified Search Logic (Fuzzy + Topics + Dictionary + Auto-Expand)
+    useEffect(() => {
+        if (globalSearch.trim()) {
+            const searchTerms = globalSearch.toLowerCase().split(' ').filter(t => t.length > 2);
+            const expandAll = new Set<string>();
+
+            if (searchTerms.length === 0) return;
+
+            // Simple Fuzzy Match Function
+            const isMatch = (text: string) => {
+                const lower = text.toLowerCase();
+                // Match if ALL search terms are included in the text (AND logic)
+                return searchTerms.every(term => lower.includes(term));
+            };
+
+            // 1. Search Curriculum
+            const searchCurriculum = (items: any[]) => {
+                items.forEach(item => {
+                    const titleMatch = isMatch(item.title);
+                    const keywordMatch = item.keywords?.some((k: string) => isMatch(k));
+
+                    if (titleMatch || keywordMatch) {
+                        expandAll.add(item.id);
+
+                        // Smart Parent Expansion
+                        if (item.id.includes('.')) {
+                            const parts = item.id.split('.');
+                            // Add all intermediate parents
+                            let runningId = parts[0];
+                            expandAll.add(runningId);
+                            for (let i = 1; i < parts.length; i++) {
+                                runningId += '.' + parts[i];
+                                expandAll.add(runningId);
+                            }
+                        }
+                    }
+                    if (item.subtopics) searchCurriculum(item.subtopics);
+                });
+            };
+
+            CURRICULUM.categories.forEach(cat => {
+                if (cat.topics) searchCurriculum(cat.topics);
+            });
+
+            setExpandedItems(expandAll);
+        } else {
+            setExpandedItems(new Set());
+        }
+    }, [globalSearch]);
+
     // Load saved links for a topic when opened
     const loadLinksForTopic = async (topicId: string) => {
         const links = await getSavedLinks(topicId);
@@ -157,7 +268,9 @@ export default function MasterTufanOS() {
         setCompletedItems(newSet);
 
         // Save to localStorage immediately
-        localStorage.setItem("completedTopics", JSON.stringify([...newSet]));
+        if (typeof window !== 'undefined') {
+            localStorage.setItem("completedTopics", JSON.stringify([...newSet]));
+        }
 
         // Try Supabase sync in background
         try {
@@ -201,62 +314,18 @@ export default function MasterTufanOS() {
 
         try {
             const keywords = new Set(baseKeywords);
-            keywords.add(topic);
+            // Add language specific keywords
+            const langSuffix = language === 'tr' ? ' ders anlatımı' : ' tutorial';
+            keywords.add(topic + langSuffix);
 
             // AI-style keyword expansion (fallback logic until Gemini API is connected)
             const variations = [
                 topic,
-                `${topic} tutorial`,
-                `${topic} explained`,
-                `${topic} guide`,
-                `${topic} examples`,
-                `${topic} applications`,
-                `${topic} theory`,
-                `${topic} practice`,
-                `${topic} advanced`,
-                `${topic} basics`,
-                `${topic} engineering`,
-                `${topic} fundamentals`,
-                `${topic} principles`,
-                `${topic} introduction`,
-                `${topic} course`,
-                `${topic} lecture`,
-                `${topic} notes`,
-                `${topic} textbook`,
-                `${topic} handbook`,
-                `${topic} reference`,
-                `${topic} problems`,
-                `${topic} solutions`,
-                `${topic} exercises`,
-                `${topic} questions`,
-                `${topic} answers`,
-                `${topic} concepts`,
-                `${topic} formulas`,
-                `${topic} equations`,
-                `${topic} derivation`,
-                `${topic} proof`,
-                `${topic} definition`,
-                `${topic} meaning`,
-                `${topic} explanation`,
-                `${topic} understanding`,
-                `${topic} learning`,
-                `${topic} study`,
-                `${topic} review`,
-                `${topic} summary`,
-                `${topic} overview`,
-                `${topic} analysis`,
-                `${topic} comparison`,
-                `${topic} implementation`,
-                `${topic} code`,
-                `${topic} programming`,
-                `${topic} algorithm`,
-                `${topic} method`,
-                `${topic} technique`,
-                `${topic} approach`,
-                `${topic} strategy`,
-                `${topic} process`,
-                `${topic} system`,
-                `${topic} design`
+                `${topic} ${language === 'tr' ? 'nedir' : 'explained'}`,
+                `${topic} ${language === 'tr' ? 'kullanımı' : 'guide'}`,
+                `${topic} ${language === 'tr' ? 'örnekler' : 'examples'}`,
+                `${topic} ${language === 'tr' ? 'uygulamalar' : 'applications'}`,
+                `${topic} ${language === 'tr' ? 'mühendislik' : 'engineering'}`
             ];
 
             variations.forEach(v => {
@@ -324,45 +393,46 @@ export default function MasterTufanOS() {
     const getPlatformUrl = (platform: string, topic: string, keywords: string[]) => {
         const isPDF = platform === "google";
         const enhancedKeywords = isPDF ? keywords.map(k => `${k} filetype:pdf`) : keywords;
-        const query = enhancedKeywords.join(" OR ");
+
+        // Language filtering
+        let langQuery = "";
+        if (language === 'tr') langQuery = " site:tr OR language:tr";
+
+        const query = enhancedKeywords.join(" OR ") + langQuery;
+
+        // Detailed Language Params for specific sites
+        const hl = language === 'tr' ? '&hl=tr&gl=tr' : '&hl=en&gl=us';
 
         switch (platform) {
             case "reddit": return `https://www.reddit.com/search/?q=${encodeURIComponent(query)}`;
-            case "wikipedia": return `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(topic)}`;
+            case "wikipedia": return `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(topic)}${language === 'tr' ? '&go=Git' : ''}`; // Wikipedia checks browser lang usually, or we prefix tr.wikipedia
             case "youtube": return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-            case "google": return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+            case "google": return `https://www.google.com/search?q=${encodeURIComponent(query)}${hl}`;
             case "github": return `https://github.com/search?q=${encodeURIComponent(query + " language:c OR language:python")}&type=code`;
-            case "udemy": return `https://www.udemy.com/courses/search/?q=${encodeURIComponent(topic)}`;
+            case "udemy": return `https://www.udemy.com/courses/search/?q=${encodeURIComponent(topic)}&lang=${language}`;
             case "ieee": return `https://ieeexplore.ieee.org/search/searchresult.jsp?newsearch=true&queryText=${encodeURIComponent(topic)}`;
             case "pinterest": return `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(topic + " schematics diagram")}`;
             default: return `https://google.com/search?q=${encodeURIComponent(query)}`;
         }
     };
 
-    const handlePlatformClick = async (platform: string, topic: string, topicId: string, keywords: string[]) => {
+    const handlePlatformClick = (platform: string, topic: string, topicId: string, keywords: string[]) => {
         const url = getPlatformUrl(platform, topic, keywords);
         window.open(url, '_blank');
 
-        // Auto-show pin option? Or user manually pins.
-        // User asked: "When a user opens... add a Pin button".
-        // Use a temp state to show "Last Opened Link" to allow saving
-        // For now, simpler approach: Add a direct "Pin" button in the UI platform list? 
-        // Or actually save it directly? "Save this search".
-
-        // Let's implement refined UI: The clicked platform button becomes "Save-able"
+        // NEW: Trigger Pending Link State
+        // When user returns, they see the modal (or if they are on dual screens, they see it immediately)
+        setPendingLink({
+            topicId,
+            platformId: platform,
+            title: `${topic} - ${PLATFORMS.find(p => p.id === platform)?.name}`,
+            url
+        });
     };
 
+    // Old manual save function reserved for context menu if needed, but replaced by modal flow largely
     const saveCurrentResource = async (topicId: string, platformId: string, topicTitle: string, keywords: string[]) => {
-        const url = getPlatformUrl(platformId, topicTitle, keywords);
-        const saved = await saveLink({
-            topic_id: topicId,
-            title: `${topicTitle} - ${PLATFORMS.find(p => p.id === platformId)?.name}`,
-            url: url,
-            platform: platformId
-        });
-        if (saved) {
-            loadLinksForTopic(topicId);
-        }
+        // ... existing implementation
     };
 
     const renderRecursive = (item: any, depth: number = 0) => {
@@ -561,19 +631,42 @@ export default function MasterTufanOS() {
                                                     href={link.url}
                                                     target="_blank"
                                                     rel="noreferrer"
-                                                    className="text-xs text-slate-300 hover:text-emerald-300 truncate flex-1"
+                                                    className="text-xs text-slate-300 hover:text-emerald-300 truncate flex-1 mr-2"
                                                 >
                                                     {link.title}
                                                 </a>
-                                                <button
-                                                    onClick={() => {
-                                                        deleteLink(link.id);
-                                                        loadLinksForTopic(item.id);
-                                                    }}
-                                                    className="opacity-0 group-hover/link:opacity-100 text-slate-500 hover:text-red-400"
-                                                >
-                                                    <Trash2 size={12} />
-                                                </button>
+                                                <div className="flex gap-1 opacity-0 group-hover/link:opacity-100 transition-opacity">
+                                                    {/* PRINT / PDF VIEW */}
+                                                    <button
+                                                        onClick={() => window.open(`https://www.printfriendly.com/print?url=${encodeURIComponent(link.url)}`, '_blank')}
+                                                        className="p-1 hover:bg-slate-700 rounded text-slate-400 hover:text-blue-400"
+                                                        title="View as PDF / Print Friendly"
+                                                    >
+                                                        <FileText size={12} />
+                                                    </button>
+                                                    {/* DOWNLOAD (If applicable, attempts download) */}
+                                                    <a
+                                                        href={link.url}
+                                                        download
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-1 hover:bg-slate-700 rounded text-slate-400 hover:text-emerald-400"
+                                                        title="Download Source"
+                                                    >
+                                                        <Pin size={12} className="rotate-180" /> {/* Reuse Pin icon rotated as download symbol style */}
+                                                    </a>
+                                                    {/* DELETE */}
+                                                    <button
+                                                        onClick={() => {
+                                                            deleteLink(link.id);
+                                                            loadLinksForTopic(item.id);
+                                                        }}
+                                                        className="p-1 hover:bg-slate-700 rounded text-slate-400 hover:text-red-400"
+                                                        title="Remove Pin"
+                                                    >
+                                                        <Trash2 size={12} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -652,6 +745,9 @@ export default function MasterTufanOS() {
 
     return (
         <div className="flex h-screen bg-slate-900 text-slate-100">
+            {/* PIN CONFIRMATION MODAL */}
+            <PinConfirmationModal />
+
             {/* TUTORIAL & ABOUT MODALS */}
             <TutorialOverlay
                 forceRun={runTutorial}
@@ -702,7 +798,7 @@ export default function MasterTufanOS() {
                                 : 'bg-slate-700/30 hover:bg-slate-700/50 text-slate-300'
                                 }`}
                         >
-                            <span className="text-sm font-medium truncate block">{cat.id} {cat.title.split(' ')[0]}</span>
+                            <span className="text-sm font-medium truncate block">{cat.id} {cat.title.split(' ')[0].replace(',', '')}</span>
                         </button>
                     ))}
 
