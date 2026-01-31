@@ -274,14 +274,111 @@ export default function MasterTufanOS() {
 
 
 
-    // Gemini AI keyword generation with cache-first approach
+    // ==================== DEEP DIVE HANDLER (Level 2 Scraping) ====================
+    const handleDeepDive = async (platformId: string, query: string, lang: 'tr' | 'en') => {
+        const platform = PLATFORMS.find(p => p.id === platformId);
+        if (!platform) return;
+
+        // 1. Open Tab Immediately (Bypass Blockers)
+        const newTab = window.open('', '_blank');
+        if (newTab) {
+            const color = platform.color || 'blue';
+            newTab.document.write(`
+                <style>
+                    body{background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;margin:0} 
+                    .loader{border:4px solid #334155;border-top:4px solid ${color === 'red' ? '#ef4444' : color === 'green' ? '#22c55e' : color === 'orange' ? '#f97316' : '#3b82f6'};border-radius:50%;width:50px;height:50px;animation:spin 0.8s linear infinite;margin-bottom:1.5rem} 
+                    @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}} 
+                    .title{font-size:1.5rem;font-weight:bold;margin-bottom:0.5rem;text-align:center} 
+                    .sub{font-size:0.9rem;opacity:0.6;text-transform:uppercase;letter-spacing:1px}
+                    .status{font-size:0.8rem;margin-top:10px;color:#94a3b8;font-style:italic}
+                </style>
+                <div class="loader"></div>
+                <div class="title">${query}</div>
+                <div class="sub">Accessing ${platform.name}...</div>
+                <div class="status" id="status">Connecting via Neural Link...</div>
+            `);
+        }
+
+        try {
+            // 2. Attempt Level 1 API Deep Link (Reddit/Wiki/YouTube/etc.)
+            if (newTab && newTab.document.getElementById('status')) newTab.document.getElementById('status')!.innerText = "Trying Deep Discovery API...";
+
+            const apiLink = await getDeepDiscoveryLink(platformId, query, lang);
+
+            if (apiLink && apiLink.success) {
+                if (newTab) newTab.location.href = apiLink.url;
+                return;
+            }
+
+            // 3. Fallback to Deep Scrape (Level 2)
+            if (newTab && newTab.document.getElementById('status')) newTab.document.getElementById('status')!.innerText = "Deep Scanning Search Results...";
+
+            // Construct Fallback Search URL
+            const randomUrls: Record<string, string> = {
+                youtube: `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,
+                google: `https://www.google.com/search?q=${encodeURIComponent(query)}+filetype:pdf`,
+                reddit: `https://www.reddit.com/search/?q=${encodeURIComponent(query)}`,
+                wikipedia: `https://${lang}.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(query)}`,
+                github: `https://github.com/search?q=${encodeURIComponent(query)}`,
+                arxiv: `https://arxiv.org/search/?query=${encodeURIComponent(query)}&searchtype=all`,
+                ieee: `https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=${encodeURIComponent(query)}`,
+                semantic: `https://www.semanticscholar.org/search?q=${encodeURIComponent(query)}`,
+                researchgate: `https://www.researchgate.net/search?q=${encodeURIComponent(query)}`,
+                sciencedirect: `https://www.sciencedirect.com/search?qs=${encodeURIComponent(query)}`,
+                stackoverflow: `https://stackoverflow.com/search?q=${encodeURIComponent(query)}`,
+                mdn: `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(query)}`,
+                devto: `https://dev.to/search?q=${encodeURIComponent(query)}`,
+                leetcode: `https://leetcode.com/problemset/all/?search=${encodeURIComponent(query)}`,
+                udemy: `https://www.udemy.com/courses/search/?q=${encodeURIComponent(query)}`,
+                coursera: `https://www.coursera.org/search?query=${encodeURIComponent(query)}`,
+                mitocw: `https://ocw.mit.edu/search/?q=${encodeURIComponent(query)}`,
+                khan: `https://www.khanacademy.org/search?page_search_query=${encodeURIComponent(query)}`,
+                wolfram: `https://www.wolframalpha.com/input?i=${encodeURIComponent(query)}`,
+                desmos: `https://www.google.com/search?q=site:desmos.com+${encodeURIComponent(query)}`,
+                geogebra: `https://www.geogebra.org/search/${encodeURIComponent(query)}`,
+                arduino: `https://www.arduino.cc/search?q=${encodeURIComponent(query)}`,
+                hackster: `https://www.hackster.io/search?q=${encodeURIComponent(query)}`,
+                instructables: `https://www.instructables.com/search/?q=${encodeURIComponent(query)}`,
+                pinterest: `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(query)}`
+            };
+
+            const fallbackUrl = randomUrls[platformId] || `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+
+            // Call Internal Scraper API
+            try {
+                const scrapeRes = await fetch(`/api/deep-dive?url=${encodeURIComponent(fallbackUrl)}`);
+                const scrapeData = await scrapeRes.json();
+
+                if (scrapeData.success && scrapeData.deepUrl && newTab) {
+                    newTab.document.getElementById('status')!.innerText = "Deep Link Found! Redirecting...";
+                    // Small delay to let user see "Found" state
+                    setTimeout(() => {
+                        newTab.location.href = scrapeData.deepUrl;
+                    }, 500);
+                    return;
+                }
+            } catch (err) {
+                console.warn("Scraper failed, using fallback");
+            }
+
+            // Final Fallback
+            if (newTab) newTab.location.href = fallbackUrl;
+
+        } catch (e) {
+            console.warn("Deep scan failed");
+            // Absolute final fallback to google if everything explodes
+            if (newTab) newTab.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+        }
+    };
     const generateKeywordsWithAI = async (topic: string, topicId: string, threshold: number, baseKeywords: string[] = []): Promise<string[]> => {
+        // Force threshold to be low since we only need 2 items (TR + EN)
+        threshold = 1;
         setGeneratingKeywords(true);
 
         // Check memory cache first
         if (generatedKeywords[topicId] && generatedKeywords[topicId].length >= threshold) {
             setGeneratingKeywords(false);
-            return generatedKeywords[topicId].slice(0, threshold);
+            return generatedKeywords[topicId].slice(0, 2);
         }
 
         // Check localStorage cache
@@ -289,18 +386,21 @@ export default function MasterTufanOS() {
         if (cached && cached.length >= threshold) {
             setGeneratedKeywords(prev => ({ ...prev, [topicId]: cached }));
             setGeneratingKeywords(false);
-            return cached.slice(0, threshold);
+            return cached.slice(0, 2);
         }
 
         try {
             const result = await generateDiverseKeywords(topic, language);
 
+            // Combine: [Original Title (TR), Translated Title (EN)]
+            const combined = [topic, ...result];
+
             // Cache keywords in both memory and localStorage
-            setGeneratedKeywords(prev => ({ ...prev, [topicId]: result }));
-            cacheKeywords(topicId, result);
+            setGeneratedKeywords(prev => ({ ...prev, [topicId]: combined }));
+            cacheKeywords(topicId, combined);
 
             setGeneratingKeywords(false);
-            return result;
+            return combined;
         } catch (error) {
             console.error('Keyword generation error:', error);
             setGeneratingKeywords(false);
@@ -455,30 +555,21 @@ export default function MasterTufanOS() {
                                     className="mb-3 p-3 bg-slate-700/30 rounded-lg border border-blue-500/20"
                                 >
                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs text-blue-400 font-bold uppercase tracking-wider">AI Anahtar Kelimeler (20)</span>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => setLanguage('tr')}
-                                                className={`px-3 py-1 rounded text-xs font-medium transition-all ${language === 'tr' ? 'bg-blue-600 text-white' : 'bg-slate-600 text-slate-300'
-                                                    }`}
-                                            >TR</button>
-                                            <button
-                                                onClick={() => setLanguage('en')}
-                                                className={`px-3 py-1 rounded text-xs font-medium transition-all ${language === 'en' ? 'bg-blue-600 text-white' : 'bg-slate-600 text-slate-300'
-                                                    }`}
-                                            >EN</button>
-                                        </div>
+                                        <span className="text-xs text-blue-400 font-bold uppercase tracking-wider">Arama Dili Seçimi / Search Language</span>
+                                        <button onClick={() => setActivePlatformPanel(null)} className="hover:bg-slate-600 rounded p-1">
+                                            <X size={14} className="text-slate-400" />
+                                        </button>
                                     </div>
 
                                     {/* LOADING BAR (Dynamic Color) */}
                                     <div className="h-2 bg-slate-800 rounded-full overflow-hidden mb-3">
                                         <motion.div
                                             className={`h-full bg-gradient-to-r ${activePlatformPanel
-                                                    ? (() => {
-                                                        const color = PLATFORMS.find(p => p.id === activePlatformPanel.platform)?.color || 'blue';
-                                                        return `from-${color}-500 via-${color}-400 to-${color}-500`;
-                                                    })()
-                                                    : "from-blue-500 via-cyan-500 to-blue-500"
+                                                ? (() => {
+                                                    const color = PLATFORMS.find(p => p.id === activePlatformPanel.platform)?.color || 'blue';
+                                                    return `from-${color}-500 via-${color}-400 to-${color}-500`;
+                                                })()
+                                                : "from-blue-500 via-cyan-500 to-blue-500"
                                                 }`}
                                             initial={{ width: 0 }}
                                             animate={{
@@ -493,94 +584,33 @@ export default function MasterTufanOS() {
                                     </div>
 
                                     {generatingKeywords ? (
-                                        <div className="text-center text-blue-400 text-sm font-medium animate-pulse">
-                                            🔄 Generating 20 keywords with AI...
+                                        <div className="flex items-center justify-center gap-2 py-4">
+                                            <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                                            <span className="text-blue-400 text-sm font-medium">Translating to English...</span>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 max-h-48 overflow-y-auto p-2 bg-slate-800/30 rounded">
-                                            {generatedKeywords[item.id]?.slice(0, 20).map((kw, idx) => (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2 bg-slate-800/30 rounded">
+                                            {generatedKeywords[item.id]?.slice(0, 2).map((kw, idx) => (
                                                 <button
                                                     key={`${kw}-${idx}`}
-                                                    onClick={async () => {
+                                                    onClick={() => {
                                                         if (!activePlatformPanel) return;
-                                                        const platform = activePlatformPanel.platform;
-                                                        // Fix: Prevent double topic name if AI already included it
-                                                        const cleanKw = kw.toLowerCase();
-                                                        const cleanTitle = item.title.toLowerCase();
-                                                        const searchQuery = cleanKw.includes(cleanTitle) ? kw : `${kw} ${item.title}`;
-
-                                                        // Deep Random Discovery with "Open-then-Redirect" to bypass pop-up blockers
-                                                        const newTab = window.open('', '_blank');
-                                                        if (newTab) {
-                                                            newTab.document.write(`
-                                                                <style>body{background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column} .loader{border:4px solid #334155;border-top:4px solid #3b82f6;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin-bottom:1rem} @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>
-                                                                <div class="loader"></div>
-                                                                <div>Master Tufan: İçerik Bulunuyor...</div>
-                                                                <div style="margin-top:0.5rem;font-size:0.8rem;opacity:0.7">Platform: ${platform.toUpperCase()}</div>
-                                                            `);
-                                                        }
-
-                                                        try {
-                                                            const deepLink = await getDeepDiscoveryLink(platform, searchQuery, language);
-
-                                                            if (deepLink && deepLink.success && newTab) {
-                                                                newTab.location.href = deepLink.url;
-                                                                return;
-                                                            }
-                                                        } catch (e) {
-                                                            console.warn("Deep link failed, falling back to search page");
-                                                        }
-
-                                                        const randomUrls: Record<string, string> = {
-                                                            // CORE
-                                                            youtube: `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`,
-                                                            google: `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}+filetype:pdf`,
-                                                            reddit: `https://www.reddit.com/search/?q=${encodeURIComponent(searchQuery)}`,
-                                                            wikipedia: `https://${language}.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(kw)}`,
-                                                            github: `https://github.com/search?q=${encodeURIComponent(searchQuery)}`,
-
-                                                            // ACADEMIC
-                                                            arxiv: `https://arxiv.org/search/?query=${encodeURIComponent(searchQuery)}&searchtype=all`,
-                                                            ieee: `https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=${encodeURIComponent(searchQuery)}`,
-                                                            semantic: `https://www.semanticscholar.org/search?q=${encodeURIComponent(searchQuery)}`,
-                                                            researchgate: `https://www.researchgate.net/search?q=${encodeURIComponent(searchQuery)}`,
-                                                            sciencedirect: `https://www.sciencedirect.com/search?qs=${encodeURIComponent(searchQuery)}`,
-
-                                                            // CODING
-                                                            stackoverflow: `https://stackoverflow.com/search?q=${encodeURIComponent(searchQuery)}`,
-                                                            mdn: `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(searchQuery)}`,
-                                                            devto: `https://dev.to/search?q=${encodeURIComponent(searchQuery)}`,
-                                                            leetcode: `https://leetcode.com/problemset/all/?search=${encodeURIComponent(searchQuery)}`,
-
-                                                            // COURSES
-                                                            udemy: `https://www.udemy.com/courses/search/?q=${encodeURIComponent(searchQuery)}`,
-                                                            coursera: `https://www.coursera.org/search?query=${encodeURIComponent(searchQuery)}`,
-                                                            mitocw: `https://ocw.mit.edu/search/?q=${encodeURIComponent(searchQuery)}`,
-                                                            khan: `https://www.khanacademy.org/search?page_search_query=${encodeURIComponent(searchQuery)}`,
-
-                                                            // TOOLS
-                                                            wolfram: `https://www.wolframalpha.com/input?i=${encodeURIComponent(searchQuery)}`,
-                                                            desmos: `https://www.google.com/search?q=site:desmos.com+${encodeURIComponent(searchQuery)}`,
-                                                            geogebra: `https://www.geogebra.org/search/${encodeURIComponent(searchQuery)}`,
-
-                                                            // HARDWARE
-                                                            arduino: `https://www.arduino.cc/search?q=${encodeURIComponent(searchQuery)}`,
-                                                            hackster: `https://www.hackster.io/search?q=${encodeURIComponent(searchQuery)}`,
-                                                            instructables: `https://www.instructables.com/search/?q=${encodeURIComponent(searchQuery)}`,
-                                                            pinterest: `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(searchQuery)}`
-                                                        };
-
-                                                        // Fallback to Google instead of YouTube if platform somehow missing
-                                                        const url = randomUrls[platform] || `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
-                                                        if (newTab) {
-                                                            newTab.location.href = url;
-                                                        } else {
-                                                            window.open(url, '_blank');
-                                                        }
+                                                        const isEnglish = idx === 1; // 0=TR, 1=EN
+                                                        handleDeepDive(activePlatformPanel.platform, kw, isEnglish ? 'en' : 'tr');
                                                     }}
-                                                    className="px-3 py-1 bg-blue-900/40 text-blue-300 rounded-full text-[10px] hover:bg-blue-900/60 transition-all hover:scale-105 truncate text-left"
+                                                    className={`flex items-center justify-between p-3 bg-slate-800 border border-slate-600 hover:border-${idx === 0 ? 'blue' : 'emerald'}-500 hover:bg-slate-700/80 rounded-lg transition-all group w-full`}
                                                     title={kw}
-                                                >{kw}</button>
+                                                >
+                                                    <div className="flex flex-col items-start overflow-hidden">
+                                                        <span className={`text-[10px] font-bold uppercase mb-0.5 ${idx === 0 ? 'text-blue-400' : 'text-emerald-400'}`}>
+                                                            {idx === 0 ? 'TÜRKÇE' : 'ENGLISH (GLOBAL)'}
+                                                        </span>
+                                                        <span className="text-sm font-medium text-slate-200 group-hover:text-white truncate w-full text-left">
+                                                            {kw}
+                                                        </span>
+                                                    </div>
+                                                    <ChevronRight size={16} className="text-slate-500 group-hover:text-white shrink-0 ml-2" />
+                                                </button>
                                             ))}
                                         </div>
                                     )}
