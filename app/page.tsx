@@ -507,16 +507,25 @@ export default function MasterTufanOS() {
 
 
                             <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-2 mb-4">
-                                {PLATFORMS.map(plat => {
+                                {PLATFORMS.filter(p =>
+                                    !activePlatformPanel ||
+                                    activePlatformPanel.topicId !== item.id ||
+                                    activePlatformPanel.platform === p.id
+                                ).map(plat => {
                                     const Icon = plat.icon;
                                     const isActive = activePlatformPanel?.topicId === item.id && activePlatformPanel?.platform === plat.id;
                                     return (
                                         <button
                                             key={plat.id}
-                                            onClick={async (e) => {
+                                            onClick={(e) => {
                                                 e.stopPropagation();
-                                                setActivePlatformPanel({ topicId: item.id, platform: plat.id });
-                                                await generateKeywordsWithAI(item.title, item.id, 20, item.keywords || []);
+                                                // Toggle behavior: Close if already active, otherwise open
+                                                if (isActive) {
+                                                    setActivePlatformPanel(null);
+                                                } else {
+                                                    setActivePlatformPanel({ topicId: item.id, platform: plat.id });
+                                                    // No need to call generateKeywordsWithAI anymore as we use static titles
+                                                }
                                             }}
                                             className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all border ${isActive
                                                 ? 'bg-blue-600/20 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]'
