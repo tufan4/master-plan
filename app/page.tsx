@@ -81,139 +81,65 @@ export default function MasterTufanOS() {
         loadData();
     }, []);
 
-    // Unified Search Logic (Topics + Dictionary + Auto-Expand)
+    // ==================== HELPER: LEVENSHTEIN DISTANCE ====================
+    const levenshtein = (a: string, b: string): number => {
+        const matrix = [];
+        for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+        for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+        for (let i = 1; i <= b.length; i++) {
+            for (let j = 1; j <= a.length; j++) {
+                if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                    matrix[i][j] = matrix[i - 1][j - 1];
+                } else {
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j - 1] + 1,
+                        matrix[i][j - 1] + 1,
+                        matrix[i - 1][j] + 1
+                    );
+                }
+            }
+        }
+        return matrix[b.length][a.length];
+    };
+
+    // ==================== UNIFIED SEARCH LOGIC (FUZZY) ====================
     useEffect(() => {
         if (globalSearch.trim()) {
             const searchLower = globalSearch.toLowerCase();
+            const searchTerms = searchLower.split(' ').filter(t => t.length > 1); // Allow shorter words (2 chars)
             const expandAll = new Set<string>();
 
-            // 1. Search Curriculum
-            const searchCurriculum = (items: any[]) => {
-                items.forEach(item => {
-                    const titleLower = item.title.toLowerCase();
-                    // Check if *any* keyword matches or title matches
-                    const keywordMatch = item.keywords?.some((k: string) => k.toLowerCase().includes(searchLower));
+            // Fuzzy Match Config
+            const MAX_DISTANCE = 2;
 
-                    if (titleLower.includes(searchLower) || keywordMatch) {
-                        expandAll.add(item.id);
-                        // Also expand parent if possible (requires knowing parent, 
-                        // but since we expand by ID, we need to ensure parent ID is added. 
-                        // Our IDs are hierarchical: 1.1 -> 1, 1.1.1 -> 1.1)
-                        if (item.id.includes('.')) {
-                            const parts = item.id.split('.');
-                            let parentId = parts[0];
-                            expandAll.add(parentId); // Add root category
-                            if (parts.length > 2) {
-                                expandAll.add(`${parts[0]}.${parts[1]}`); // Add sub-category
-                            }
-                        }
-                    }
-                    if (item.subtopics) searchCurriculum(item.subtopics);
-                });
-            };
-
-            CURRICULUM.categories.forEach(cat => {
-                if (cat.topics) searchCurriculum(cat.topics);
-            });
-
-            // 2. Search Dictionary (Optional: auto-switch to dict view if matches found?)
-            // The prompt says "Search... same time". We handle this by highlighting dict results if active.
-
-            setExpandedItems(expandAll);
-        } else {
-            setExpandedItems(new Set());
-        }
-    }, [globalSearch]);
-
-    const [pendingLink, setPendingLink] = useState<{ topicId: string, platformId: string, title: string, url: string } | null>(null);
-
-    // ==================== SMART LINK EMBEDDING MODAL ====================
-    // Asking "Do you want to pin this?" after clicking a link
-    const PinConfirmationModal = () => {
-        if (!pendingLink) return null;
-
-        return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="bg-slate-900 border border-emerald-500/50 p-6 rounded-2xl max-w-md w-full shadow-2xl relative"
-                >
-                    <button
-                        onClick={() => setPendingLink(null)}
-                        className="absolute top-2 right-2 p-1 text-slate-500 hover:text-white"
-                    >
-                        <X size={20} />
-                    </button>
-
-                    <div className="flex flex-col items-center text-center">
-                        <div className="w-16 h-16 bg-emerald-900/40 rounded-full flex items-center justify-center mb-4 text-emerald-400">
-                            <Pin size={32} />
-                        </div>
-                        <h3 className="text-xl font-bold text-white mb-2">Pin to System?</h3>
-                        <p className="text-slate-400 text-sm mb-6">
-                            You just opened a resource. Would you like to pin
-                            <span className="text-emerald-400 font-mono mx-1"> {pendingLink.title} </span>
-                            to this topic for future reference?
-                        </p>
-
-                        <div className="flex gap-3 w-full">
-                            <button
-                                onClick={() => setPendingLink(null)} // Dismiss
-                                className="flex-1 py-3 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700 transition font-medium"
-                            >
-                                No, Dismiss
-                            </button>
-                            <button
-                                onClick={async () => {
-                                    await saveLink({
-                                        topic_id: pendingLink.topicId,
-                                        title: pendingLink.title,
-                                        url: pendingLink.url,
-                                        platform: pendingLink.platformId
-                                    });
-                                    loadLinksForTopic(pendingLink.topicId);
-                                    setPendingLink(null);
-                                }}
-                                className="flex-1 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 transition font-bold shadow-lg shadow-emerald-900/20"
-                            >
-                                Yes, Pin It
-                            </button>
-                        </div>
-                    </div>
-                </motion.div>
-            </div>
-        );
-    };
-
-    // Unified Search Logic (Fuzzy + Topics + Dictionary + Auto-Expand)
-    useEffect(() => {
-        if (globalSearch.trim()) {
-            const searchTerms = globalSearch.toLowerCase().split(' ').filter(t => t.length > 2);
-            const expandAll = new Set<string>();
-
-            if (searchTerms.length === 0) return;
-
-            // Simple Fuzzy Match Function
-            const isMatch = (text: string) => {
+            const isFuzzyMatch = (text: string) => {
+                if (!text) return false;
                 const lower = text.toLowerCase();
-                // Match if ALL search terms are included in the text (AND logic)
-                return searchTerms.every(term => lower.includes(term));
+                const words = lower.split(/[\s-]+/); // Split by space or dash
+
+                // Check if ALL search terms match SOMETHING in the text
+                return searchTerms.every(term =>
+                    words.some(w => {
+                        // Exact match or substring
+                        if (w.includes(term)) return true;
+                        // Fuzzy match (only if term is long enough)
+                        if (term.length > 3 && levenshtein(w, term) <= MAX_DISTANCE) return true;
+                        return false;
+                    })
+                );
             };
 
-            // 1. Search Curriculum
             const searchCurriculum = (items: any[]) => {
                 items.forEach(item => {
-                    const titleMatch = isMatch(item.title);
-                    const keywordMatch = item.keywords?.some((k: string) => isMatch(k));
+                    const titleMatch = isFuzzyMatch(item.title);
+                    const keywordMatch = item.keywords?.some((k: string) => isFuzzyMatch(k));
 
                     if (titleMatch || keywordMatch) {
                         expandAll.add(item.id);
-
                         // Smart Parent Expansion
                         if (item.id.includes('.')) {
                             const parts = item.id.split('.');
-                            // Add all intermediate parents
                             let runningId = parts[0];
                             expandAll.add(runningId);
                             for (let i = 1; i < parts.length; i++) {
@@ -236,7 +162,127 @@ export default function MasterTufanOS() {
         }
     }, [globalSearch]);
 
-    // Load saved links for a topic when opened
+    // ==================== SMART LINK EMBEDDING & FOCUS ====================
+    const [pendingLink, setPendingLink] = useState<{ topicId: string, platformId: string, title: string, url: string } | null>(null);
+    const [showPinModal, setShowPinModal] = useState(false);
+
+    // Detect return to tab to trigger modal
+    useEffect(() => {
+        const handleFocus = () => {
+            if (pendingLink) {
+                setShowPinModal(true);
+            }
+        };
+        window.addEventListener('focus', handleFocus);
+        return () => window.removeEventListener('focus', handleFocus);
+    }, [pendingLink]);
+
+    const PinConfirmationModal = () => {
+        // Only show if both pending link exists AND the modal is triggered (by focus)
+        // Note: For dev testing, we might want to show it immediately if focus event is tricky, but let's stick to user request.
+        if (!showPinModal || !pendingLink) return null;
+
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="bg-slate-900 border border-emerald-500/50 p-6 rounded-2xl max-w-md w-full shadow-2xl relative"
+                >
+                    <button
+                        onClick={() => { setPendingLink(null); setShowPinModal(false); }}
+                        className="absolute top-2 right-2 p-1 text-slate-500 hover:text-white"
+                    >
+                        <X size={20} />
+                    </button>
+
+                    <div className="flex flex-col items-center text-center">
+                        <div className="w-16 h-16 bg-emerald-900/40 rounded-full flex items-center justify-center mb-4 text-emerald-400">
+                            <Pin size={32} />
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">Save Knowledge?</h3>
+                        <p className="text-slate-400 text-sm mb-6">
+                            You explored a resource. Would you like to add it to your knowledge base?
+                            <br />
+                            <span className="text-emerald-400 font-mono text-xs mx-1 block mt-1 truncate max-w-xs">{pendingLink.title}</span>
+                        </p>
+
+                        <div className="flex gap-3 w-full">
+                            <button
+                                onClick={() => { setPendingLink(null); setShowPinModal(false); }}
+                                className="flex-1 py-3 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700 transition font-medium"
+                            >
+                                Discard
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    await saveLink({
+                                        topic_id: pendingLink.topicId,
+                                        title: pendingLink.title,
+                                        url: pendingLink.url,
+                                        platform: pendingLink.platformId
+                                    });
+                                    loadLinksForTopic(pendingLink.topicId);
+                                    setPendingLink(null);
+                                    setShowPinModal(false);
+                                }}
+                                className="flex-1 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 transition font-bold shadow-lg shadow-emerald-900/20"
+                            >
+                                Save It
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        );
+    };
+
+    // ==================== PREVIEW MODAL ====================
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    const PreviewModal = () => {
+        if (!previewUrl) return null;
+        // Use PrintFriendly for article-like content as a proxy previewer
+        const safeUrl = previewUrl.includes('youtube.com')
+            ? previewUrl.replace('watch?v=', 'embed/')
+            : `https://www.printfriendly.com/print?url=${encodeURIComponent(previewUrl)}`;
+
+        return (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="w-full max-w-6xl h-[85vh] bg-slate-900 rounded-2xl border border-slate-700 flex flex-col shadow-2xl overflow-hidden"
+                >
+                    <div className="p-3 border-b border-slate-700 flex justify-between items-center bg-slate-800">
+                        <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
+                            <BookOpen size={16} className="text-blue-400" /> Quick Preview
+                        </h3>
+                        <div className="flex gap-2">
+                            <a
+                                href={previewUrl}
+                                target="_blank"
+                                className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-500 transition"
+                            >
+                                Open Original
+                            </a>
+                            <button onClick={() => setPreviewUrl(null)} className="p-1 hover:bg-slate-700 rounded text-slate-400">
+                                <X size={20} />
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex-1 bg-white relative">
+                        <iframe
+                            src={safeUrl}
+                            className="w-full h-full"
+                            title="Preview"
+                            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                        />
+                    </div>
+                </motion.div>
+            </div>
+        );
+    };
     const loadLinksForTopic = async (topicId: string) => {
         const links = await getSavedLinks(topicId);
         setSavedLinks(prev => ({ ...prev, [topicId]: links }));
