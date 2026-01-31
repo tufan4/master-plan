@@ -16,18 +16,21 @@ export async function generateDiverseKeywords(
     }
 
     try {
-        const prompt = `Generate exactly 20 diverse, highly relevant search keywords/phrases for the engineering topic "${topic}". 
-        Include both basic concepts and advanced technical terms. 
-        Format: Return ONLY a comma-separated list of the 20 keywords. 
-        Language: ${language === 'tr' ? 'Turkish' : 'English'}. 
-        Don't include numbers or bullets.`;
+        const prompt = `Generate exactly 20 distinct, high-quality search keywords for the engineering topic: "${topic}". 
+        
+        Rules:
+        1. Diversity: Don't just repeat the topic name. Focus on sub-concepts, specific algorithms, real-world applications, and related technical terms.
+        2. Relevance: Keywords must be deeply related to "${topic}".
+        3. Language: ${language === 'tr' ? 'Turkish (but keep universal technical terms in English if commonly used)' : 'English'}.
+        4. Format: Return ONLY a comma-separated list. No numbers, no bullets.
+        5. Avoid Redundancy: Do NOT generate phrases like "${topic} examples", "${topic} tutorial" repeatedly. Use specific terms like "PID tuning" instead of "PID Controller tuning".`;
 
         const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.7, maxOutputTokens: 300 }
+                generationConfig: { temperature: 0.8, maxOutputTokens: 500 }
             })
         });
 

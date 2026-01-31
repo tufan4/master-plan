@@ -20,6 +20,7 @@ import {
     Github, Lightbulb, HelpCircle, Layout, Settings, Download
 } from "lucide-react";
 import { generateDiverseKeywords } from "@/lib/geminiClient";
+import { getDeepDiscoveryLink } from "@/lib/deepDiscovery";
 
 // ==================== PLATFORMS ====================
 const PLATFORMS = [
@@ -466,11 +467,27 @@ export default function MasterTufanOS() {
                                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 max-h-48 overflow-y-auto p-2 bg-slate-800/30 rounded">
                                             {generatedKeywords[item.id]?.slice(0, 20).map((kw, idx) => (
                                                 <button
-                                                    key={idx}
+                                                    key={`${kw}-${idx}`}
                                                     onClick={async () => {
                                                         if (!activePlatformPanel) return;
                                                         const platform = activePlatformPanel.platform;
-                                                        const searchQuery = `${kw} ${item.title}`;
+                                                        // Fix: Prevent double topic name if AI already included it
+                                                        const cleanKw = kw.toLowerCase();
+                                                        const cleanTitle = item.title.toLowerCase();
+                                                        const searchQuery = cleanKw.includes(cleanTitle) ? kw : `${kw} ${item.title}`;
+
+                                                        // Deep Random Discovery for ALL platforms (YouTube, PDF, Reddit, Wiki)
+                                                        // Attempts to find a direct video/article/post instead of a search page.
+                                                        try {
+                                                            const deepLink = await getDeepDiscoveryLink(platform, searchQuery, language);
+                                                            if (deepLink && deepLink.success) {
+                                                                window.open(deepLink.url, '_blank');
+                                                                return;
+                                                            }
+                                                        } catch (e) {
+                                                            console.warn("Deep link failed, falling back to search page");
+                                                        }
+
                                                         const randomUrls: Record<string, string> = {
                                                             youtube: `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}&sp=CAI%253D`,
                                                             google: `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}+filetype:pdf`,
