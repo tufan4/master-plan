@@ -1,9 +1,12 @@
 "use client";
 
-import TypewriterSlogan from "@/components/TypewriterSlogan";
-import HybridSidebar from "@/components/HybridSidebar";
-import TutorialOverlay from "@/components/TutorialOverlay";
-import AboutModal from "@/components/AboutModal";
+import dynamic from 'next/dynamic';
+
+const TypewriterSlogan = dynamic(() => import("@/components/TypewriterSlogan"), { ssr: false });
+const HybridSidebar = dynamic(() => import("@/components/HybridSidebar"), { ssr: false });
+const TutorialOverlay = dynamic(() => import("@/components/TutorialOverlay"), { ssr: false });
+const AboutModal = dynamic(() => import("@/components/AboutModal"), { ssr: false });
+
 import {
     syncCompletedTopics, fetchCompletedTopics, cacheImage, getCachedImages, cacheKeywords, getCachedKeywords,
     saveLink, getSavedLinks, deleteLink, SavedLink
