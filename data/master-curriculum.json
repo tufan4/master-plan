@@ -1918,6 +1918,888 @@
             "tr": "Gerilim",
             "category": "Electronics",
             "definition": "Elektriksel potansiyel farkı (Volt)"
+        },
+        {
+            "term": "Open Circuit",
+            "tr": "Açık Devre",
+            "category": "Engineering",
+            "definition": "Devre anahtarının devreden akım geçmeyecek konumda olması durumu."
+        },
+        {
+            "term": "Adi Anahtar",
+            "tr": "Adi Anahtar",
+            "category": "Engineering",
+            "definition": "Bir lambayı veya bir grup lambayı aynı anda, aynı yerden yakıp söndürmeye yarayan anahtarlara denir."
+        },
+        {
+            "term": "Admitance",
+            "tr": "Admitans",
+            "category": "Engineering",
+            "definition": "Alternatif gerilim devrelerinde empedans‘ın tersidir. Y ile gösterilir. Y=1/Z"
+        },
+        {
+            "term": "Current",
+            "tr": "Akım",
+            "category": "Engineering",
+            "definition": "İletkenin bir noktasından bir saniyede geçen elektron miktarı. Birimi Amper (A)’dir. I=V/R"
+        },
+        {
+            "term": "Current Density",
+            "tr": "Akım Yoğunluğu",
+            "category": "Engineering",
+            "definition": "İletkenin 1mm2’lik kesitinden geçen akım miktarına akım yoğunluğu denir. J harfi ile gösterilir. Birimi A/mm2’dir. J=I/S formülü ile hesaplanır. I=İletkenden geçen akım (A) S=İletkenin kesidi (mm2)"
+        },
+        {
+            "term": "Real Energy",
+            "tr": "Aktif Enerji",
+            "category": "Engineering",
+            "definition": "Aktif gücün zamanla çarpımıyla elde edilen enerji. Mesela 10 kW’lık bir motor 2 saat çalışırsa 2×10=20 kWh aktif enerji harcar."
+        },
+        {
+            "term": "Real Power",
+            "tr": "Aktif Güç",
+            "category": "Engineering",
+            "definition": "Birimi Watt olan görünür gücün faz açısının kosinüsü ile çarpımı ile elde edilen elektriğin iş yapan gücü. P=VxIxcosφ"
+        },
+        {
+            "term": "Low Pass Filter",
+            "tr": "Alçak Geçiren Filtre",
+            "category": "Engineering",
+            "definition": "Düşük frekansları geçiren, alçak frekansları engelleyen filtre devresi."
+        },
+        {
+            "term": "Alternans",
+            "tr": "Alternans",
+            "category": "Engineering",
+            "definition": "Her bir yarım saykıla alternans denir."
+        },
+        {
+            "term": "Alternative Current",
+            "tr": "Alternatif Akım",
+            "category": "Engineering",
+            "definition": "Yönü ve büyüklüğü zamana göre sinüs dalgası biçiminde değişen akımdır."
+        },
+        {
+            "term": "Ampermeter",
+            "tr": "Ampermetre",
+            "category": "Engineering",
+            "definition": "Doğru veya alternatif akım devrelerinde alıcının çektiği akımı ölçen ölçü aleti olup devreye seri bağlanır. Ampermetreler (A) harfi ile belirtilir."
+        },
+        {
+            "term": "Switch",
+            "tr": "Anahtar",
+            "category": "Engineering",
+            "definition": "Devreyi açıp kapatmaya yarayan araçlardır."
+        },
+        {
+            "term": "Rated Current",
+            "tr": "Anma Akımı",
+            "category": "Engineering",
+            "definition": "Bir elektrikli alet veya makinanın gerek ısınmasına, gerekse çalışmasına ilişkin yapılan hesapların dayandırıldığı olağan çalışma akım değeri."
+        },
+        {
+            "term": "Rated Value",
+            "tr": "Anma Değeri",
+            "category": "Engineering",
+            "definition": "Bir bileşen, aygıt ya da donatım için çoğunlukla yapımcısı tarafından atanmış ve belirli çalışma koşullarında geçerli nicel değer."
+        },
+        {
+            "term": "Rated Frequency",
+            "tr": "Anma Frekansı",
+            "category": "Engineering",
+            "definition": "Elektrikli bir aletin çalışma sınırlarının ve test koşullarının tanımlanmasını sağlamak üzere belirtilmiş frekans değeri."
+        },
+        {
+            "term": "Rated Voltage",
+            "tr": "Anma Gerilimi",
+            "category": "Engineering",
+            "definition": "Bir elektrikli alet veya makinanın gerek gerilim sınırlarının gerekse işlemesine ilişkin hesapların dayandırıldığı gerilim değeri."
+        },
+        {
+            "term": "Rated Speed",
+            "tr": "Anma Hızı",
+            "category": "Engineering",
+            "definition": "Döner makinalarda, bir motorun en büyük dönme hızı."
+        },
+        {
+            "term": "Armatur",
+            "tr": "Armatür",
+            "category": "Engineering",
+            "definition": "DC veya üniversal elektrik motorlarında motorun dönen parçası."
+        },
+        {
+            "term": "Overload",
+            "tr": "Aşırı Yük",
+            "category": "Engineering",
+            "definition": "Bir elektrikli alete veya elektrik sistemine taşıyabileceğinden çok fazla elektriğin veya yükün yüklenmesi."
+        },
+        {
+            "term": "Avometre",
+            "tr": "Avometre",
+            "category": "Engineering",
+            "definition": "Multimetre, Ampermetre, Voltmetre, Ohmmetre; Amper, Volt, Ohm ölçebilen elektronik cihazlardır."
+        },
+        {
+            "term": "Lighting Fixture",
+            "tr": "Aydınlatma Armatürü",
+            "category": "Engineering",
+            "definition": "Lambaların bir veya birden çoğunu bünyesinde taşıyan onlara dekoratif bir görünüm veren ve bazen de olumsuz dış etkilerden koruyan aydınlatma araçlarıdır."
+        },
+        {
+            "term": "Luminous Intensity",
+            "tr": "Aydınlatma Şiddeti",
+            "category": "Engineering",
+            "definition": "Aydınlanan bir yüzeyin 1 m2’sine, bu yüzeyi aydınlatan ışık kaynaklarından gelen ışık akılarının toplamıdır. Birimi Lüx (lx) veya lümen/m2"
+        },
+        {
+            "term": "Ballast",
+            "tr": "Balast",
+            "category": "Engineering",
+            "definition": "Floresan lambalarda ilk anda lambaya enerji uygulanıp flamanların ısınması sonunda, starter aracılığı ile flamanları ısıtmak ve atlama gerilimi oluşturmak ve lambanın yanmasından sonra çalışma geriliminin yaklaşık %50′si oranında gerilim düşümü meydana getirmek için kullanılan elektrik devre elemanı."
+        },
+        {
+            "term": "Printed Circuit",
+            "tr": "Baskı Devre",
+            "category": "Engineering",
+            "definition": "Elektronik devre elemanlarının üzerine yerleştirildiği ve bu elemanlar arasındaki elektriksel bağlantının bakırlı yüzde oluşturulan yollarla sağlandığı plakalara baskı devre veya baskı devre kartı (Printed Circuit Board) (PCB) denir."
+        },
+        {
+            "term": "Supply Voltage",
+            "tr": "Besleme Gerilimi",
+            "category": "Engineering",
+            "definition": "Bir devrenin çalışabilmesi için devreye uygulanan gerilim."
+        },
+        {
+            "term": "Coil",
+            "tr": "Bobin",
+            "category": "Engineering",
+            "definition": "İletken bir telin nüve denilen bir malzeme üzerine ardışıl bir şekilde ve belli bir çapta sarılmasıyla elde edilen devre elemanı. Nüve yerine hava da olabilir."
+        },
+        {
+            "term": "Discharge",
+            "tr": "Boşalma",
+            "category": "Engineering",
+            "definition": "Elektriksel potansiyeli çevresinden daha yüksek olan bir cismin yükünü yitirmesi veya gaz içerisinden akım geçmesi."
+        },
+        {
+            "term": "Conduit Box",
+            "tr": "Buat",
+            "category": "Engineering",
+            "definition": "Elektrik tesisatlarında içerisinde iletkenlerin eklendiği ve dağıtımlarının yapıldığı ek kutularıdır."
+        },
+        {
+            "term": "Push Button",
+            "tr": "Buton",
+            "category": "Engineering",
+            "definition": "Çağırma ve bildirim tesisatlarında devreye enerji verip kesmeye yarayan elemanlara buton denir."
+        },
+        {
+            "term": "Candela",
+            "tr": "Candela",
+            "category": "Engineering",
+            "definition": "Bir atmosfer ( 101325 N/m2) basınç altında ve platinin ergime sıcaklığındaki ( 1769 oC ) bir siyah cismin 1/60000 m2 büyüklüğündeki yüzeyinin kendisine dik olan bir doğruda verdiği ışık şiddetine candela denir. I ile gösterilir."
+        },
+        {
+            "term": "Distribution",
+            "tr": "Dağıtım",
+            "category": "Engineering",
+            "definition": "Elektrik enerjisinin ev, ofis gibi kullanıcılara ulaştırılması."
+        },
+        {
+            "term": "Distribution System",
+            "tr": "Dağıtım Hattı",
+            "category": "Engineering",
+            "definition": "Elektrik enerjisini son kullanıcılara ulaştıran elektrik enerji sistemi."
+        },
+        {
+            "term": "Breakdown",
+            "tr": "Delinme",
+            "category": "Engineering",
+            "definition": "Gazlarda istenmeyen bir boşalma etkisiyle bir aralığın direncinin, birden bire pratik olarak sonsuz olan değerden görece alçak bir değere düşmesi."
+        },
+        {
+            "term": "Decibel",
+            "tr": "Desibel",
+            "category": "Engineering",
+            "definition": "İki sinyal seviyesinin oranını ölçen logaritmik ölçüm. dB ile gösterilir. dB=10log(Güç1/Güç2)"
+        },
+        {
+            "term": "Circuit",
+            "tr": "Devre",
+            "category": "Engineering",
+            "definition": "Elektrik akımının aktığı iletken veya iletkenlerden ve elektrik elemanlarından oluşan sistem."
+        },
+        {
+            "term": "Breakdown Torque",
+            "tr": "Devrilme Momenti",
+            "category": "Engineering",
+            "definition": "Elektrik motorlarında bir motorun üretebileceği maksimum moment."
+        },
+        {
+            "term": "Dynamo",
+            "tr": "Dinamo",
+            "category": "Engineering",
+            "definition": "Hareket enerjisini doğru akım elektrik enerjisine dönüştüren makinelere dinamo denir."
+        },
+        {
+            "term": "Resistance",
+            "tr": "Direnç",
+            "category": "Engineering",
+            "definition": "Elektrik akımının akışına direnç gösteren ve iki kutbu arasında gerilim düşümüne neden olan devre elemanı. Birimi Ohm’dur. R=V/I"
+        },
+        {
+            "term": "Diode",
+            "tr": "Diyot",
+            "category": "Engineering",
+            "definition": "Anot ve katottan oluşan anodunun katoduna göre pozitif alternansta olması durumunda kapalı durumda olan ve akımı ileten kontrolsüz anahtarlama elemanı."
+        },
+        {
+            "term": "Direct Current",
+            "tr": "Doğru Akım",
+            "category": "Engineering",
+            "definition": "Zamana göre değeri değişmesine rağmen yönü değişmeyen pozitif (+) veya negatif (-) değerde olan akım."
+        },
+        {
+            "term": "Rectifier",
+            "tr": "Doğrultucu",
+            "category": "Engineering",
+            "definition": "Alternatif gerilimleri doğru gerilime dönüştüren devrelerdir. Tam dalga, yarım dalga, kontrollü veya kontrolsüz doğrultucular bulunmaktadır."
+        },
+        {
+            "term": "Truth Table",
+            "tr": "Doğruluk Tablosu",
+            "category": "Engineering",
+            "definition": "Lojik (sayısal) devrelerde giriş değişkenlerinin alabileceği bütün olası değerlere karşı çıkış değerlerini gösteren tasarım ve analiz tablosudur."
+        },
+        {
+            "term": "Lamp Base",
+            "tr": "Duy",
+            "category": "Engineering",
+            "definition": "Elektrik lambasının, vidalanarak veya takılarak elektrik tesisine bağlanmasını sağlayan gereçtir"
+        },
+        {
+            "term": "Sensitivity",
+            "tr": "Duyarlılık",
+            "category": "Engineering",
+            "definition": "Ölçü aletinde ölçülen büyüklüğün çok küçük değişimlerinin skala veya göstergede ifade edilebilmesidir."
+        },
+        {
+            "term": "Distribution",
+            "tr": "Elektrik Dağıtımı",
+            "category": "Engineering",
+            "definition": "Elektrik enerjisinin 36kV gerilim altındaki hatlar ile yerleşim birimleri içinde nakli."
+        },
+        {
+            "term": "Electric Meter",
+            "tr": "Elektrik Sayacı",
+            "category": "Engineering",
+            "definition": "Elektrik devrelerinde alıcıların harcadığı elektrik enerjisini, yani harcanan güç ile zaman çarpımını ölçen ölçü aletleridir. sayaçlarda akım ve gerilim bobini olmak üzere iki bobin bulunur. Akım bobini devreye seri, gerilim bobine devreye paralel bağlanır."
+        },
+        {
+            "term": "Electromagnetism",
+            "tr": "Elektromanyetizma",
+            "category": "Engineering",
+            "definition": "Elektrik akımı ile elde edilen manyetik alana genel olarak elektromanyetizma denir."
+        },
+        {
+            "term": "Electrostatic Voltmeter",
+            "tr": "Elektrostatik Voltmetre",
+            "category": "Engineering",
+            "definition": "Elektrostatik etkiden yararlanarak iki nokta arasındaki gerilimi ölçen alete elektrostatik voltmetre denir."
+        },
+        {
+            "term": "EMF",
+            "tr": "EMK",
+            "category": "Engineering",
+            "definition": "Elektromotor kuvvet, elektrik devrelerinde, devrenin açık olduğu ve devreden elektrik akımı çekilmediği durumda devredeki kaynağın iki kutbu arasındaki potansiyel farka denir. Elektromotor kuvvet emk harfleri ile tanımlanır ve sembolü ise E dir. Birimi V’dir."
+        },
+        {
+            "term": "Impedance",
+            "tr": "Empedans",
+            "category": "Engineering",
+            "definition": "Alternatif gerilim devrelerinde kaynağa bağlı olan elemanın akıma gösterdiği dirençtir. Z ile gösterilir."
+        },
+        {
+            "term": "Inductance",
+            "tr": "Endüktans",
+            "category": "Engineering",
+            "definition": "Bobinin birimi Henry olan elektriksel değeri."
+        },
+        {
+            "term": "Fider",
+            "tr": "Fider",
+            "category": "Engineering",
+            "definition": "Üretici ile müsteri arasındaki besleme hattıdır."
+        },
+        {
+            "term": "Brush",
+            "tr": "Fırça",
+            "category": "Engineering",
+            "definition": "Elektrik motorlarında rotor akımının iletilmesi için kullanılan iletken parça."
+        },
+        {
+            "term": "Power Plug",
+            "tr": "Fiş",
+            "category": "Engineering",
+            "definition": "Bir aygıt veya uzatma kablosundaki iletkenleri, prizdeki kontaklar aracılığı ile elektrik tesisi iletkenlerine birleştirmeyi veya bunlardan ayırmayı sağlayan bir araçtır."
+        },
+        {
+            "term": "Fossil Fuel",
+            "tr": "Fosil Yakıt",
+            "category": "Engineering",
+            "definition": "Petrol, kömür, doğalgaz gibi doğada kendiliğinden oluşan yakıtlar."
+        },
+        {
+            "term": "Photodiode",
+            "tr": "Foto Diyot",
+            "category": "Engineering",
+            "definition": "Işığa duyarlı olarak iletime geçen diyot. Daha çok sensörlerde kullanılır."
+        },
+        {
+            "term": "Photon",
+            "tr": "Foton",
+            "category": "Engineering",
+            "definition": "Işığı oluşturan enerji paketlerin her birine foton denir"
+        },
+        {
+            "term": "Frequency",
+            "tr": "Frekans",
+            "category": "Engineering",
+            "definition": "Alternatif akımın veya gerilimin bir saniyedeki devir sayısının Hz (hertz) birimi ile ifade edilmesi."
+        },
+        {
+            "term": "Frequency Meter",
+            "tr": "Frekansmetre",
+            "category": "Engineering",
+            "definition": "Alternatif akım devrelerinde elektrik enerjisinin frekansını ölçen aletlerdir. Frekansmetreler devreye paralel bağlanır ve (Hz) şeklinde ifade edilir."
+        },
+        {
+            "term": "Amplitude",
+            "tr": "Genlik",
+            "category": "Engineering",
+            "definition": "Sinüs biçimli periyodik bir büyüklüğün en yüksek değeri."
+        },
+        {
+            "term": "Voltaj",
+            "tr": "Gerilim",
+            "category": "Engineering",
+            "definition": "Elektrik devresinde akım akmasına neden olan güç."
+        },
+        {
+            "term": "Eddy Current",
+            "tr": "Girdap Akımı",
+            "category": "Engineering",
+            "definition": "Elektrik makinelerinin demir çekirdeğinde alternatif manyetik akı tarafından oluşturulan akımlar."
+        },
+        {
+            "term": "Apparent Power",
+            "tr": "Görünür Güç",
+            "category": "Engineering",
+            "definition": "Birimi VoltAmper olan elektrik gerilimi ve akımının çarpımı ile elde edilen güç. P=VxI"
+        },
+        {
+            "term": "Power Factor",
+            "tr": "Güç Faktörü",
+            "category": "Engineering",
+            "definition": "Devredeki akım ve gerilim fazörleri arasındaki açının cosinüsüne denir. GF=cosφ"
+        },
+        {
+            "term": "Air Gap",
+            "tr": "Hava Aralığı",
+            "category": "Engineering",
+            "definition": "Elektrik motorlarında stator ve rotor arasındaki boşluk."
+        },
+        {
+            "term": "Soldering Iron",
+            "tr": "Havya",
+            "category": "Engineering",
+            "definition": "Lehim yapmakta kullanılan ısıtıcı alet."
+        },
+        {
+            "term": "Hydroelectric Power Plant",
+            "tr": "Hidroelektrik Santral",
+            "category": "Engineering",
+            "definition": "Su gücünün kullanılmasıyla elektrik enerjisi elde edilen santrallerdir"
+        },
+        {
+            "term": "Heating, Ventilation, and Air Conditioning",
+            "tr": "HVAC",
+            "category": "Engineering",
+            "definition": "Isıtma, soğutma ve iklimlendirme kelimelerinin ingilizce baş harflerinden oluşmuş, ısıtma, soğutma ve iklimlendirme sistemleriyle ilgilenen endüstri dalı."
+        },
+        {
+            "term": "Luminous Flux",
+            "tr": "Işık Akısı",
+            "category": "Engineering",
+            "definition": "Işık kaynağından yayılan ve gözün değerlendirebildiği ışınıma ışık akısı denir. Birimi Lümen (Lm)’dir. Φ ile gösterilir."
+        },
+        {
+            "term": "Intensity of Light",
+            "tr": "Işık Şiddeti",
+            "category": "Engineering",
+            "definition": "Belli bir yöne doğru elde edilen, görülebilen ışınıma ışık şiddeti denir. Birimi Candela (cd)’dır."
+        },
+        {
+            "term": "Transmission Line",
+            "tr": "İletim Hattı",
+            "category": "Engineering",
+            "definition": "Elektrik enerjisini üretim merkezlerinden dağıtım merkezlerin taşıyan yüksek gerilim hatları."
+        },
+        {
+            "term": "Conductor",
+            "tr": "İletken",
+            "category": "Engineering",
+            "definition": "Elektrik enerji kaynağı ile elektrik enerjisini kullanacak cihaz arasındaki elektrik akımının akışını sağlayan, elektrik akımının taşındığı metal cisim."
+        },
+        {
+            "term": "Inverter",
+            "tr": "İnverter",
+            "category": "Engineering",
+            "definition": "Doğru gerilimi alternatif gerilime dönüştüren araçlar."
+        },
+        {
+            "term": "İnsulator",
+            "tr": "İzolatör",
+            "category": "Engineering",
+            "definition": "Elektrik devre parçalarını birbirinden ayırıp akımın geçişini engelleyen malzeme."
+        },
+        {
+            "term": "Generator",
+            "tr": "Jeneratör",
+            "category": "Engineering",
+            "definition": "Mekanik enerjiyi elektrik enerjisine çeviren elektrik makinesi"
+        },
+        {
+            "term": "Joule etkisi olarak da bilinir",
+            "tr": "Joule",
+            "category": "Engineering",
+            "definition": ", bir iletken üzerinden geçen elektrik akımı ile onun yarattığı ısı arasındaki ilişkiyi veren fiziksel bir kanundur."
+        },
+        {
+            "term": "Cadmium",
+            "tr": "Kadmiyum",
+            "category": "Engineering",
+            "definition": "Simgesi Cd, atom numarası 48 olan pil yapımında kullanılan kimyasal enerji."
+        },
+        {
+            "term": "Calibration",
+            "tr": "Kalibrasyon",
+            "category": "Engineering",
+            "definition": "Belirli koşullar altında ölçü aletlerinin ölçtüğü değerlerin doğruluğunun karşılaştırılması, ölçme hassasiyetinin belirlenmesi işlemi."
+        },
+        {
+            "term": "Starting Current",
+            "tr": "Kalkış Akımı",
+            "category": "Engineering",
+            "definition": "Elektrik motorlarında motorun ilk kalkış anında çektiği akım. Genelde nominal akımın 5-7 katı kadar olur."
+        },
+        {
+            "term": "Closed Circuit",
+            "tr": "Kapalı Devre",
+            "category": "Engineering",
+            "definition": "Devre anahtarının devreden akım geçecek konumda olması durumu."
+        },
+        {
+            "term": "Capacitance",
+            "tr": "Kapasitans",
+            "category": "Engineering",
+            "definition": "Birimi Farad (F) olan kondansatörün elektrik enerjisini depo edebilme özelliğine kapasitans denir. kondansatörün elektrik enerjisini depo edebilme özelliğine kapasite denir."
+        },
+        {
+            "term": "Outage",
+            "tr": "Kesinti",
+            "category": "Engineering",
+            "definition": "Elektrik enerji üretim, iletim veya dağıtım sisteminin her hangi bir nedenden dolayı devre dışı kalması, tüketicilere enerji sağlanamaması durumu."
+        },
+        {
+            "term": "Breaking Capacity",
+            "tr": "Kesme Gücü",
+            "category": "Engineering",
+            "definition": "Anma şartları altında belirtilmiş bir gerilimde, bir anahtarlama aygıtının ya da sigortanın kesebileceği beklenen akım değeri."
+        },
+        {
+            "term": "Kinetic Energy",
+            "tr": "Kinetik Enerji",
+            "category": "Engineering",
+            "definition": "Hareket halindeki cisimlerin sahip oldukları enerjidir. Ek=1/2xmxV2 olarak ifade edilir. Birimi joule’dur. m=cismin kütlesi (kg) V=cismin hızı (m/s)"
+        },
+        {
+            "term": "Short Circuit",
+            "tr": "Kısa Devre",
+            "category": "Engineering",
+            "definition": "Elektrik akımının akımı kullanacak cihaz veya devre üzerinden geçmeden yolunu tamamlaması durumu."
+        },
+        {
+            "term": "Electric Terminal",
+            "tr": "Klemens",
+            "category": "Engineering",
+            "definition": "Aydınlatma ve güç tesislerinde buat (ek kutusu) içinde eklerin (iletken bağlantılarının) yapılması için kullanılan gereçtir."
+        },
+        {
+            "term": "Cogeneration",
+            "tr": "Kojenerasyon",
+            "category": "Engineering",
+            "definition": "Tek bir sistemde bileşik olarak hem ısı hem de elektrik gücü üretim sistemi."
+        },
+        {
+            "term": "Double-Pole Switch",
+            "tr": "Komutatör Anahtar",
+            "category": "Engineering",
+            "definition": "İki ayrı lamba veya lamba grubunun bir yerden aynı anda veya ayrı ayrı yakılıp söndürülmesinde kullanılan anahtarlardır."
+        },
+        {
+            "term": "Capacitor",
+            "tr": "Kondansatör",
+            "category": "Engineering",
+            "definition": "Karşılıklı duran ve aralarında fiziksel bir temas olmayan iki ayrı plaka ve plakalara bağlı iki ayrı iletken telden oluşan elektrik enerjisini depolamak amacıyla kullanılan devre elemanları."
+        },
+        {
+            "term": "Contactor",
+            "tr": "Kontaktör",
+            "category": "Engineering",
+            "definition": "Büyük güçteki elektromanyetik anahtarlara kontaktör adı verilir."
+        },
+        {
+            "term": "Neon Tester",
+            "tr": "Kontrol Kalemi",
+            "category": "Engineering",
+            "definition": "Bir hatta elektrik olup olmadığını kontrol etmek için kullanılan alet."
+        },
+        {
+            "term": "Bridge Rectifier",
+            "tr": "Köprü Doğrultucu",
+            "category": "Engineering",
+            "definition": "Dör adet diyotla yapılan alternatif gerilimi doğru gerilime dönüştüren devrelerdir."
+        },
+        {
+            "term": "Corona",
+            "tr": "Korona",
+            "category": "Engineering",
+            "definition": "Bir iletkenin yakın çevresinde oluşan, iletkenin önemli ölçüde ısınmasına yol açmayan ve iletken etrafındaki elektrik alanının belli bir değeri aştığı uzay bölümü ile sınırlanan, zayıf ışıltılı bir elektriksel boşalma."
+        },
+        {
+            "term": "Crochet",
+            "tr": "Kroşe",
+            "category": "Engineering",
+            "definition": "Kabloların, boruların duvar veya tavana tutturulmasına yarayan pvc veya sacdan yapılan gereçlerdir"
+        },
+        {
+            "term": "Caliper",
+            "tr": "Kumpas",
+            "category": "Engineering",
+            "definition": "Milimetrenin yüzde onu, yüzde beşi ve yüzde ikisi oranında ölçüm yapılabilen aletlerdir."
+        },
+        {
+            "term": "Soldering Flux Paste",
+            "tr": "Lehim Pastası",
+            "category": "Engineering",
+            "definition": "Lehimlenecek yüzeylerin yağdan ve zararlı kir ve oksitlerden temizlenmesini sağlayan malzeme."
+        },
+        {
+            "term": "Lermetre",
+            "tr": "Lermetre",
+            "category": "Engineering",
+            "definition": "Elektrik devrelerinde değişik amaçlar için kullanılan ve alıcı olarak görev yapan direnç, bobin ve kondansatörün; direnç, endüktans ve kapasite değerlerini ölçen ölçü aletleridir."
+        },
+        {
+            "term": "Linear System",
+            "tr": "Lineer Sistem",
+            "category": "Engineering",
+            "definition": "Çıkış sinyalinin direk olarak giriş sinyaline bağlı olan sistem."
+        },
+        {
+            "term": "Logic Gates",
+            "tr": "Lojik Kapıları",
+            "category": "Engineering",
+            "definition": "Lojik (sayısal) devrelerde mantıksal işlemler (ve, veya, değil gibi) yapan elektronik devre elemanlarıdır."
+        },
+        {
+            "term": "Luxmeter",
+            "tr": "Lüksmetre",
+            "category": "Engineering",
+            "definition": "Aydınlatma şiddetini ölçen aletlere lüksmetre denir."
+        },
+        {
+            "term": "Lumen",
+            "tr": "Lümen",
+            "category": "Engineering",
+            "definition": "ışık şiddeti 1 candela ( cd ) olan bir nokta kaynaktan bir metre uzaklıkta, ışınlara dik olarak konmuş 1 m2 lik yüzeye gelen ışık akısıdır."
+        },
+        {
+            "term": "Lux",
+            "tr": "Lüx",
+            "category": "Engineering",
+            "definition": "1 m yarıçaplı küre merkezinde bulunan 1 cd şiddetindeki kaynağın 1 m2’lik küre yüzeyine yaptığı aydınlanma şiddetidir."
+        },
+        {
+            "term": "Ohm",
+            "tr": "Ohm",
+            "category": "Engineering",
+            "definition": "Elektriksel direnci ölçme birimi. Simgesi Ω’dur."
+        },
+        {
+            "term": "Ohmmeter",
+            "tr": "Ohmmetre",
+            "category": "Engineering",
+            "definition": "Bir direncin değerini ölçmek için kullanılan cihazdır."
+        },
+        {
+            "term": "Oscilloscope",
+            "tr": "Osiloskop",
+            "category": "Engineering",
+            "definition": "Elektrik ve elektronik devrelerinde akım ve gerilimin değeri, frekans ve faz farkı ölçümlerini dijital veya analog ekranda grafiksel olarak gösteren aletlerdir."
+        },
+        {
+            "term": "Specific Resistance",
+            "tr": "Özdirenç",
+            "category": "Engineering",
+            "definition": "Birim uzunluk (1 metre) ve birim kesitteki (1mm2) iletkenin direncine özdirenç denir."
+        },
+        {
+            "term": "Specific Conductance",
+            "tr": "Öziletkenlik",
+            "category": "Engineering",
+            "definition": "Özdirencin tersine öziletkenlik denir."
+        },
+        {
+            "term": "Cubicle",
+            "tr": "Pano",
+            "category": "Engineering",
+            "definition": "Elektrik devresinin, elektrik ekipmanlarının içerisinde bulunduğu sayaç giriş çıkışının içinde bulunduğu kutu."
+        },
+        {
+            "term": "Clamp Ammeter",
+            "tr": "Pensampermetre",
+            "category": "Engineering",
+            "definition": "Akım ölçme işlemini daha pratik hale getirmek için ampermetre ve akım trafosu aynı gövde içerisinde birleştirilerek oluşturulmuş ölçü aletleridir. Aletin gövdesinden dışarı doğru açılan demir nüvesi, pens gibi açılıp kapanacak şekilde yapılmıştır. Böylece akımı ölçülecek iletken kesilmeden pens içerisine alınır."
+        },
+        {
+            "term": "Pliers",
+            "tr": "Pense",
+            "category": "Engineering",
+            "definition": "İletkenleri, küçük parçaları tutmaya, çekmeye, sıkıştırmaya ve bükerek şekil vermeye yarayan bir alet olan pensenin sap kısımları izole edilmiştir."
+        },
+        {
+            "term": "Period",
+            "tr": "Periyod",
+            "category": "Engineering",
+            "definition": "Bir saykılın tamamlanması için geçen zamana periyod denir."
+        },
+        {
+            "term": "Piezoelectricity",
+            "tr": "Piezoelektrik",
+            "category": "Engineering",
+            "definition": "Yapısındaki atomların düzenli olarak dizilmemiş olan moleküller mekanik bir basınç altında kaldığında elektrik akımı oluşur, veya tam tersi olarak elektrik akımı verilen bu maddelerin hacminde değişiklik olur. Buna piezoelektrik denir."
+        },
+        {
+            "term": "Potential Energy",
+            "tr": "Potansiyel Enerji",
+            "category": "Engineering",
+            "definition": "Cisimlerin bulundukları konum ya da şekil değişikliğine bağlı olarak sahip oldukları enerjidir. Ep=mxgxh olarak ifade edilir. Birimi joule’dur. m=cismin kütlesi (kg) g=yer çekimi ivmesi (m/s2) h=cismin yerden yüksekliği (m)"
+        },
+        {
+            "term": "Electric Outlet",
+            "tr": "Priz",
+            "category": "Engineering",
+            "definition": "Elektrik cihazlarına, bir elektrik devresinden fiş aracılığı ile doğrudan veya uzatma kablosu ile enerji alınması için kullanılan araçtır."
+        },
+        {
+            "term": "Positive Temperature Coefficient",
+            "tr": "PTC",
+            "category": "Engineering",
+            "definition": "Üzerindeki sıcaklık arttıkça direnci artan, sıcaklık azaldıkça direnci azalan; yani direnci sıcaklıkla doğru orantılı olarak değişen pozitif ısı katsayılı termistörler."
+        },
+        {
+            "term": "Reactive Power",
+            "tr": "Reaktif Güç",
+            "category": "Engineering",
+            "definition": "Birimi Var olan görünür gücün faz açısının sinüsü ile çarpımı ile elde edilen elektrik makinelerinde mıknatıslanma için kullanılan güç. Q=VxIxsinφ"
+        },
+        {
+            "term": "Regulation",
+            "tr": "Regülasyon",
+            "category": "Engineering",
+            "definition": "Gerilimi sabit tutma işlemine denir."
+        },
+        {
+            "term": "Regulator",
+            "tr": "Regülatör",
+            "category": "Engineering",
+            "definition": "Elektrik gerilimini sabit tutan cihazlardır."
+        },
+        {
+            "term": "Resistance",
+            "tr": "Rezistans",
+            "category": "Engineering",
+            "definition": "Elektrik enerjisinden yararlı ısı elde etmek için ihtiyaç duyulan direnç değeri yüksek ve ısıya dayanıklı iletkenlere rezistans denir."
+        },
+        {
+            "term": "Relay",
+            "tr": "Röle",
+            "category": "Engineering",
+            "definition": "Bobin, palet ve kapak olmak üzere üç ana bölümden meydana gelen, bir elektrik devresinin açılıp kapanmasını sağlayan elektromekanik anahtarlama elemanıdır."
+        },
+        {
+            "term": "Rotor",
+            "tr": "Rotor",
+            "category": "Engineering",
+            "definition": "Hareketli elektrik makinelerinde (motor, jeneratör) ince sac tabakalarının üst üste konulmasıyla oluşturulmuş makinenin dönen parçası."
+        },
+        {
+            "term": "Wind Power Plant",
+            "tr": "Rüzgar Elektrik Santrali",
+            "category": "Engineering",
+            "definition": "Rüzgâr alan açık arazilerde, rüzgârın etkisiyle rüzgâr türbinlerinde elde edilen mekanik enerji alternatör yardımıyla elektrik enerjisine dönüştürülen santrallere denir."
+        },
+        {
+            "term": "Cycle",
+            "tr": "Saykıl",
+            "category": "Engineering",
+            "definition": "Alternatif akım veya gerilim sıfırdan başlar, maksimum değerini alır ve sıfıra döner, ters yönde de aynı işlem gerçekleşerek tekrar başlangıç noktası sıfıra döner. Akım veya gerilimin her iki yöndeki bütün değerleri almasına denir."
+        },
+        {
+            "term": "Selenoid",
+            "tr": "Selenoid",
+            "category": "Engineering",
+            "definition": "Üzerindeki bobine enerji verilince kullanıldığı yere göre sıvı ve hava geçişini kontrol etmeye yarayan elektromekanik vanadır."
+        },
+        {
+            "term": "Synchronous",
+            "tr": "Senkron",
+            "category": "Engineering",
+            "definition": "Eş zamanlı. Elektrik motorlarında döner alanın devir sayısına senkron hız denir."
+        },
+        {
+            "term": "Fuse",
+            "tr": "Sigorta",
+            "category": "Engineering",
+            "definition": "Alternatif veya doğru akım devrelerinde elektrik tesisatını, tesisata bağlanan elektrikli aletleri veya elektrik devrelerini aşırı akımlara karşı korumaya yarayan açma elemanıdır."
+        },
+        {
+            "term": "Sorti",
+            "tr": "Sorti",
+            "category": "Engineering",
+            "definition": "Enerjinin anahtar prize getirilmesine kadar oluşan tesisat."
+        },
+        {
+            "term": "Fluorescent Starter",
+            "tr": "Starter",
+            "category": "Engineering",
+            "definition": "İçi neon gazı ile doldurulmuş cam bir balon içinde iki elektrodu bulunan silindir şeklinde bimetal şeritten oluşmuş floresan lambalarda ilk ateşlemeyi sağlayan elektrik devre elemanı."
+        },
+        {
+            "term": "Shunt Capacitor",
+            "tr": "Şönt Kapasitör",
+            "category": "Engineering",
+            "definition": "Reaktif (kapasitif) güç üreten sisteme paralel bağlı olan kondansatör grubu."
+        },
+        {
+            "term": "Tachometer",
+            "tr": "Takometre",
+            "category": "Engineering",
+            "definition": "Devir sayısını ölçen aletlere takometre denir."
+        },
+        {
+            "term": "Demand Power",
+            "tr": "Talep Güç",
+            "category": "Engineering",
+            "definition": "Enerji hattına bağlı olan yüklerin çalışması için ihtiyaç duyulan güç."
+        },
+        {
+            "term": "Thermal Power Plant",
+            "tr": "Termik Elektrik Santrali",
+            "category": "Engineering",
+            "definition": "Kömür, doğalgaz, petrol ürünleri gibi fosil yakıtların yanmasıyla elde edilen ısı enerjisini kullanarak elektrik üreten santrallere termik elektrik santrali denir."
+        },
+        {
+            "term": "Thermocouple",
+            "tr": "Termokupl",
+            "category": "Engineering",
+            "definition": "İki farklı metalden yapılmış, sıcaklığı okuyarak elektrik sinyaline çeviren sıcaklık ölçüm aracı."
+        },
+        {
+            "term": "Grounding",
+            "tr": "Topraklama",
+            "category": "Engineering",
+            "definition": "Gerilim altında olmayan bütün tesisat kısımlarının, uygun iletkenlerle toprak kitlesi içerisine yerleştirilmiş bir iletken cisme (elektrot) bağlanmasıdır"
+        },
+        {
+            "term": "Grounding Manhole",
+            "tr": "Topraklama Menholü",
+            "category": "Engineering",
+            "definition": "Topraklama iletkenlerinin bağlandığı topraklama elektrodunun toprağa gömüldüğü kuyu."
+        },
+        {
+            "term": "Screw Driver",
+            "tr": "Tornavida",
+            "category": "Engineering",
+            "definition": "Vidaları söküp takmaya yarayan alet. Farklı uçlarda tornavidalar bulunmasına rağmen en çok kullanılanı yıldız uçlu ve düz uçlu olan tornavidalarardır."
+        },
+        {
+            "term": "Transformer",
+            "tr": "Transformatör",
+            "category": "Engineering",
+            "definition": "Alternatif elektrik gerilimini veya akımını belirli oranda dönüştüren veya yükselten elektrik makinası. Giriş ve çıkış bobinlerinin sarım sayıları oranına göre çıkış gerilimi yükselir veya düşer."
+        },
+        {
+            "term": "Transistor",
+            "tr": "Transistör",
+            "category": "Engineering",
+            "definition": "Girişine uygulanan sinyali yükselterek gerilim ve akım kazancı sağlayan, gerektiğinde anahtarlama elemanı olarak kullanılan yarı iletken bir elektronik devre elemanıdır. Base, Emiter ve Kollektör uçları bulunan transistörlerde PNP veya NPN olmak üzere iki çeşittir."
+        },
+        {
+            "term": "Three-Way Switch",
+            "tr": "Vaviyen Anahtar",
+            "category": "Engineering",
+            "definition": "Bir lambayı veya bir grup lambayı iki ayrı yerden aynı zamanda veya farklı zamanlarda yakıp söndüren anahtar çeşididir."
+        },
+        {
+            "term": "Volt",
+            "tr": "Volt",
+            "category": "Engineering",
+            "definition": "akım, direnç, gerilim, potansiyel fark, volt"
+        },
+        {
+            "term": "Voltmeter",
+            "tr": "Voltmetre",
+            "category": "Engineering",
+            "definition": "Doğru ve alternatif akım devresinin ya da devreye bağlı bir alıcının uçlarındaki gerilim değerini ölçmeye yarayan ölçü aleti olup devreye paralel bağlanır. Voltmetreler (V) harfi ile belirtilir."
+        },
+        {
+            "term": "Wattmeter",
+            "tr": "Wattmetre",
+            "category": "Engineering",
+            "definition": "Doğru ve alternatif akım devrelerinde alıcıların çektikleri elektriksel gücü ölçen aletleridir. Wattmetreler akım ve gerilim bobinlerine sahip olup akım bobini devreye seri, gerilim bobini devreye paralel bağlanır. Güç hesaplamalarda (P) harfi ile ifade edilir."
+        },
+        {
+            "term": "Side Cutter",
+            "tr": "Yan Keski",
+            "category": "Engineering",
+            "definition": "İletkenleri kesmek amacıyla kullanılan pense türü bir alet."
+        },
+        {
+            "term": "Semiconductor",
+            "tr": "Yarı İletken",
+            "category": "Engineering",
+            "definition": "Elektrik akımını çok az ileten materyaller. Silikon, Germanyum başlıca yarı iletkenlerdir."
+        },
+        {
+            "term": "Load",
+            "tr": "Yük",
+            "category": "Engineering",
+            "definition": "Belli bir miktar enerji tüketen, enerji hattından güç çeken sistem."
+        },
+        {
+            "term": "High Pass Filter",
+            "tr": "Yüksek Geçiren Filtre",
+            "category": "Engineering",
+            "definition": "Yüksek frekanslı sinyalleri geçiren düşük frekansları engelleyen filtre devresi."
+        },
+        {
+            "term": "High Voltage",
+            "tr": "Yüksek Gerilim",
+            "category": "Engineering",
+            "definition": "Elektrik enerji sistemlerinde 100.000 volttan yüksek gerilimler."
         }
     ]
 }
