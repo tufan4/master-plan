@@ -50,7 +50,6 @@ export default function MasterTufanOS() {
     const [loadingImages, setLoadingImages] = useState(false);
     const [parentMap, setParentMap] = useState<Map<string, string>>(new Map());
     const [pulsingMatch, setPulsingMatch] = useState<string | null>(null);
-    const [pendingLink, setPendingLink] = useState<{ platform: string; topic: string; topicId: string; url: string } | null>(null);
 
     useEffect(() => {
         const map = new Map<string, string>();
@@ -66,7 +65,6 @@ export default function MasterTufanOS() {
 
     const [generatedKeywords, setGeneratedKeywords] = useState<Record<string, string[]>>({});
     const [showAboutModal, setShowAboutModal] = useState(false);
-    // Explicit state to trigger re-run of tutorial
     const [runTutorial, setRunTutorial] = useState(false);
     const [savedLinks, setSavedLinks] = useState<Record<string, SavedLink[]>>({});
 
@@ -97,21 +95,7 @@ export default function MasterTufanOS() {
         loadData();
     }, []);
 
-    // TAB TRACKING: Auto-embed link when user returns from external site
-    useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (!document.hidden && pendingLink) {
-                // User returned to Master Tufan OS
-                // Simulate final URL capture (in real implementation, this would come from browser history API or service worker)
-                // For now, we'll use the search URL as fallback and let fetchAndAddLink clean it
-                fetchAndAddLink(pendingLink.platform, pendingLink.topic, pendingLink.topicId, pendingLink.url);
-                setPendingLink(null);
-            }
-        };
 
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, [pendingLink]);
 
     // ==================== HELPER: LEVENSHTEIN DISTANCE ====================
     const levenshtein = (a: string, b: string): number => {
@@ -199,30 +183,8 @@ export default function MasterTufanOS() {
         }
     }, [globalSearch, parentMap]);
 
-    // ==================== SESSION HISTORY & PREVIEW SYSTEM ====================
-    const [sessionLinks, setSessionLinks] = useState<Array<{
-        id: string;
-        topicId: string;
-        platformId: string;
-        title: string;
-        originalTitle: string;
-        url: string;
-        thumbnail?: string;
-        timestamp: number;
-    }>>([]);
-
-    const [showSessionPanel, setShowSessionPanel] = useState(false);
-    const [showThresholdModal, setShowThresholdModal] = useState(false);
+    // ==================== PREVIEW SYSTEM ====================
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-    // Auto-trigger removed as requested
-    /*
-    useEffect(() => {
-        if (sessionLinks.length > 0 && sessionLinks.length % 5 === 0) {
-            setShowThresholdModal(true);
-        }
-    }, [sessionLinks.length]);
-    */
 
     // Helper: Fetch Metadata (NoEmbed for Youtube, etc.)
     const fetchAndAddLink = async (platform: string, topic: string, topicId: string, url: string) => {
@@ -299,102 +261,9 @@ export default function MasterTufanOS() {
         );
     };
 
-    // --- COMPONENT: THRESHOLD ALERT ---
-    // --- COMPONENT: THRESHOLD ALERT (LINK EMBEDDING MODAL) ---
-    const ThresholdModal = () => {
-        if (!showThresholdModal) return null;
-        const pendingLinks = sessionLinks.slice(-5); // Show last 5 to review
 
-        return (
-            <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-                <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-slate-900 border border-emerald-500/50 p-6 rounded-2xl w-[90%] max-w-lg shadow-2xl relative">
-                    <button onClick={() => setShowThresholdModal(false)} className="absolute top-4 right-4 text-slate-500 hover:text-white"><X size={20} /></button>
 
-                    <div className="text-center mb-6">
-                        <div className="w-12 h-12 bg-emerald-900/40 rounded-full flex items-center justify-center mx-auto mb-2 text-emerald-400"><Pin size={24} /></div>
-                        <h3 className="text-xl font-bold text-white">Linkleri Konuya Göm? 🧐</h3>
-                        <p className="text-xs text-slate-400 mt-1">5 yeni kaynağa baktın. Bunları kalıcı olarak kaydetmek ister misin?</p>
-                    </div>
 
-                    <div className="space-y-2 mb-6 max-h-60 overflow-y-auto custom-scrollbar bg-slate-950/50 p-2 rounded-xl border border-slate-800">
-                        {pendingLinks.map(link => (
-                            <div key={link.id} className="flex items-center gap-3 bg-slate-900 p-2 rounded-lg border border-slate-800 hover:border-slate-700 transition">
-                                <img src={link.thumbnail || `https://via.placeholder.com/40?text=${link.platformId}`} className="w-10 h-10 rounded object-cover bg-black shrink-0" onError={(e) => e.currentTarget.src = 'https://via.placeholder.com/40'} />
-                                <div className="flex-1 min-w-0 text-left">
-                                    <p className="text-xs text-slate-200 truncate font-medium">{link.title}</p>
-                                    <p className="text-[10px] text-slate-500 truncate flex items-center gap-1">
-                                        {link.platformId.toUpperCase()}
-                                    </p>
-                                </div>
-                                <div className="flex gap-1 shrink-0">
-                                    <button
-                                        onClick={() => setSessionLinks(prev => prev.filter(p => p.id !== link.id))}
-                                        className="w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-red-900/50 text-slate-400 hover:text-red-400 rounded-lg transition"
-                                        title="Listeden Çıkar"
-                                    >
-                                        <X size={16} />
-                                    </button>
-                                    <button
-                                        onClick={async () => {
-                                            await saveLink({ topic_id: link.topicId, title: link.title, url: link.url, platform: link.platformId });
-                                            loadLinksForTopic(link.topicId);
-                                            setSessionLinks(prev => prev.filter(p => p.id !== link.id));
-                                        }}
-                                        className="w-8 h-8 flex items-center justify-center bg-emerald-900/30 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-lg transition"
-                                        title="Konuya Göm (Kaydet)"
-                                    >
-                                        <CheckCircle2 size={16} />
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </motion.div>
-            </div>
-        )
-    }
-
-    // --- COMPONENT: SESSION HISTORY PANEL ---
-    const SessionHistoryPanel = () => {
-        if (!showSessionPanel) return (
-            <button onClick={() => setShowSessionPanel(true)} className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 bg-emerald-600 text-white p-3 sm:p-4 rounded-full shadow-2xl hover:bg-emerald-500 hover:scale-105 transition-all flex items-center gap-2 group">
-                <div className="relative"><Layout size={24} />{sessionLinks.length > 0 && (<span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">{sessionLinks.length}</span>)}</div>
-                <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 whitespace-nowrap px-0 group-hover:px-2">Oturum Geçmişi</span>
-            </button>
-        );
-
-        return (
-            <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} className="fixed bottom-0 left-0 right-0 sm:left-auto sm:right-6 sm:bottom-6 z-50 w-full sm:w-96 h-[60vh] sm:h-auto sm:max-h-[80vh] bg-slate-900 border-t sm:border border-slate-700 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-                <div className="p-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
-                    <h3 className="font-bold text-white flex items-center gap-2"><Layout size={18} className="text-emerald-400" /> Oturum Çantası</h3>
-                    <div className="flex gap-2">
-                        <button onClick={() => { if (confirm("Temizle?")) setSessionLinks([]); }} className="text-xs text-red-400 hover:text-red-300">Temizle</button>
-                        <button onClick={() => setShowSessionPanel(false)} className="text-slate-400 hover:text-white"><X size={20} /></button>
-                    </div>
-                </div>
-                <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar bg-slate-900/95">
-                    {sessionLinks.length === 0 ? (<div className="text-center py-10 text-slate-500 text-sm">Çanta boş.</div>) : (
-                        sessionLinks.map((link) => (
-                            <div key={link.id} className="bg-slate-800/50 p-3 rounded-lg border border-slate-700 hover:border-emerald-500/30 transition group">
-                                <div className="flex gap-3">
-                                    {link.thumbnail ? (<img src={link.thumbnail} alt="thumb" className="w-16 h-16 object-cover rounded bg-black" />) : (<div className="w-16 h-16 bg-slate-800 rounded flex items-center justify-center text-slate-600"><Globe size={24} /></div>)}
-                                    <div className="flex-1 min-w-0">
-                                        <input value={link.title} onChange={(e) => { const val = e.target.value; setSessionLinks(prev => prev.map(p => p.id === link.id ? { ...p, title: val } : p)); }} className="w-full bg-transparent text-sm text-slate-200 font-medium focus:outline-none border-b border-transparent focus:border-emerald-500 pb-1 mb-1 truncate" />
-                                        <p className="text-xs text-slate-500 truncate">{link.url}</p>
-                                        <div className="flex gap-2 mt-2">
-                                            <button onClick={async () => { await saveLink({ topic_id: link.topicId, title: link.title, url: link.url, platform: link.platformId }); loadLinksForTopic(link.topicId); setSessionLinks(prev => prev.filter(p => p.id !== link.id)); }} className="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] px-2 py-1 rounded flex items-center gap-1"><Pin size={10} /> Kaydet</button>
-                                            {(link.url.includes('youtube') || link.url.includes('youtu.be')) && (<button onClick={() => window.open(link.url.replace('youtube.com', 'ssyoutube.com').replace('youtu.be/', 'ssyoutube.com/'), '_blank')} className="bg-red-600 hover:bg-red-500 text-white text-[10px] px-2 py-1 rounded flex items-center gap-1"><Pin size={10} className="rotate-180" /> İndir</button>)}
-                                            <button onClick={() => setSessionLinks(prev => prev.filter(p => p.id !== link.id))} className="bg-slate-700 hover:bg-slate-600 text-slate-300 text-[10px] px-2 py-1 rounded ml-auto"><Trash2 size={10} /></button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </motion.div>
-        );
-    };
 
 
 
@@ -626,17 +495,9 @@ export default function MasterTufanOS() {
     };
 
     const handlePlatformClick = (platform: string, topic: string, topicId: string, keywords: string[]) => {
+        // NEW FLOW: Just redirect to search results, user will pick and paste
         const url = getPlatformUrl(platform, topic, keywords);
-
-        // NEW FLOW: Open external link in new tab
         window.open(url, '_blank');
-
-        // Track this context for when user returns
-        setPendingLink({ platform, topic, topicId, url });
-
-        // Expand the item to show the panel/thresholds
-        setExpandedItems(prev => new Set(prev).add(topicId));
-        setActiveControlPanel(topicId);
     };
 
     // Old manual save function reserved for context menu if needed, but replaced by modal flow largely
@@ -709,7 +570,8 @@ export default function MasterTufanOS() {
                                                 onClick={async () => {
                                                     setActivePlatformPanel({ topicId: item.id, platform: plat.id });
                                                     await generateKeywordsWithAI(item.title, item.id, keywordThreshold, item.keywords || []);
-                                                    handlePlatformClick(plat.id, item.title, item.id, item.keywords || []);
+                                                    // NEW FLOW: Don't open external link here - only expand keyword panel
+                                                    // User will click a keyword which calls handlePlatformClick
                                                 }}
                                                 className={`p-2 rounded-lg transition-all relative ${isActive ? 'bg-blue-600' : 'bg-slate-700/30 hover:bg-slate-600/50'
                                                     }`}
@@ -831,11 +693,10 @@ export default function MasterTufanOS() {
                                 </motion.div>
                             )}
 
-                            {/* EMBEDDED RESOURCES (Saved + Session) - v3 Overhaul */}
+                            {/* EMBEDDED RESOURCES - Saved Links Only */}
                             {(() => {
                                 const allResources = [
-                                    ...(savedLinks[item.id] || []).map((l: any) => ({ ...l, type: 'saved' })),
-                                    ...sessionLinks.filter(l => l.topicId === item.id).map(l => ({ ...l, type: 'session' }))
+                                    ...(savedLinks[item.id] || []).map((l: any) => ({ ...l, type: 'saved' }))
                                 ];
 
                                 if (allResources.length === 0) return null;
@@ -873,7 +734,6 @@ export default function MasterTufanOS() {
                                                                     ) : (
                                                                         // Standard View
                                                                         <a href={link.url} target="_blank" className="text-xs text-slate-300 hover:text-white truncate flex-1 mr-2 no-underline flex items-center gap-2">
-                                                                            {link.type === 'session' && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 animate-pulse" title="New Session Item" />}
                                                                             {link.title}
                                                                         </a>
                                                                     )}
@@ -897,7 +757,11 @@ export default function MasterTufanOS() {
                                                                                 <button
                                                                                     onClick={(e) => {
                                                                                         e.preventDefault();
-                                                                                        alert("📄 Transcript PDF: Yakında NotebookLM ile...");
+                                                                                        const videoId = link.url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1];
+                                                                                        if (videoId) {
+                                                                                            // Use YouTube transcript API or third-party service
+                                                                                            window.open(`https://youtubetranscript.com?v=${videoId}`, '_blank');
+                                                                                        } else alert("Video ID bulunamadı");
                                                                                     }}
                                                                                     className="p-1 hover:text-blue-400"
                                                                                     title="Transkript PDF"
@@ -907,7 +771,11 @@ export default function MasterTufanOS() {
                                                                                 <button
                                                                                     onClick={(e) => {
                                                                                         e.preventDefault();
-                                                                                        alert("📝 Transcript DOC: Yakında NotebookLM ile...");
+                                                                                        const videoId = link.url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1];
+                                                                                        if (videoId) {
+                                                                                            // Use YouTube transcript API or third-party service
+                                                                                            window.open(`https://youtubetranscript.com?v=${videoId}`, '_blank');
+                                                                                        } else alert("Video ID bulunamadı");
                                                                                     }}
                                                                                     className="p-1 hover:text-green-400"
                                                                                     title="Transkript DOC"
@@ -928,7 +796,7 @@ export default function MasterTufanOS() {
                                                                                 <Download size={12} />
                                                                             </button>
                                                                         )}
-                                                                        <button onClick={() => deleteLink(link.id).then(() => { loadLinksForTopic(item.id); setSessionLinks(p => p.filter(x => x.id !== link.id)); })} className="p-1 hover:text-red-400"><Trash2 size={12} /></button>
+                                                                        <button onClick={() => deleteLink(link.id).then(() => loadLinksForTopic(item.id))} className="p-1 hover:text-red-400"><Trash2 size={12} /></button>
                                                                     </div>
                                                                 </div>
                                                             )
@@ -1060,7 +928,6 @@ export default function MasterTufanOS() {
 
             {/* MODALS */}
             <PreviewModal />
-            <ThresholdModal />
 
             {/* SessionHistoryPanel Removed - Integrated into topic view */}
 

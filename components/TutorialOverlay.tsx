@@ -45,13 +45,13 @@ export default function TutorialOverlay({ onComplete, forceRun }: TutorialProps)
             icon: <Search size={48} className="text-blue-400" />
         },
         {
-            title: "Platforma Özel İndirme",
-            desc: "YouTube linki mi? 3 buton: Video İndir, Transkript PDF, Transkript Doc. Reddit mi? Sosyal tartışma formatında anahtar kelimeler. PDF mi? Direkt indir.",
+            title: "2 Adımlı Platform Arama",
+            desc: "Önce platform ikonuna tıkla (YouTube, PDF, Reddit...). Ardından açılan Anahtar Kelimeler panelinden birini seç ve ilgili arama sonuç sayfasına git!",
             icon: <BookOpen size={48} className="text-amber-400" />
         },
         {
-            title: "Akıllı Gömme Sistemi",
-            desc: "Platform ikonlarına tıkla, sistem ilgili konunun altına kaynağı otomatik gömer. YouTube, Reddit, PDF... hepsi kendi kategorisinde düzenli.",
+            title: "İndirme & Kaynak Yönetimi",
+            desc: "YouTube linkleri için Video İndir, Transkript PDF ve DOC butonları. PDF'ler için direkt indirme. Tüm kaynaklar otomatik kategorize ediliyor!",
             icon: <Pin size={48} className="text-purple-400" />
         },
         {
