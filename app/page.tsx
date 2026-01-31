@@ -230,7 +230,7 @@ export default function MasterTufanOS() {
 
         return (
             <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-6xl h-[85vh] bg-slate-900 rounded-2xl border border-slate-700 flex flex-col shadow-2xl overflow-hidden">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-[95%] sm:w-full sm:max-w-6xl h-[70vh] sm:h-[85vh] bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-700 flex flex-col shadow-2xl overflow-hidden">
                     <div className="p-3 border-b border-slate-700 flex justify-between items-center bg-slate-800">
                         <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2"><BookOpen size={16} className="text-blue-400" /> Önizleme</h3>
                         <div className="flex gap-2">
@@ -251,7 +251,7 @@ export default function MasterTufanOS() {
         if (!showThresholdModal) return null;
         return (
             <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-                <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-slate-900 border border-amber-500/50 p-6 rounded-2xl max-w-lg w-full shadow-2xl">
+                <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-slate-900 border border-amber-500/50 p-6 rounded-2xl w-[90%] max-w-lg shadow-2xl">
                     <div className="text-center">
                         <div className="w-16 h-16 bg-amber-900/40 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-400"><Book size={32} /></div>
                         <h3 className="text-2xl font-bold text-white mb-2">Verimli Bir Oturum! 🔥</h3>
@@ -269,14 +269,14 @@ export default function MasterTufanOS() {
     // --- COMPONENT: SESSION HISTORY PANEL ---
     const SessionHistoryPanel = () => {
         if (!showSessionPanel) return (
-            <button onClick={() => setShowSessionPanel(true)} className="fixed bottom-6 right-6 z-40 bg-emerald-600 text-white p-4 rounded-full shadow-2xl hover:bg-emerald-500 hover:scale-105 transition-all flex items-center gap-2 group">
+            <button onClick={() => setShowSessionPanel(true)} className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 bg-emerald-600 text-white p-3 sm:p-4 rounded-full shadow-2xl hover:bg-emerald-500 hover:scale-105 transition-all flex items-center gap-2 group">
                 <div className="relative"><Layout size={24} />{sessionLinks.length > 0 && (<span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">{sessionLinks.length}</span>)}</div>
                 <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 whitespace-nowrap px-0 group-hover:px-2">Oturum Geçmişi</span>
             </button>
         );
 
         return (
-            <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} className="fixed bottom-6 right-6 z-50 w-96 max-h-[80vh] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} className="fixed bottom-0 left-0 right-0 sm:left-auto sm:right-6 sm:bottom-6 z-50 w-full sm:w-96 h-[60vh] sm:h-auto sm:max-h-[80vh] bg-slate-900 border-t sm:border border-slate-700 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden">
                 <div className="p-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
                     <h3 className="font-bold text-white flex items-center gap-2"><Layout size={18} className="text-emerald-400" /> Oturum Çantası</h3>
                     <div className="flex gap-2">
