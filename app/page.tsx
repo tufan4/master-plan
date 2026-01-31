@@ -466,14 +466,8 @@ export default function MasterTufanOS() {
         const url = getPlatformUrl(platform, topic, keywords);
         window.open(url, '_blank');
 
-        // NEW: Trigger Pending Link State
-        // When user returns, they see the modal (or if they are on dual screens, they see it immediately)
-        setPendingLink({
-            topicId,
-            platformId: platform,
-            title: `${topic} - ${PLATFORMS.find(p => p.id === platform)?.name}`,
-            url
-        });
+        // Add to session history silently
+        fetchAndAddLink(platform, topic, topicId, url);
     };
 
     // Old manual save function reserved for context menu if needed, but replaced by modal flow largely
