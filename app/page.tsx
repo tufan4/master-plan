@@ -313,10 +313,9 @@ export default function MasterTufanOS() {
 
 
 
-    // ==================== PREVIEW MODAL ====================
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-    const PreviewModal = () => {
+
+    const PreviewModal_OLD = () => {
         if (!previewUrl) return null;
         // Use PrintFriendly for article-like content as a proxy previewer
         const safeUrl = previewUrl.includes('youtube.com')
