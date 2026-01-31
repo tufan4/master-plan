@@ -35,6 +35,11 @@ export async function GET(req: NextRequest) {
 
         // Extract all valid links
         const links: string[] = [];
+        // Detect Platform
+        const isYoutube = targetUrl.includes('youtube.com');
+        const isReddit = targetUrl.includes('reddit.com');
+        const isGoogle = targetUrl.includes('google.com');
+
         $('a').each((_, element) => {
             const href = $(element).attr('href');
             if (!href) return;
@@ -47,20 +52,44 @@ export async function GET(req: NextRequest) {
                 return; // Invalid URL
             }
 
-            // FILTERING LOGIC
             const lower = fullUrl.toLowerCase();
+
+            // 1. BASIC CLEANUP (Exclude Junk)
             if (
                 !lower.startsWith('http') ||
                 lower.includes('login') ||
                 lower.includes('signup') ||
                 lower.includes('signin') ||
+                lower.includes('register') ||
                 lower.includes('facebook.com') ||
                 lower.includes('twitter.com') ||
+                lower.includes('instagram.com') ||
                 lower.includes('linkedin.com/share') ||
                 lower.includes('policy') ||
-                lower.includes('terms')
+                lower.includes('terms') ||
+                lower.includes('about') ||
+                lower.includes('contact') ||
+                lower.includes('google.com/search') // Avoid internal google links
             ) {
                 return;
+            }
+
+            // 2. PLATFORM SPECIFIC RULES
+            if (isYoutube) {
+                // Only allow actual videos
+                if (!lower.includes('/watch?v=')) return;
+            } else if (isReddit) {
+                // Only allow actual posts
+                if (!lower.includes('/comments/')) return;
+            } else if (isGoogle) {
+                // If it's a google filtered search (like filetype:pdf), prioritize relevant matches
+                // For PDF search, try to find direct PDF links
+                if (targetUrl.includes('pdf')) {
+                    if (!lower.endsWith('.pdf')) return;
+                } else {
+                    // General Google Search Result: avoid google related links
+                    if (lower.includes('google.com')) return;
+                }
             }
 
             links.push(fullUrl);
