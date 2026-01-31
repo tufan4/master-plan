@@ -526,17 +526,46 @@ export default function MasterTufanOS() {
                                                         }
 
                                                         const randomUrls: Record<string, string> = {
-                                                            youtube: `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}&sp=CAI%253D`,
+                                                            // CORE
+                                                            youtube: `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`,
                                                             google: `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}+filetype:pdf`,
-                                                            reddit: `https://www.reddit.com/search/?q=${encodeURIComponent(searchQuery)}&sort=relevance`,
-                                                            pinterest: `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(searchQuery)}`,
+                                                            reddit: `https://www.reddit.com/search/?q=${encodeURIComponent(searchQuery)}`,
                                                             wikipedia: `https://${language}.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(kw)}`,
+                                                            github: `https://github.com/search?q=${encodeURIComponent(searchQuery)}`,
+
+                                                            // ACADEMIC
+                                                            arxiv: `https://arxiv.org/search/?query=${encodeURIComponent(searchQuery)}&searchtype=all`,
                                                             ieee: `https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=${encodeURIComponent(searchQuery)}`,
+                                                            semantic: `https://www.semanticscholar.org/search?q=${encodeURIComponent(searchQuery)}`,
+                                                            researchgate: `https://www.researchgate.net/search?q=${encodeURIComponent(searchQuery)}`,
+                                                            sciencedirect: `https://www.sciencedirect.com/search?qs=${encodeURIComponent(searchQuery)}`,
+
+                                                            // CODING
+                                                            stackoverflow: `https://stackoverflow.com/search?q=${encodeURIComponent(searchQuery)}`,
+                                                            mdn: `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(searchQuery)}`,
+                                                            devto: `https://dev.to/search?q=${encodeURIComponent(searchQuery)}`,
+                                                            leetcode: `https://leetcode.com/problemset/all/?search=${encodeURIComponent(searchQuery)}`,
+
+                                                            // COURSES
                                                             udemy: `https://www.udemy.com/courses/search/?q=${encodeURIComponent(searchQuery)}`,
-                                                            github: `https://github.com/search?q=${encodeURIComponent(searchQuery)}&type=repositories`
+                                                            coursera: `https://www.coursera.org/search?query=${encodeURIComponent(searchQuery)}`,
+                                                            mitocw: `https://ocw.mit.edu/search/?q=${encodeURIComponent(searchQuery)}`,
+                                                            khan: `https://www.khanacademy.org/search?page_search_query=${encodeURIComponent(searchQuery)}`,
+
+                                                            // TOOLS
+                                                            wolfram: `https://www.wolframalpha.com/input?i=${encodeURIComponent(searchQuery)}`,
+                                                            desmos: `https://www.google.com/search?q=site:desmos.com+${encodeURIComponent(searchQuery)}`,
+                                                            geogebra: `https://www.geogebra.org/search/${encodeURIComponent(searchQuery)}`,
+
+                                                            // HARDWARE
+                                                            arduino: `https://www.arduino.cc/search?q=${encodeURIComponent(searchQuery)}`,
+                                                            hackster: `https://www.hackster.io/search?q=${encodeURIComponent(searchQuery)}`,
+                                                            instructables: `https://www.instructables.com/search/?q=${encodeURIComponent(searchQuery)}`,
+                                                            pinterest: `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(searchQuery)}`
                                                         };
 
-                                                        const url = randomUrls[platform] || randomUrls.youtube;
+                                                        // Fallback to Google instead of YouTube if platform somehow missing
+                                                        const url = randomUrls[platform] || `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
                                                         if (newTab) {
                                                             newTab.location.href = url;
                                                         } else {
