@@ -1,0 +1,173 @@
+{
+    "categories": [
+        {
+            "id": "math",
+            "title": "Matematik",
+            "icon": "calculator",
+            "topics": [
+                {
+                    "id": "1.1.1.0",
+                    "title": "Sayı Kümeleri ve İşlem Yeteneği",
+                    "description": "Sayısal mantığın ve mühendislik hesaplamalarının başlangıç noktası.",
+                    "subtopics": [
+                        {
+                            "id": "1.1.1.1",
+                            "title": "Sayı Kümelerinin Hiyerarşisi",
+                            "details": "Doğal Sayılar (N), Tam Sayılar (Z), Rasyonel Sayılar (Q) ve Reel Sayılar (R) arasındaki kapsama ilişkileri.",
+                            "practical_gain": "Mühendislikte sürekli (analog) ve ayrık (dijital) veri tiplerinin temel ayrımını anlamak.",
+                            "keywords": [
+                                "Natural Numbers",
+                                "Integers",
+                                "Rational Numbers",
+                                "Real Numbers"
+                            ]
+                        },
+                        {
+                            "id": "1.1.1.2",
+                            "title": "Dört İşlem ve İşlem Önceliği",
+                            "details": "Parantez içi işlemler, üslü ifadeler, çarpma/bölme ve toplama/çıkarma sırasının (PEMDAS/BODMAS) uygulanması.",
+                            "practical_gain": "Karmaşık mühendislik formülleri çözülürken işlem sırası hatası yapmamak.",
+                            "keywords": [
+                                "Order of Operations",
+                                "Arithmetic Operations",
+                                "PEMDAS"
+                            ]
+                        },
+                        {
+                            "id": "1.1.1.3",
+                            "title": "Rasyonel Sayılar ve Ondalık Kesirler",
+                            "details": "Payda eşitleme, kesirlerle dört işlem, ondalık sayılara dönüşüm ve devirli ondalık sayıların rasyonel hale getirilmesi.",
+                            "practical_gain": "Hassas imalat ve kantar sistemlerinde ondalık hassasiyetin yönetimi.",
+                            "keywords": [
+                                "Fractions",
+                                "Decimals",
+                                "Rounding"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "1.1.2.0",
+                    "title": "Bölünebilme ve Asal Çarpanlar",
+                    "description": "Algoritmik düşünce ve siber güvenlik matematiğinin temeli.",
+                    "subtopics": [
+                        {
+                            "id": "1.1.2.1",
+                            "title": "Bölünebilme Kuralları",
+                            "details": "2, 3, 4, 5, 8, 9, 10 ve 11 ile bölünebilme şartları. Kalan bulma yöntemleri.",
+                            "practical_gain": "Veri paketlerinin doğruluğunu kontrol eden 'Checksum' mantığını kavramak.",
+                            "keywords": [
+                                "Divisibility",
+                                "Remainder",
+                                "Modulo"
+                            ]
+                        },
+                        {
+                            "id": "1.1.2.2",
+                            "title": "Asal Sayılar ve Çarpanlara Ayırma",
+                            "details": "Asal sayı tanımı, bir sayıyı asal çarpanlarına ayırma yöntemi ve çarpan ağacı.",
+                            "practical_gain": "Kriptografi (RSA) ve şifreleme algoritmalarının temelindeki 'asal çarpan' güvenliğini anlamak.",
+                            "keywords": [
+                                "Prime Numbers",
+                                "Factorization",
+                                "RSA"
+                            ]
+                        },
+                        {
+                            "id": "1.1.2.3",
+                            "title": "EBOB ve EKOK Hesaplamaları",
+                            "details": "En Büyük Ortak Bölen ve En Küçük Ortak Kat bulma yöntemleri.",
+                            "practical_gain": "Dişli çark tasarımlarında periyodik tur sayıları ve bakım zamanlaması hesaplama.",
+                            "keywords": [
+                                "GCD",
+                                "LCM",
+                                "Common Divisor"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "calculus",
+            "title": "Limit, Türev ve İntegral",
+            "icon": "trending-up",
+            "topics": [
+                {
+                    "id": "2.1.0.0",
+                    "title": "Limit, Türev ve Değişim Analizi",
+                    "description": "Sistemlerin anlık davranışlarını, sınır değerlerini ve optimizasyonunu modelleme.",
+                    "subtopics": [
+                        {
+                            "id": "2.1.1.0",
+                            "title": "Fonksiyonlar, Limit ve Süreklilik",
+                            "details": "Fonksiyon aileleri, limitin kesin tanımı, sağdan/soldan limit ve asimptotlar. Süreklilik kavramı ve sistem kararlılığı.",
+                            "practical_gain": "Elektronikte bir kondansatörün dolum voltajını t sonsuza giderken limit alarak hesaplama.",
+                            "keywords": [
+                                "Limit",
+                                "Continuity",
+                                "Asymptote",
+                                "Stability"
+                            ]
+                        },
+                        {
+                            "id": "2.1.2.0",
+                            "title": "Türev ve Diferansiyel",
+                            "details": "Anlık Değişim Oranı olarak türev. Çarpım, Bölüm ve Zincir Kuralı.",
+                            "practical_gain": "Robotik: Konumun türevi hız, hızın türevi ivme değerlerini verir.",
+                            "keywords": [
+                                "Derivative",
+                                "Rate of Change",
+                                "Chain Rule"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "dictionary": [
+        {
+            "term": "Integer",
+            "tr": "Tam Sayı",
+            "context": "Programming: int count = 0;",
+            "category": "Math"
+        },
+        {
+            "term": "Derivative",
+            "tr": "Türev",
+            "context": "Control: Derivative action in PID control",
+            "category": "Calculus"
+        },
+        {
+            "term": "Torque",
+            "tr": "Tork",
+            "context": "Mechanics: Rotational force (τ)",
+            "category": "Physics"
+        },
+        {
+            "term": "Capacitor",
+            "tr": "Kondansatör",
+            "context": "Circuit: Stores charge, blocks DC",
+            "category": "Electronics"
+        },
+        {
+            "term": "Algorithm",
+            "tr": "Algoritma",
+            "context": "Logic: Problem solving steps",
+            "category": "Software"
+        },
+        {
+            "term": "Feedback",
+            "tr": "Geri Besleme",
+            "context": "Control: Correcting errors using output",
+            "category": "Control"
+        },
+        {
+            "term": "Machine Learning",
+            "tr": "Makine Öğrenmesi",
+            "context": "AI: Learning from data",
+            "category": "AI"
+        }
+    ]
+}

@@ -1,0 +1,1923 @@
+{
+    "categories": [
+        {
+            "id": "1.0",
+            "title": "Matematik Temelleri",
+            "icon": "calculator",
+            "topics": [
+                {
+                    "id": "1.1",
+                    "title": "Sayı Kümeleri ve İşlem Yeteneği",
+                    "subtopics": [
+                        {
+                            "id": "1.1.1",
+                            "title": "Doğal Sayılar (N)",
+                            "keywords": [
+                                "Natural Numbers",
+                                "Counting",
+                                "Discrete Math"
+                            ]
+                        },
+                        {
+                            "id": "1.1.2",
+                            "title": "Tam Sayılar (Z)",
+                            "keywords": [
+                                "Integers",
+                                "Negative Numbers",
+                                "Zero"
+                            ]
+                        },
+                        {
+                            "id": "1.1.3",
+                            "title": "Rasyonel Sayılar (Q)",
+                            "keywords": [
+                                "Rational",
+                                "Fractions",
+                                "Ratios"
+                            ]
+                        },
+                        {
+                            "id": "1.1.4",
+                            "title": "İrrasyonel Sayılar",
+                            "keywords": [
+                                "Irrational",
+                                "Pi",
+                                "Sqrt",
+                                "e"
+                            ]
+                        },
+                        {
+                            "id": "1.1.5",
+                            "title": "Reel Sayılar (R)",
+                            "keywords": [
+                                "Real Numbers",
+                                "Number Line",
+                                "Continuum"
+                            ]
+                        },
+                        {
+                            "id": "1.1.6",
+                            "title": "Karmaşık Sayılar (C)",
+                            "keywords": [
+                                "Complex",
+                                "Imaginary",
+                                "j",
+                                "Phasor"
+                            ]
+                        },
+                        {
+                            "id": "1.1.7",
+                            "title": "PEMDAS/BODMAS",
+                            "keywords": [
+                                "Order of Operations",
+                                "Precedence"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "1.2",
+                    "title": "Bölünebilme ve Asal Çarpanlar",
+                    "subtopics": [
+                        {
+                            "id": "1.2.1",
+                            "title": "Bölünebilme Kuralları",
+                            "keywords": [
+                                "Divisibility Rules",
+                                "Modulo",
+                                "Remainder"
+                            ]
+                        },
+                        {
+                            "id": "1.2.2",
+                            "title": "Asal Sayılar",
+                            "keywords": [
+                                "Prime Numbers",
+                                "Sieve of Eratosthenes"
+                            ]
+                        },
+                        {
+                            "id": "1.2.3",
+                            "title": "Asal Çarpanlara Ayırma",
+                            "keywords": [
+                                "Prime Factorization",
+                                "Factor Tree"
+                            ]
+                        },
+                        {
+                            "id": "1.2.4",
+                            "title": "EBOB (GCD)",
+                            "keywords": [
+                                "Greatest Common Divisor",
+                                "Euclid Algorithm"
+                            ]
+                        },
+                        {
+                            "id": "1.2.5",
+                            "title": "EKOK (LCM)",
+                            "keywords": [
+                                "Least Common Multiple"
+                            ]
+                        },
+                        {
+                            "id": "1.2.6",
+                            "title": "RSA Kriptografi",
+                            "keywords": [
+                                "RSA Encryption",
+                                "Public Key",
+                                "Cryptography"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "1.3",
+                    "title": "Polinomlar ve Özdeşlikler",
+                    "subtopics": [
+                        {
+                            "id": "1.3.1",
+                            "title": "(a+b)² Açılımı",
+                            "keywords": [
+                                "Square of Sum",
+                                "Binomial Expansion"
+                            ]
+                        },
+                        {
+                            "id": "1.3.2",
+                            "title": "(a-b)² Açılımı",
+                            "keywords": [
+                                "Square of Difference"
+                            ]
+                        },
+                        {
+                            "id": "1.3.3",
+                            "title": "İki Kare Farkı a²-b²",
+                            "keywords": [
+                                "Difference of Squares"
+                            ]
+                        },
+                        {
+                            "id": "1.3.4",
+                            "title": "Küp Özdeşlikleri",
+                            "keywords": [
+                                "Cube Identities",
+                                "a³+b³",
+                                "a³-b³"
+                            ]
+                        },
+                        {
+                            "id": "1.3.5",
+                            "title": "Çarpanlara Ayırma",
+                            "keywords": [
+                                "Factoring",
+                                "Common Factor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "1.4",
+                    "title": "Üstel ve Logaritmik Fonksiyonlar",
+                    "subtopics": [
+                        {
+                            "id": "1.4.1",
+                            "title": "Üstel Fonksiyonlar",
+                            "keywords": [
+                                "Exponential",
+                                "e^x",
+                                "Growth"
+                            ]
+                        },
+                        {
+                            "id": "1.4.2",
+                            "title": "Logaritma Temelleri",
+                            "keywords": [
+                                "Logarithm",
+                                "log",
+                                "ln"
+                            ]
+                        },
+                        {
+                            "id": "1.4.3",
+                            "title": "Desibel (dB)",
+                            "keywords": [
+                                "Decibel",
+                                "Sound Level",
+                                "Signal Power"
+                            ]
+                        },
+                        {
+                            "id": "1.4.4",
+                            "title": "pH ve Kimyasal Dengeler",
+                            "keywords": [
+                                "pH",
+                                "Acidity",
+                                "Logarithmic Scale"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "2.0",
+            "title": "Limit, Türev ve İntegral",
+            "icon": "trending-up",
+            "topics": [
+                {
+                    "id": "2.1",
+                    "title": "Limit ve Süreklilik",
+                    "subtopics": [
+                        {
+                            "id": "2.1.1",
+                            "title": "Limit Tanımı",
+                            "keywords": [
+                                "Limit Definition",
+                                "Epsilon-Delta"
+                            ]
+                        },
+                        {
+                            "id": "2.1.2",
+                            "title": "Sağdan ve Soldan Limit",
+                            "keywords": [
+                                "Right Limit",
+                                "Left Limit"
+                            ]
+                        },
+                        {
+                            "id": "2.1.3",
+                            "title": "Asimptotlar",
+                            "keywords": [
+                                "Asymptotes",
+                                "Vertical",
+                                "Horizontal",
+                                "Slant"
+                            ]
+                        },
+                        {
+                            "id": "2.1.4",
+                            "title": "Süreklilik",
+                            "keywords": [
+                                "Continuity",
+                                "Continuous Function"
+                            ]
+                        },
+                        {
+                            "id": "2.1.5",
+                            "title": "Limit Teoremleri",
+                            "keywords": [
+                                "Limit Laws",
+                                "Limit Theorems"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "2.2",
+                    "title": "Türev",
+                    "subtopics": [
+                        {
+                            "id": "2.2.1",
+                            "title": "Türevin Tanımı",
+                            "keywords": [
+                                "Derivative Definition",
+                                "Rate of Change"
+                            ]
+                        },
+                        {
+                            "id": "2.2.2",
+                            "title": "Türev Alma Kuralları",
+                            "keywords": [
+                                "Derivative Rules",
+                                "Power Rule"
+                            ]
+                        },
+                        {
+                            "id": "2.2.3",
+                            "title": "Çarpım Kuralı",
+                            "keywords": [
+                                "Product Rule"
+                            ]
+                        },
+                        {
+                            "id": "2.2.4",
+                            "title": "Bölüm Kuralı",
+                            "keywords": [
+                                "Quotient Rule"
+                            ]
+                        },
+                        {
+                            "id": "2.2.5",
+                            "title": "Zincir Kuralı",
+                            "keywords": [
+                                "Chain Rule",
+                                "Composite Functions"
+                            ]
+                        },
+                        {
+                            "id": "2.2.6",
+                            "title": "İkinci Türev",
+                            "keywords": [
+                                "Second Derivative",
+                                "Acceleration",
+                                "Concavity"
+                            ]
+                        },
+                        {
+                            "id": "2.2.7",
+                            "title": "Hız ve İvme",
+                            "keywords": [
+                                "Velocity",
+                                "Acceleration",
+                                "Motion"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "2.3",
+                    "title": "İntegral",
+                    "subtopics": [
+                        {
+                            "id": "2.3.1",
+                            "title": "Belirsiz İntegral",
+                            "keywords": [
+                                "Indefinite Integral",
+                                "Antiderivative"
+                            ]
+                        },
+                        {
+                            "id": "2.3.2",
+                            "title": "Belirli İntegral",
+                            "keywords": [
+                                "Definite Integral",
+                                "Riemann Sum"
+                            ]
+                        },
+                        {
+                            "id": "2.3.3",
+                            "title": "Kalkülüsün Temel Teoremi",
+                            "keywords": [
+                                "Fundamental Theorem of Calculus"
+                            ]
+                        },
+                        {
+                            "id": "2.3.4",
+                            "title": "u-Substitution",
+                            "keywords": [
+                                "Variable Substitution",
+                                "Integration Technique"
+                            ]
+                        },
+                        {
+                            "id": "2.3.5",
+                            "title": "Kısmi İntegrasyon",
+                            "keywords": [
+                                "Integration by Parts"
+                            ]
+                        },
+                        {
+                            "id": "2.3.6",
+                            "title": "Alan ve Hacim Hesabı",
+                            "keywords": [
+                                "Area",
+                                "Volume",
+                                "Solid of Revolution"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "2.4",
+                    "title": "Diferansiyel Denklemler",
+                    "subtopics": [
+                        {
+                            "id": "2.4.1",
+                            "title": "Birinci Mertebe ODE",
+                            "keywords": [
+                                "First Order ODE",
+                                "Ordinary Differential Equation"
+                            ]
+                        },
+                        {
+                            "id": "2.4.2",
+                            "title": "İkinci Mertebe ODE",
+                            "keywords": [
+                                "Second Order ODE",
+                                "Harmonic Oscillator"
+                            ]
+                        },
+                        {
+                            "id": "2.4.3",
+                            "title": "Laplace Dönüşümü",
+                            "keywords": [
+                                "Laplace Transform",
+                                "s-Domain"
+                            ]
+                        },
+                        {
+                            "id": "2.4.4",
+                            "title": "Transfer Fonksiyonu",
+                            "keywords": [
+                                "Transfer Function",
+                                "Control Systems"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "3.0",
+            "title": "Fizik ve Malzeme Bilimi",
+            "icon": "zap",
+            "topics": [
+                {
+                    "id": "3.1",
+                    "title": "Mekanik",
+                    "subtopics": [
+                        {
+                            "id": "3.1.1",
+                            "title": "SI Birim Sistemi",
+                            "keywords": [
+                                "SI Units",
+                                "Meter",
+                                "Kilogram",
+                                "Second"
+                            ]
+                        },
+                        {
+                            "id": "3.1.2",
+                            "title": "Vektörler",
+                            "keywords": [
+                                "Vectors",
+                                "Dot Product",
+                                "Cross Product"
+                            ]
+                        },
+                        {
+                            "id": "3.1.3",
+                            "title": "Newton 1. Yasa",
+                            "keywords": [
+                                "Inertia",
+                                "First Law"
+                            ]
+                        },
+                        {
+                            "id": "3.1.4",
+                            "title": "Newton 2. Yasa (F=ma)",
+                            "keywords": [
+                                "Force",
+                                "Mass",
+                                "Acceleration"
+                            ]
+                        },
+                        {
+                            "id": "3.1.5",
+                            "title": "Newton 3. Yasa",
+                            "keywords": [
+                                "Action Reaction",
+                                "Third Law"
+                            ]
+                        },
+                        {
+                            "id": "3.1.6",
+                            "title": "Sürtünme",
+                            "keywords": [
+                                "Friction",
+                                "Static",
+                                "Kinetic"
+                            ]
+                        },
+                        {
+                            "id": "3.1.7",
+                            "title": "İş ve Enerji",
+                            "keywords": [
+                                "Work",
+                                "Energy",
+                                "Joule"
+                            ]
+                        },
+                        {
+                            "id": "3.1.8",
+                            "title": "Güç",
+                            "keywords": [
+                                "Power",
+                                "Watt"
+                            ]
+                        },
+                        {
+                            "id": "3.1.9",
+                            "title": "Tork",
+                            "keywords": [
+                                "Torque",
+                                "Moment",
+                                "τ"
+                            ]
+                        },
+                        {
+                            "id": "3.1.10",
+                            "title": "Açısal Momentum",
+                            "keywords": [
+                                "Angular Momentum",
+                                "Conservation"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "3.2",
+                    "title": "Elektromanyetizma",
+                    "subtopics": [
+                        {
+                            "id": "3.2.1",
+                            "title": "Elektrik Yükü",
+                            "keywords": [
+                                "Electric Charge",
+                                "Coulomb"
+                            ]
+                        },
+                        {
+                            "id": "3.2.2",
+                            "title": "Coulomb Yasası",
+                            "keywords": [
+                                "Coulomb's Law",
+                                "Electric Force"
+                            ]
+                        },
+                        {
+                            "id": "3.2.3",
+                            "title": "Elektrik Alanı",
+                            "keywords": [
+                                "Electric Field",
+                                "E"
+                            ]
+                        },
+                        {
+                            "id": "3.2.4",
+                            "title": "Potansiyel Fark",
+                            "keywords": [
+                                "Voltage",
+                                "Potential Difference"
+                            ]
+                        },
+                        {
+                            "id": "3.2.5",
+                            "title": "Kondansatörler",
+                            "keywords": [
+                                "Capacitor",
+                                "Capacitance",
+                                "Dielectric"
+                            ]
+                        },
+                        {
+                            "id": "3.2.6",
+                            "title": "Manyetik Alan",
+                            "keywords": [
+                                "Magnetic Field",
+                                "B",
+                                "Tesla"
+                            ]
+                        },
+                        {
+                            "id": "3.2.7",
+                            "title": "Faraday İndüksiyon",
+                            "keywords": [
+                                "Faraday's Law",
+                                "Electromagnetic Induction"
+                            ]
+                        },
+                        {
+                            "id": "3.2.8",
+                            "title": "Lenz Yasası",
+                            "keywords": [
+                                "Lenz's Law"
+                            ]
+                        },
+                        {
+                            "id": "3.2.9",
+                            "title": "Generator ve Motor",
+                            "keywords": [
+                                "Generator",
+                                "Motor",
+                                "AC/DC"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "3.3",
+                    "title": "Malzeme Bilimi",
+                    "subtopics": [
+                        {
+                            "id": "3.3.1",
+                            "title": "Kristal Yapılar",
+                            "keywords": [
+                                "Crystal Structure",
+                                "BCC",
+                                "FCC",
+                                "HCP"
+                            ]
+                        },
+                        {
+                            "id": "3.3.2",
+                            "title": "Gerilme-Gerinim",
+                            "keywords": [
+                                "Stress",
+                                "Strain",
+                                "Hooke's Law"
+                            ]
+                        },
+                        {
+                            "id": "3.3.3",
+                            "title": "Elastik Modülüs",
+                            "keywords": [
+                                "Young's Modulus",
+                                "Elastic",
+                                "Plastic"
+                            ]
+                        },
+                        {
+                            "id": "3.3.4",
+                            "title": "Isıl İşlemler",
+                            "keywords": [
+                                "Heat Treatment",
+                                "Annealing",
+                                "Quenching"
+                            ]
+                        },
+                        {
+                            "id": "3.3.5",
+                            "title": "Sertlik Testleri",
+                            "keywords": [
+                                "Hardness",
+                                "Rockwell",
+                                "Brinell"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "4.0",
+            "title": "Elektrik ve Elektronik",
+            "icon": "code",
+            "topics": [
+                {
+                    "id": "4.1",
+                    "title": "Devre Analizi",
+                    "subtopics": [
+                        {
+                            "id": "4.1.1",
+                            "title": "Ohm Kanunu (V=IR)",
+                            "keywords": [
+                                "Ohm's Law",
+                                "Voltage",
+                                "Current",
+                                "Resistance"
+                            ]
+                        },
+                        {
+                            "id": "4.1.2",
+                            "title": "Güç (P=VI)",
+                            "keywords": [
+                                "Power",
+                                "Watt",
+                                "Energy"
+                            ]
+                        },
+                        {
+                            "id": "4.1.3",
+                            "title": "Kirchhoff Akım Yasası (KCL)",
+                            "keywords": [
+                                "Kirchhoff Current Law",
+                                "Node Analysis"
+                            ]
+                        },
+                        {
+                            "id": "4.1.4",
+                            "title": "Kirchhoff Gerilim Yasası (KVL)",
+                            "keywords": [
+                                "Kirchhoff Voltage Law",
+                                "Loop Analysis"
+                            ]
+                        },
+                        {
+                            "id": "4.1.5",
+                            "title": "Seri ve Paralel Devreler",
+                            "keywords": [
+                                "Series",
+                                "Parallel",
+                                "Combination"
+                            ]
+                        },
+                        {
+                            "id": "4.1.6",
+                            "title": "Thevenin Teoremi",
+                            "keywords": [
+                                "Thevenin",
+                                "Equivalent Circuit"
+                            ]
+                        },
+                        {
+                            "id": "4.1.7",
+                            "title": "Norton Teoremi",
+                            "keywords": [
+                                "Norton",
+                                "Current Source"
+                            ]
+                        },
+                        {
+                            "id": "4.1.8",
+                            "title": "Süperpozisyon",
+                            "keywords": [
+                                "Superposition",
+                                "Linear Circuits"
+                            ]
+                        },
+                        {
+                            "id": "4.1.9",
+                            "title": "AC Devre Analizi",
+                            "keywords": [
+                                "AC Analysis",
+                                "Phasor",
+                                "Complex Impedance"
+                            ]
+                        },
+                        {
+                            "id": "4.1.10",
+                            "title": "Empedans (Z)",
+                            "keywords": [
+                                "Impedance",
+                                "Reactance",
+                                "Z=R+jX"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "4.2",
+                    "title": "Yarı İletkenler",
+                    "subtopics": [
+                        {
+                            "id": "4.2.1",
+                            "title": "PN Junction",
+                            "keywords": [
+                                "PN Junction",
+                                "Depletion Region"
+                            ]
+                        },
+                        {
+                            "id": "4.2.2",
+                            "title": "Diyot",
+                            "keywords": [
+                                "Diode",
+                                "Forward Bias",
+                                "Reverse Bias"
+                            ]
+                        },
+                        {
+                            "id": "4.2.3",
+                            "title": "Doğrultucu Devreler",
+                            "keywords": [
+                                "Rectifier",
+                                "Half Wave",
+                                "Full Wave",
+                                "Bridge"
+                            ]
+                        },
+                        {
+                            "id": "4.2.4",
+                            "title": "Zener Diyot",
+                            "keywords": [
+                                "Zener Diode",
+                                "Voltage Regulation"
+                            ]
+                        },
+                        {
+                            "id": "4.2.5",
+                            "title": "LED",
+                            "keywords": [
+                                "Light Emitting Diode",
+                                "LED"
+                            ]
+                        },
+                        {
+                            "id": "4.2.6",
+                            "title": "BJT Transistör",
+                            "keywords": [
+                                "Bipolar Junction Transistor",
+                                "NPN",
+                                "PNP"
+                            ]
+                        },
+                        {
+                            "id": "4.2.7",
+                            "title": "MOSFET",
+                            "keywords": [
+                                "MOSFET",
+                                "NMOS",
+                                "PMOS",
+                                "Switching"
+                            ]
+                        },
+                        {
+                            "id": "4.2.8",
+                            "title": "Amplifikatörler",
+                            "keywords": [
+                                "Amplifier",
+                                "Gain",
+                                "Common Emitter"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "4.3",
+                    "title": "Op-Amp ve Analog Devreler",
+                    "subtopics": [
+                        {
+                            "id": "4.3.1",
+                            "title": "İdeal Op-Amp",
+                            "keywords": [
+                                "Operational Amplifier",
+                                "Ideal OpAmp"
+                            ]
+                        },
+                        {
+                            "id": "4.3.2",
+                            "title": "Inverting Amplifier",
+                            "keywords": [
+                                "Inverting",
+                                "Negative Feedback"
+                            ]
+                        },
+                        {
+                            "id": "4.3.3",
+                            "title": "Non-Inverting Amplifier",
+                            "keywords": [
+                                "Non-Inverting",
+                                "Voltage Follower"
+                            ]
+                        },
+                        {
+                            "id": "4.3.4",
+                            "title": "Summing Amplifier",
+                            "keywords": [
+                                "Summing",
+                                "Adder"
+                            ]
+                        },
+                        {
+                            "id": "4.3.5",
+                            "title": "Integrator",
+                            "keywords": [
+                                "Integrator Circuit",
+                                "RC"
+                            ]
+                        },
+                        {
+                            "id": "4.3.6",
+                            "title": "Differentiator",
+                            "keywords": [
+                                "Differentiator Circuit"
+                            ]
+                        },
+                        {
+                            "id": "4.3.7",
+                            "title": "Aktif Filtreler",
+                            "keywords": [
+                                "Active Filter",
+                                "Low Pass",
+                                "High Pass",
+                                "Band Pass"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "4.4",
+                    "title": "Dijital Elektronik",
+                    "subtopics": [
+                        {
+                            "id": "4.4.1",
+                            "title": "Boolean Cebir",
+                            "keywords": [
+                                "Boolean Algebra",
+                                "Logic Gates"
+                            ]
+                        },
+                        {
+                            "id": "4.4.2",
+                            "title": "AND, OR, NOT Kapıları",
+                            "keywords": [
+                                "AND Gate",
+                                "OR Gate",
+                                "NOT Gate"
+                            ]
+                        },
+                        {
+                            "id": "4.4.3",
+                            "title": "NAND, NOR, XOR",
+                            "keywords": [
+                                "NAND",
+                                "NOR",
+                                "XOR"
+                            ]
+                        },
+                        {
+                            "id": "4.4.4",
+                            "title": "Flip-Floplar",
+                            "keywords": [
+                                "Flip-Flop",
+                                "SR",
+                                "JK",
+                                "D",
+                                "T"
+                            ]
+                        },
+                        {
+                            "id": "4.4.5",
+                            "title": "Sayıcılar (Counters)",
+                            "keywords": [
+                                "Counter",
+                                "Up Counter",
+                                "Down Counter"
+                            ]
+                        },
+                        {
+                            "id": "4.4.6",
+                            "title": "Kaydediciler (Registers)",
+                            "keywords": [
+                                "Register",
+                                "Shift Register"
+                            ]
+                        },
+                        {
+                            "id": "4.4.7",
+                            "title": "ADC",
+                            "keywords": [
+                                "Analog to Digital Converter",
+                                "ADC",
+                                "Quantization"
+                            ]
+                        },
+                        {
+                            "id": "4.4.8",
+                            "title": "DAC",
+                            "keywords": [
+                                "Digital to Analog Converter",
+                                "DAC"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "5.0",
+            "title": "Yazılım Mühendisliği",
+            "icon": "brain",
+            "topics": [
+                {
+                    "id": "5.1",
+                    "title": "Algoritmalar ve Veri Yapıları",
+                    "subtopics": [
+                        {
+                            "id": "5.1.1",
+                            "title": "Pseudocode",
+                            "keywords": [
+                                "Pseudocode",
+                                "Algorithm Design"
+                            ]
+                        },
+                        {
+                            "id": "5.1.2",
+                            "title": "Akış Diyagramları",
+                            "keywords": [
+                                "Flowchart",
+                                "Process Model"
+                            ]
+                        },
+                        {
+                            "id": "5.1.3",
+                            "title": "Big O Notation",
+                            "keywords": [
+                                "Time Complexity",
+                                "Big O",
+                                "O(n)"
+                            ]
+                        },
+                        {
+                            "id": "5.1.4",
+                            "title": "Diziler (Arrays)",
+                            "keywords": [
+                                "Arrays",
+                                "Static Data"
+                            ]
+                        },
+                        {
+                            "id": "5.1.5",
+                            "title": "Bağlı Listeler",
+                            "keywords": [
+                                "Linked List",
+                                "Node",
+                                "Pointer"
+                            ]
+                        },
+                        {
+                            "id": "5.1.6",
+                            "title": "Yığın (Stack)",
+                            "keywords": [
+                                "Stack",
+                                "LIFO",
+                                "Push",
+                                "Pop"
+                            ]
+                        },
+                        {
+                            "id": "5.1.7",
+                            "title": "Kuyruk (Queue)",
+                            "keywords": [
+                                "Queue",
+                                "FIFO",
+                                "Enqueue",
+                                "Dequeue"
+                            ]
+                        },
+                        {
+                            "id": "5.1.8",
+                            "title": "Ağaçlar (Trees)",
+                            "keywords": [
+                                "Binary Tree",
+                                "Tree Traversal",
+                                "BST"
+                            ]
+                        },
+                        {
+                            "id": "5.1.9",
+                            "title": "Hash Tables",
+                            "keywords": [
+                                "Hash Table",
+                                "Hash Function",
+                                "Collision"
+                            ]
+                        },
+                        {
+                            "id": "5.1.10",
+                            "title": "Sıralama Algoritmaları",
+                            "keywords": [
+                                "Sorting",
+                                "Bubble Sort",
+                                "Quick Sort",
+                                "Merge Sort"
+                            ]
+                        },
+                        {
+                            "id": "5.1.11",
+                            "title": "Arama Algoritmaları",
+                            "keywords": [
+                                "Search",
+                                "Binary Search",
+                                "Linear Search"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "5.2",
+                    "title": "Nesne Yönelimli Programlama",
+                    "subtopics": [
+                        {
+                            "id": "5.2.1",
+                            "title": "Sınıf ve Nesne",
+                            "keywords": [
+                                "Class",
+                                "Object",
+                                "Instance"
+                            ]
+                        },
+                        {
+                            "id": "5.2.2",
+                            "title": "Kapsülleme",
+                            "keywords": [
+                                "Encapsulation",
+                                "Private",
+                                "Public"
+                            ]
+                        },
+                        {
+                            "id": "5.2.3",
+                            "title": "Kalıtım (Inheritance)",
+                            "keywords": [
+                                "Inheritance",
+                                "Parent",
+                                "Child"
+                            ]
+                        },
+                        {
+                            "id": "5.2.4",
+                            "title": "Çok Biçimlilik",
+                            "keywords": [
+                                "Polymorphism",
+                                "Method Overriding"
+                            ]
+                        },
+                        {
+                            "id": "5.2.5",
+                            "title": "Soyutlama",
+                            "keywords": [
+                                "Abstraction",
+                                "Abstract Class",
+                                "Interface"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "5.3",
+                    "title": "Veritabanları",
+                    "subtopics": [
+                        {
+                            "id": "5.3.1",
+                            "title": "SQL Temelleri",
+                            "keywords": [
+                                "SQL",
+                                "SELECT",
+                                "INSERT",
+                                "UPDATE",
+                                "DELETE"
+                            ]
+                        },
+                        {
+                            "id": "5.3.2",
+                            "title": "İlişkisel Model",
+                            "keywords": [
+                                "Relational Database",
+                                "Tables",
+                                "Primary Key",
+                                "Foreign Key"
+                            ]
+                        },
+                        {
+                            "id": "5.3.3",
+                            "title": "Normalizasyon",
+                            "keywords": [
+                                "Normalization",
+                                "1NF",
+                                "2NF",
+                                "3NF"
+                            ]
+                        },
+                        {
+                            "id": "5.3.4",
+                            "title": "JOINler",
+                            "keywords": [
+                                "JOIN",
+                                "INNER JOIN",
+                                "LEFT JOIN",
+                                "RIGHT JOIN"
+                            ]
+                        },
+                        {
+                            "id": "5.3.5",
+                            "title": "NoSQL",
+                            "keywords": [
+                                "NoSQL",
+                                "MongoDB",
+                                "Document Database"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "6.0",
+            "title": "Kontrol Sistemleri ve Otomasyon",
+            "icon": "settings",
+            "topics": [
+                {
+                    "id": "6.1",
+                    "title": "Sinyaller ve Sistemler",
+                    "subtopics": [
+                        {
+                            "id": "6.1.1",
+                            "title": "Sürekli Sinyaller",
+                            "keywords": [
+                                "Continuous Signal",
+                                "Analog"
+                            ]
+                        },
+                        {
+                            "id": "6.1.2",
+                            "title": "Ayrık Sinyaller",
+                            "keywords": [
+                                "Discrete Signal",
+                                "Digital",
+                                "Sampling"
+                            ]
+                        },
+                        {
+                            "id": "6.1.3",
+                            "title": "Örnekleme Teoremi",
+                            "keywords": [
+                                "Sampling Theorem",
+                                "Nyquist",
+                                "Aliasing"
+                            ]
+                        },
+                        {
+                            "id": "6.1.4",
+                            "title": "Fourier Dönüşümü",
+                            "keywords": [
+                                "Fourier Transform",
+                                "Frequency Domain"
+                            ]
+                        },
+                        {
+                            "id": "6.1.5",
+                            "title": "Z-Dönüşümü",
+                            "keywords": [
+                                "Z Transform",
+                                "Digital Systems"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "6.2",
+                    "title": "Kontrol Sistemleri",
+                    "subtopics": [
+                        {
+                            "id": "6.2.1",
+                            "title": "Açık Çevrim",
+                            "keywords": [
+                                "Open Loop",
+                                "No Feedback"
+                            ]
+                        },
+                        {
+                            "id": "6.2.2",
+                            "title": "Kapalı Çevrim",
+                            "keywords": [
+                                "Closed Loop",
+                                "Feedback Control"
+                            ]
+                        },
+                        {
+                            "id": "6.2.3",
+                            "title": "P Kontrolör",
+                            "keywords": [
+                                "Proportional Control",
+                                "Gain",
+                                "Kp"
+                            ]
+                        },
+                        {
+                            "id": "6.2.4",
+                            "title": "PI Kontrolör",
+                            "keywords": [
+                                "Proportional Integral",
+                                "Steady State Error"
+                            ]
+                        },
+                        {
+                            "id": "6.2.5",
+                            "title": "PD Kontrolör",
+                            "keywords": [
+                                "Proportional Derivative",
+                                "Damping"
+                            ]
+                        },
+                        {
+                            "id": "6.2.6",
+                            "title": "PID Kontrolör",
+                            "keywords": [
+                                "PID Control",
+                                "Tuning",
+                                "Ziegler-Nichols"
+                            ]
+                        },
+                        {
+                            "id": "6.2.7",
+                            "title": "Bode Diyagramı",
+                            "keywords": [
+                                "Bode Plot",
+                                "Frequency Response"
+                            ]
+                        },
+                        {
+                            "id": "6.2.8",
+                            "title": "Kararlılık Analizi",
+                            "keywords": [
+                                "Stability",
+                                "Routh-Hurwitz",
+                                "Nyquist"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "6.3",
+                    "title": "PLC ve Endüstriyel Otomasyon",
+                    "subtopics": [
+                        {
+                            "id": "6.3.1",
+                            "title": "PLC Temelleri",
+                            "keywords": [
+                                "Programmable Logic Controller",
+                                "Industrial Automation"
+                            ]
+                        },
+                        {
+                            "id": "6.3.2",
+                            "title": "Ladder Logic",
+                            "keywords": [
+                                "Ladder Diagram",
+                                "Relay Logic",
+                                "Rungs"
+                            ]
+                        },
+                        {
+                            "id": "6.3.3",
+                            "title": "Zamanlayıcılar",
+                            "keywords": [
+                                "Timers",
+                                "TON",
+                                "TOF",
+                                "TP"
+                            ]
+                        },
+                        {
+                            "id": "6.3.4",
+                            "title": "Sayıcılar",
+                            "keywords": [
+                                "Counters",
+                                "CTU",
+                                "CTD",
+                                "CTUD"
+                            ]
+                        },
+                        {
+                            "id": "6.3.5",
+                            "title": "SCADA",
+                            "keywords": [
+                                "SCADA",
+                                "Supervisory Control",
+                                "HMI"
+                            ]
+                        },
+                        {
+                            "id": "6.3.6",
+                            "title": "Sensörler",
+                            "keywords": [
+                                "Sensors",
+                                "Proximity",
+                                "Photoelectric"
+                            ]
+                        },
+                        {
+                            "id": "6.3.7",
+                            "title": "Aktüatörler",
+                            "keywords": [
+                                "Actuators",
+                                "Pneumatic",
+                                "Hydraulic",
+                                "Electric"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "7.0",
+            "title": "Yapay Zeka ve Makine Öğrenmesi",
+            "icon": "rocket",
+            "topics": [
+                {
+                    "id": "7.1",
+                    "title": "Makine Öğrenmesi",
+                    "subtopics": [
+                        {
+                            "id": "7.1.1",
+                            "title": "Supervised Learning",
+                            "keywords": [
+                                "Supervised",
+                                "Classification",
+                                "Regression",
+                                "Labeled Data"
+                            ]
+                        },
+                        {
+                            "id": "7.1.2",
+                            "title": "Unsupervised Learning",
+                            "keywords": [
+                                "Unsupervised",
+                                "Clustering",
+                                "K-Means",
+                                "PCA"
+                            ]
+                        },
+                        {
+                            "id": "7.1.3",
+                            "title": "Reinforcement Learning",
+                            "keywords": [
+                                "Reinforcement",
+                                "Q-Learning",
+                                "Agent",
+                                "Reward"
+                            ]
+                        },
+                        {
+                            "id": "7.1.4",
+                            "title": "Linear Regression",
+                            "keywords": [
+                                "Linear Regression",
+                                "Least Squares"
+                            ]
+                        },
+                        {
+                            "id": "7.1.5",
+                            "title": "Logistic Regression",
+                            "keywords": [
+                                "Logistic Regression",
+                                "Binary Classification"
+                            ]
+                        },
+                        {
+                            "id": "7.1.6",
+                            "title": "Decision Trees",
+                            "keywords": [
+                                "Decision Tree",
+                                "CART",
+                                "Random Forest"
+                            ]
+                        },
+                        {
+                            "id": "7.1.7",
+                            "title": "SVM",
+                            "keywords": [
+                                "Support Vector Machine",
+                                "Kernel Trick"
+                            ]
+                        },
+                        {
+                            "id": "7.1.8",
+                            "title": "Neural Networks",
+                            "keywords": [
+                                "Neural Network",
+                                "Perceptron",
+                                "Backpropagation"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "7.2",
+                    "title": "Derin Öğrenme",
+                    "subtopics": [
+                        {
+                            "id": "7.2.1",
+                            "title": "CNN",
+                            "keywords": [
+                                "Convolutional Neural Network",
+                                "Image Recognition"
+                            ]
+                        },
+                        {
+                            "id": "7.2.2",
+                            "title": "RNN",
+                            "keywords": [
+                                "Recurrent Neural Network",
+                                "LSTM",
+                                "Time Series"
+                            ]
+                        },
+                        {
+                            "id": "7.2.3",
+                            "title": "GANs",
+                            "keywords": [
+                                "Generative Adversarial Networks",
+                                "Image Generation"
+                            ]
+                        },
+                        {
+                            "id": "7.2.4",
+                            "title": "Transfer Learning",
+                            "keywords": [
+                                "Transfer Learning",
+                                "Pre-trained Models"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "7.3",
+                    "title": "Bilgisayarlı Görü",
+                    "subtopics": [
+                        {
+                            "id": "7.3.1",
+                            "title": "Image Processing",
+                            "keywords": [
+                                "Image Processing",
+                                "Filters",
+                                "Edge Detection"
+                            ]
+                        },
+                        {
+                            "id": "7.3.2",
+                            "title": "Object Detection",
+                            "keywords": [
+                                "Object Detection",
+                                "YOLO",
+                                "R-CNN"
+                            ]
+                        },
+                        {
+                            "id": "7.3.3",
+                            "title": "Semantic Segmentation",
+                            "keywords": [
+                                "Segmentation",
+                                "U-Net"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "7.4",
+                    "title": "Otonom Sistemler",
+                    "subtopics": [
+                        {
+                            "id": "7.4.1",
+                            "title": "SLAM",
+                            "keywords": [
+                                "Simultaneous Localization and Mapping",
+                                "SLAM"
+                            ]
+                        },
+                        {
+                            "id": "7.4.2",
+                            "title": "Path Planning",
+                            "keywords": [
+                                "Path Planning",
+                                "A* Algorithm",
+                                "Dijkstra"
+                            ]
+                        },
+                        {
+                            "id": "7.4.3",
+                            "title": "Sensör Füzyonu",
+                            "keywords": [
+                                "Sensor Fusion",
+                                "Lidar",
+                                "Radar",
+                                "Camera"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "dictionary": [
+        {
+            "term": "AC/DC",
+            "tr": "Alternatif/Doğru Akım",
+            "category": "Electronics",
+            "definition": "Akım türleri"
+        },
+        {
+            "term": "Algorithm",
+            "tr": "Algoritma",
+            "category": "Software",
+            "definition": "Problem çözme adımları dizisi"
+        },
+        {
+            "term": "Amplifier",
+            "tr": "Yükselteç",
+            "category": "Electronics",
+            "definition": "Sinyal güçlendirme devresi"
+        },
+        {
+            "term": "Array",
+            "tr": "Dizi",
+            "category": "Software",
+            "definition": "Aynı tipten verilerin sıralı koleksiyonu"
+        },
+        {
+            "term": "Asymptote",
+            "tr": "Asimptot",
+            "category": "Calculus",
+            "definition": "Fonksiyonun yaklaştığı sınır çizgisi"
+        },
+        {
+            "term": "Binary",
+            "tr": "İkili",
+            "category": "Software",
+            "definition": "0 ve 1 tabanlı sayı sistemi"
+        },
+        {
+            "term": "BJT",
+            "tr": "BJT Transistör",
+            "category": "Electronics",
+            "definition": "Çift kutuplu bağlantı transistörü"
+        },
+        {
+            "term": "Boolean",
+            "tr": "Boolean",
+            "category": "Software",
+            "definition": "Mantıksal doğru/yanlış değer sistemi"
+        },
+        {
+            "term": "Capacitor",
+            "tr": "Kondansatör",
+            "category": "Electronics",
+            "definition": "Elektrik yükü depolayan eleman"
+        },
+        {
+            "term": "CNN",
+            "tr": "Evrişimli Sinir Ağı",
+            "category": "AI",
+            "definition": "Görüntü işleme için özel sinir ağı"
+        },
+        {
+            "term": "Constraint",
+            "tr": "Kısıt",
+            "category": "Math",
+            "definition": "Sınırlama koşulu"
+        },
+        {
+            "term": "Continuity",
+            "tr": "Süreklilik",
+            "category": "Calculus",
+            "definition": "Fonksiyonun kesintisiz olma özelliği"
+        },
+        {
+            "term": "Current",
+            "tr": "Akım",
+            "category": "Electronics",
+            "definition": "Yük akışı (Amper)"
+        },
+        {
+            "term": "Decibel",
+            "tr": "Desibel",
+            "category": "Physics",
+            "definition": "Logaritmik ölçü birimi (dB)"
+        },
+        {
+            "term": "Derivative",
+            "tr": "Türev",
+            "category": "Calculus",
+            "definition": "Fonksiyonun anlık değişim hızı"
+        },
+        {
+            "term": "Diode",
+            "tr": "Diyot",
+            "category": "Electronics",
+            "definition": "Tek yönlü akım geçiren eleman"
+        },
+        {
+            "term": "Differential",
+            "tr": "Diferansiyel",
+            "category": "Calculus",
+            "definition": "Küçük değişim miktarı"
+        },
+        {
+            "term": "Eigenvalue",
+            "tr": "Özdeğer",
+            "category": "Math",
+            "definition": "Matrisin karakteristik değeri"
+        },
+        {
+            "term": "Elasticity",
+            "tr": "Elastikiyet",
+            "category": "Physics",
+            "definition": "Geri dönme yeteneği"
+        },
+        {
+            "term": "Encryption",
+            "tr": "Şifreleme",
+            "category": "Software",
+            "definition": "Veri gizleme işlemi"
+        },
+        {
+            "term": "Entropy",
+            "tr": "Entropi",
+            "category": "Physics",
+            "definition": "Düzensizlik ölçüsü"
+        },
+        {
+            "term": "Feedback",
+            "tr": "Geri Besleme",
+            "category": "Control",
+            "definition": "Çıkışı girişe döndürerek kontrol sağlama"
+        },
+        {
+            "term": "Force",
+            "tr": "Kuvvet",
+            "category": "Physics",
+            "definition": "Cisimlerin hareket durumunu değiştiren etki (F=ma)"
+        },
+        {
+            "term": "Fourier",
+            "tr": "Fourier",
+            "category": "Math",
+            "definition": "Frekans analizi dönüşümü"
+        },
+        {
+            "term": "Friction",
+            "tr": "Sürtünme",
+            "category": "Physics",
+            "definition": "Hareket direnci"
+        },
+        {
+            "term": "GCD",
+            "tr": "EBOB",
+            "category": "Math",
+            "definition": "En Büyük Ortak Bölen"
+        },
+        {
+            "term": "Gradient",
+            "tr": "Gradyan",
+            "category": "Calculus",
+            "definition": "Yön türevi vektörü"
+        },
+        {
+            "term": "Hash",
+            "tr": "Hash",
+            "category": "Software",
+            "definition": "Sabit uzunlukta özet değer"
+        },
+        {
+            "term": "Impedance",
+            "tr": "Empedans",
+            "category": "Electronics",
+            "definition": "AC devrelerde toplam direnç (Z)"
+        },
+        {
+            "term": "Inductor",
+            "tr": "Bobin",
+            "category": "Electronics",
+            "definition": "Manyetik enerji depolayan eleman"
+        },
+        {
+            "term": "Inertia",
+            "tr": "Eylemsizlik",
+            "category": "Physics",
+            "definition": "Harekete direnme eğilimi"
+        },
+        {
+            "term": "Integral",
+            "tr": "İntegral",
+            "category": "Calculus",
+            "definition": "Alan hesaplama ve birikim işlemi"
+        },
+        {
+            "term": "Integer",
+            "tr": "Tam Sayı",
+            "category": "Math",
+            "definition": "Pozitif, negatif veya sıfır değeri alabilen sayılar"
+        },
+        {
+            "term": "Kirchhoff",
+            "tr": "Kirchhoff",
+            "category": "Electronics",
+            "definition": "Devre analizi yasaları (KVL/KCL)"
+        },
+        {
+            "term": "Laplace",
+            "tr": "Laplace",
+            "category": "Control",
+            "definition": "Diferansiyel denklemleri cebirsel hale getiren dönüşüm"
+        },
+        {
+            "term": "LCM",
+            "tr": "EKOK",
+            "category": "Math",
+            "definition": "En Küçük Ortak Kat"
+        },
+        {
+            "term": "Limit",
+            "tr": "Limit",
+            "category": "Calculus",
+            "definition": "Yaklaşma değeri"
+        },
+        {
+            "term": "Matrix",
+            "tr": "Matris",
+            "category": "Math",
+            "definition": "Dikdörtgen sayı dizisi"
+        },
+        {
+            "term": "Momentum",
+            "tr": "Momentum",
+            "category": "Physics",
+            "definition": "Hareket miktarı (p=mv)"
+        },
+        {
+            "term": "MOSFET",
+            "tr": "MOSFET",
+            "category": "Electronics",
+            "definition": "Metal-Oksit Yarıiletken Transistör"
+        },
+        {
+            "term": "Neural Network",
+            "tr": "Sinir Ağı",
+            "category": "AI",
+            "definition": "Biyolojik beyni taklit eden yapay ağ"
+        },
+        {
+            "term": "Op-Amp",
+            "tr": "İşlemsel Yükselteç",
+            "category": "Electronics",
+            "definition": "Yüksek kazançlı amplifikatör"
+        },
+        {
+            "term": "PID",
+            "tr": "PID",
+            "category": "Control",
+            "definition": "Proportional-Integral-Derivative kontrolör"
+        },
+        {
+            "term": "PLC",
+            "tr": "PLC",
+            "category": "Automation",
+            "definition": "Programlanabilir Lojik Kontrolör"
+        },
+        {
+            "term": "Prime",
+            "tr": "Asal",
+            "category": "Math",
+            "definition": "Sadece 1 ve kendisine bölünebilen sayı"
+        },
+        {
+            "term": "Queue",
+            "tr": "Kuyruk",
+            "category": "Software",
+            "definition": "FIFO (First In First Out) veri yapısı"
+        },
+        {
+            "term": "Resistance",
+            "tr": "Direnç",
+            "category": "Electronics",
+            "definition": "Akıma karşı gösterilen direnç (Ohm)"
+        },
+        {
+            "term": "RSA",
+            "tr": "RSA",
+            "category": "Software",
+            "definition": "Asimetrik şifreleme algoritması"
+        },
+        {
+            "term": "SCADA",
+            "tr": "SCADA",
+            "category": "Automation",
+            "definition": "Supervisory Control and Data Acquisition sistemi"
+        },
+        {
+            "term": "SLAM",
+            "tr": "SLAM",
+            "category": "AI",
+            "definition": "Eşzamanlı Konum Belirleme ve Haritalama"
+        },
+        {
+            "term": "Stack",
+            "tr": "Yığın",
+            "category": "Software",
+            "definition": "LIFO (Last In First Out) veri yapısı"
+        },
+        {
+            "term": "Supervised Learning",
+            "tr": "Gözetimli Öğrenme",
+            "category": "AI",
+            "definition": "Etiketli veriyle öğrenme"
+        },
+        {
+            "term": "Torque",
+            "tr": "Tork",
+            "category": "Physics",
+            "definition": "Dönme kuvveti (τ = r × F)"
+        },
+        {
+            "term": "Transfer Function",
+            "tr": "Transfer Fonksiyonu",
+            "category": "Control",
+            "definition": "Sistem giriş-çıkış ilişkisi"
+        },
+        {
+            "term": "Transistor",
+            "tr": "Transistör",
+            "category": "Electronics",
+            "definition": "Anahtarlama ve güçlendirme elemanı"
+        },
+        {
+            "term": "Voltage",
+            "tr": "Gerilim",
+            "category": "Electronics",
+            "definition": "Elektriksel potansiyel farkı (Volt)"
+        }
+    ]
+}
