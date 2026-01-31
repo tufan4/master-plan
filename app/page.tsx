@@ -18,8 +18,9 @@ import {
     Search, ChevronDown, ChevronRight, CheckCircle2, Circle,
     Youtube, FileText, Book, X, Image as ImageIcon,
     Globe, MessageCircle, Sparkles, BookOpen, Info, Instagram, Linkedin,
-    Github, Lightbulb, Pin, Trash2, HelpCircle, Layout, Settings, Download, FileType
+    Github, Lightbulb, Pin, Trash2, HelpCircle, Layout, Settings, Download, FileType, Key
 } from "lucide-react";
+import { findSmartContent } from "@/lib/geminiClient";
 
 // ==================== PLATFORMS ====================
 const PLATFORMS = [
@@ -67,6 +68,9 @@ export default function MasterTufanOS() {
     const [showAboutModal, setShowAboutModal] = useState(false);
     const [runTutorial, setRunTutorial] = useState(false);
     const [savedLinks, setSavedLinks] = useState<Record<string, SavedLink[]>>({});
+
+    // ==================== AI SMART KEYWORD SYSTEM ====================
+    const [aiSearching, setAiSearching] = useState<string | null>(null); // topicId being searched
 
     // DATA RECOVERY: Supabase → localStorage → Default
     useEffect(() => {
@@ -372,6 +376,74 @@ export default function MasterTufanOS() {
         setShowImageGallery(null);
     };
 
+    // ==================== AI SMART CONTENT DISCOVERY ====================
+    const findAndOpenSmartContent = async (topicTitle: string, topicId: string, platform?: string) => {
+        setAiSearching(topicId);
+
+        try {
+            // If platform not specified, ask user
+            const selectedPlatform = platform || await promptPlatformSelection();
+
+            if (!selectedPlatform) {
+                setAiSearching(null);
+                return;
+            }
+
+            // Call Gemini AI to find best content
+            const result = await findSmartContent(
+                topicTitle,
+                selectedPlatform as any,
+                language
+            );
+
+            if (result) {
+                // Open in new tab
+                window.open(result.url, '_blank');
+
+                // Success toast
+                alert(`✅ AI buldu!\n\n${selectedPlatform.toUpperCase()}: ${topicTitle}\n\nLink açıldı!`);
+            } else {
+                alert('❌ İçerik bulunamadı. Lütfen manuel arama yap.');
+            }
+        } catch (error) {
+            console.error('AI search error:', error);
+            alert('⚠️ AI arama başarısız. Tekrar dene.');
+        } finally {
+            setAiSearching(null);
+        }
+    };
+
+    const promptPlatformSelection = (): Promise<string | null> => {
+        return new Promise((resolve) => {
+            const choice = window.prompt(
+                '🔍 Hangi platformda arama yapayım?\n\n' +
+                '1 - YouTube (video)\n' +
+                '2 - PDF (döküman)\n' +
+                '3 - Reddit (tartışma)\n' +
+                '4 - Pinterest (görsel)\n' +
+                '5 - Wikipedia (ansiklopedi)\n\n' +
+                'Numara gir (1-5):',
+                '1'
+            );
+
+            if (!choice) {
+                resolve(null);
+                return;
+            }
+
+            const platformMap: Record<string, string> = {
+                '1': 'youtube',
+                '2': 'pdf',
+                '3': 'reddit',
+                '4': 'pinterest',
+                '5': 'wikipedia'
+            };
+
+            resolve(platformMap[choice] || 'youtube');
+        });
+    };
+
+
     // Gemini AI keyword generation with cache-first approach
     const generateKeywordsWithAI = async (topic: string, topicId: string, threshold: number, baseKeywords: string[] = []): Promise<string[]> => {
         setGeneratingKeywords(true);
@@ -560,6 +632,25 @@ export default function MasterTufanOS() {
                             exit={{ opacity: 0, height: 0 }}
                             className="ml-8 mt-2 bg-slate-800/50 rounded-lg p-4 border border-slate-700/50"
                         >
+                            {/* AI SMART KEY BUTTON */}
+                            <button
+                                onClick={() => findAndOpenSmartContent(item.title, item.id)}
+                                disabled={aiSearching === item.id}
+                                className="w-full mb-4 px-4 py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-amber-400/50"
+                            >
+                                {aiSearching === item.id ? (
+                                    <>
+                                        <Sparkles className="animate-spin" size={20} />
+                                        AI Arıyor...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Key className="animate-pulse" size={20} />
+                                        🔑 Akıllı Anahtar (AI)
+                                    </>
+                                )}
+                            </button>
+
                             <div className="flex gap-2 mb-3 flex-wrap">
                                 {PLATFORMS.map(plat => {
                                     const Icon = plat.icon;
