@@ -324,17 +324,9 @@ export default function MasterTufanOS() {
                 let playlistParam = '';
                 if (searchShorts) playlistParam = '&sp=EgIQCQ%253D%253D';
                 else if (searchPlaylist) playlistParam = '&sp=EgIQAw%253D%253D';
-                if (isMobile) {
-                    // Mobile Deep Link
-                    window.location.href = `vnd.youtube://results?search_query=${encodeURIComponent(query)}${playlistParam}`;
-                    // Fallback timeout
-                    setTimeout(() => {
-                        window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}${playlistParam}`, '_blank');
-                    }, 1000);
-                    return;
-                } else {
-                    url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}${playlistParam}`;
-                }
+
+                // Unified logic: Use standard web URL. Mobile devices handle this via App Links.
+                url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}${playlistParam}`;
             } else if (platformId === 'medium') {
                 url = `https://www.google.com/search?q=${encodeURIComponent(query + ' site:medium.com')}`;
             } else if (platformId === 'wikipedia') {
