@@ -17,7 +17,7 @@
                                 "Counting",
                                 "Discrete Math"
                             ],
-                            "en": "Natural Numbers"
+                            "en": "Number Sets and Processing Ability Natural Numbers"
                         },
                         {
                             "id": "1.1.2",
@@ -27,7 +27,7 @@
                                 "Negative Numbers",
                                 "Zero"
                             ],
-                            "en": "Integers"
+                            "en": "Number Sets and Processing Ability Integers"
                         },
                         {
                             "id": "1.1.3",
@@ -37,7 +37,7 @@
                                 "Fractions",
                                 "Ratios"
                             ],
-                            "en": "Rational"
+                            "en": "Number Sets and Processing Ability Rational"
                         },
                         {
                             "id": "1.1.4",
@@ -48,7 +48,7 @@
                                 "Sqrt",
                                 "e"
                             ],
-                            "en": "Irrational"
+                            "en": "Number Sets and Processing Ability Irrational"
                         },
                         {
                             "id": "1.1.5",
@@ -58,7 +58,7 @@
                                 "Number Line",
                                 "Continuum"
                             ],
-                            "en": "Real Numbers"
+                            "en": "Number Sets and Processing Ability Real Numbers"
                         },
                         {
                             "id": "1.1.6",
@@ -69,7 +69,7 @@
                                 "j",
                                 "Phasor"
                             ],
-                            "en": "Complex"
+                            "en": "Number Sets and Processing Ability Complex"
                         },
                         {
                             "id": "1.1.7",
@@ -78,7 +78,7 @@
                                 "Order of Operations",
                                 "Precedence"
                             ],
-                            "en": "Order of Operations"
+                            "en": "Number Sets and Processing Ability Order of Operations"
                         }
                     ],
                     "en": "Number Sets and Processing Ability"
@@ -95,7 +95,7 @@
                                 "Modulo",
                                 "Remainder"
                             ],
-                            "en": "Divisibility Rules"
+                            "en": "Divisibility and Prime Factors Divisibility Rules"
                         },
                         {
                             "id": "1.2.2",
@@ -104,7 +104,7 @@
                                 "Prime Numbers",
                                 "Sieve of Eratosthenes"
                             ],
-                            "en": "Prime Numbers"
+                            "en": "Divisibility and Prime Factors Prime Numbers"
                         },
                         {
                             "id": "1.2.3",
@@ -113,7 +113,7 @@
                                 "Prime Factorization",
                                 "Factor Tree"
                             ],
-                            "en": "Prime Factorization"
+                            "en": "Divisibility and Prime Factors Prime Factorization"
                         },
                         {
                             "id": "1.2.4",
@@ -122,7 +122,7 @@
                                 "Greatest Common Divisor",
                                 "Euclid Algorithm"
                             ],
-                            "en": "Greatest Common Divisor"
+                            "en": "Divisibility and Prime Factors Greatest Common Divisor"
                         },
                         {
                             "id": "1.2.5",
@@ -130,7 +130,7 @@
                             "keywords": [
                                 "Least Common Multiple"
                             ],
-                            "en": "Least Common Multiple"
+                            "en": "Divisibility and Prime Factors Least Common Multiple"
                         },
                         {
                             "id": "1.2.6",
@@ -140,7 +140,7 @@
                                 "Public Key",
                                 "Cryptography"
                             ],
-                            "en": "RSA Encryption"
+                            "en": "Divisibility and Prime Factors RSA Encryption"
                         }
                     ],
                     "en": "Divisibility and Prime Factors"
@@ -156,7 +156,7 @@
                                 "Square of Sum",
                                 "Binomial Expansion"
                             ],
-                            "en": "Square of Sum"
+                            "en": "Polynomials and Identities Square of Sum"
                         },
                         {
                             "id": "1.3.2",
@@ -164,7 +164,7 @@
                             "keywords": [
                                 "Square of Difference"
                             ],
-                            "en": "Square of Difference"
+                            "en": "Polynomials and Identities Square of Difference"
                         },
                         {
                             "id": "1.3.3",
@@ -172,7 +172,7 @@
                             "keywords": [
                                 "Difference of Squares"
                             ],
-                            "en": "Difference of Squares"
+                            "en": "Polynomials and Identities Difference of Squares"
                         },
                         {
                             "id": "1.3.4",
@@ -182,7 +182,7 @@
                                 "a³+b³",
                                 "a³-b³"
                             ],
-                            "en": "Cube Identities"
+                            "en": "Polynomials and Identities Cube Identities"
                         },
                         {
                             "id": "1.3.5",
@@ -191,7 +191,7 @@
                                 "Factoring",
                                 "Common Factor"
                             ],
-                            "en": "Factoring"
+                            "en": "Polynomials and Identities Factoring"
                         }
                     ],
                     "en": "Polynomials and Identities"
@@ -208,7 +208,7 @@
                                 "e^x",
                                 "Growth"
                             ],
-                            "en": "Exponential"
+                            "en": "Exponential and Logarithmic Functions Exponential"
                         },
                         {
                             "id": "1.4.2",
@@ -218,7 +218,7 @@
                                 "log",
                                 "ln"
                             ],
-                            "en": "Logarithm"
+                            "en": "Exponential and Logarithmic Functions Logarithm"
                         },
                         {
                             "id": "1.4.3",
@@ -228,7 +228,7 @@
                                 "Sound Level",
                                 "Signal Power"
                             ],
-                            "en": "Decibel"
+                            "en": "Exponential and Logarithmic Functions Decibel"
                         },
                         {
                             "id": "1.4.4",
@@ -238,7 +238,7 @@
                                 "Acidity",
                                 "Logarithmic Scale"
                             ],
-                            "en": "pH"
+                            "en": "Exponential and Logarithmic Functions pH"
                         }
                     ],
                     "en": "Exponential and Logarithmic Functions"
@@ -262,7 +262,7 @@
                                 "Limit Definition",
                                 "Epsilon-Delta"
                             ],
-                            "en": "Limit Definition"
+                            "en": "Limits and Continuity Limit Definition"
                         },
                         {
                             "id": "2.1.2",
@@ -271,7 +271,7 @@
                                 "Right Limit",
                                 "Left Limit"
                             ],
-                            "en": "Right Limit"
+                            "en": "Limits and Continuity Right Limit"
                         },
                         {
                             "id": "2.1.3",
@@ -282,7 +282,7 @@
                                 "Horizontal",
                                 "Slant"
                             ],
-                            "en": "Asymptotes"
+                            "en": "Limits and Continuity Asymptotes"
                         },
                         {
                             "id": "2.1.4",
@@ -291,7 +291,7 @@
                                 "Continuity",
                                 "Continuous Function"
                             ],
-                            "en": "Continuity"
+                            "en": "Limits and Continuity Continuity"
                         },
                         {
                             "id": "2.1.5",
@@ -300,7 +300,7 @@
                                 "Limit Laws",
                                 "Limit Theorems"
                             ],
-                            "en": "Limit Laws"
+                            "en": "Limits and Continuity Limit Laws"
                         }
                     ],
                     "en": "Limits and Continuity"
@@ -316,7 +316,7 @@
                                 "Derivative Definition",
                                 "Rate of Change"
                             ],
-                            "en": "Derivative Definition"
+                            "en": "Derivatives Derivative Definition"
                         },
                         {
                             "id": "2.2.2",
@@ -325,7 +325,7 @@
                                 "Derivative Rules",
                                 "Power Rule"
                             ],
-                            "en": "Derivative Rules"
+                            "en": "Derivatives Derivative Rules"
                         },
                         {
                             "id": "2.2.3",
@@ -333,7 +333,7 @@
                             "keywords": [
                                 "Product Rule"
                             ],
-                            "en": "Product Rule"
+                            "en": "Derivatives Product Rule"
                         },
                         {
                             "id": "2.2.4",
@@ -341,7 +341,7 @@
                             "keywords": [
                                 "Quotient Rule"
                             ],
-                            "en": "Quotient Rule"
+                            "en": "Derivatives Quotient Rule"
                         },
                         {
                             "id": "2.2.5",
@@ -350,7 +350,7 @@
                                 "Chain Rule",
                                 "Composite Functions"
                             ],
-                            "en": "Chain Rule"
+                            "en": "Derivatives Chain Rule"
                         },
                         {
                             "id": "2.2.6",
@@ -360,7 +360,7 @@
                                 "Acceleration",
                                 "Concavity"
                             ],
-                            "en": "Second Derivative"
+                            "en": "Derivatives Second Derivative"
                         },
                         {
                             "id": "2.2.7",
@@ -370,7 +370,7 @@
                                 "Acceleration",
                                 "Motion"
                             ],
-                            "en": "Velocity"
+                            "en": "Derivatives Velocity"
                         }
                     ],
                     "en": "Derivatives"
@@ -386,7 +386,7 @@
                                 "Indefinite Integral",
                                 "Antiderivative"
                             ],
-                            "en": "Indefinite Integral"
+                            "en": "Integrals Indefinite Integral"
                         },
                         {
                             "id": "2.3.2",
@@ -395,7 +395,7 @@
                                 "Definite Integral",
                                 "Riemann Sum"
                             ],
-                            "en": "Definite Integral"
+                            "en": "Integrals Definite Integral"
                         },
                         {
                             "id": "2.3.3",
@@ -403,7 +403,7 @@
                             "keywords": [
                                 "Fundamental Theorem of Calculus"
                             ],
-                            "en": "Fundamental Theorem of Calculus"
+                            "en": "Integrals Fundamental Theorem of Calculus"
                         },
                         {
                             "id": "2.3.4",
@@ -412,7 +412,7 @@
                                 "Variable Substitution",
                                 "Integration Technique"
                             ],
-                            "en": "Variable Substitution"
+                            "en": "Integrals Variable Substitution"
                         },
                         {
                             "id": "2.3.5",
@@ -420,7 +420,7 @@
                             "keywords": [
                                 "Integration by Parts"
                             ],
-                            "en": "Integration by Parts"
+                            "en": "Integrals Integration by Parts"
                         },
                         {
                             "id": "2.3.6",
@@ -430,7 +430,7 @@
                                 "Volume",
                                 "Solid of Revolution"
                             ],
-                            "en": "Area"
+                            "en": "Integrals Area"
                         }
                     ],
                     "en": "Integrals"
@@ -446,7 +446,7 @@
                                 "First Order ODE",
                                 "Ordinary Differential Equation"
                             ],
-                            "en": "First Order ODE"
+                            "en": "Differential Equations First Order ODE"
                         },
                         {
                             "id": "2.4.2",
@@ -455,7 +455,7 @@
                                 "Second Order ODE",
                                 "Harmonic Oscillator"
                             ],
-                            "en": "Second Order ODE"
+                            "en": "Differential Equations Second Order ODE"
                         },
                         {
                             "id": "2.4.3",
@@ -464,7 +464,7 @@
                                 "Laplace Transform",
                                 "s-Domain"
                             ],
-                            "en": "Laplace Transform"
+                            "en": "Differential Equations Laplace Transform"
                         },
                         {
                             "id": "2.4.4",
@@ -473,7 +473,7 @@
                                 "Transfer Function",
                                 "Control Systems"
                             ],
-                            "en": "Transfer Function"
+                            "en": "Differential Equations Transfer Function"
                         }
                     ],
                     "en": "Differential Equations"
@@ -499,7 +499,7 @@
                                 "Kilogram",
                                 "Second"
                             ],
-                            "en": "SI Units"
+                            "en": "Mechanics SI Units"
                         },
                         {
                             "id": "3.1.2",
@@ -509,7 +509,7 @@
                                 "Dot Product",
                                 "Cross Product"
                             ],
-                            "en": "Vectors"
+                            "en": "Mechanics Vectors"
                         },
                         {
                             "id": "3.1.3",
@@ -518,7 +518,7 @@
                                 "Inertia",
                                 "First Law"
                             ],
-                            "en": "Inertia"
+                            "en": "Mechanics Inertia"
                         },
                         {
                             "id": "3.1.4",
@@ -528,7 +528,7 @@
                                 "Mass",
                                 "Acceleration"
                             ],
-                            "en": "Force"
+                            "en": "Mechanics Force"
                         },
                         {
                             "id": "3.1.5",
@@ -537,7 +537,7 @@
                                 "Action Reaction",
                                 "Third Law"
                             ],
-                            "en": "Action Reaction"
+                            "en": "Mechanics Action Reaction"
                         },
                         {
                             "id": "3.1.6",
@@ -547,7 +547,7 @@
                                 "Static",
                                 "Kinetic"
                             ],
-                            "en": "Friction"
+                            "en": "Mechanics Friction"
                         },
                         {
                             "id": "3.1.7",
@@ -557,7 +557,7 @@
                                 "Energy",
                                 "Joule"
                             ],
-                            "en": "Work"
+                            "en": "Mechanics Work"
                         },
                         {
                             "id": "3.1.8",
@@ -566,7 +566,7 @@
                                 "Power",
                                 "Watt"
                             ],
-                            "en": "Power"
+                            "en": "Mechanics Power"
                         },
                         {
                             "id": "3.1.9",
@@ -576,7 +576,7 @@
                                 "Moment",
                                 "τ"
                             ],
-                            "en": "Torque"
+                            "en": "Mechanics Torque"
                         },
                         {
                             "id": "3.1.10",
@@ -585,7 +585,7 @@
                                 "Angular Momentum",
                                 "Conservation"
                             ],
-                            "en": "Angular Momentum"
+                            "en": "Mechanics Angular Momentum"
                         }
                     ],
                     "en": "Mechanics"
@@ -601,7 +601,7 @@
                                 "Electric Charge",
                                 "Coulomb"
                             ],
-                            "en": "Electric Charge"
+                            "en": "Electromagnetism Electric Charge"
                         },
                         {
                             "id": "3.2.2",
@@ -610,7 +610,7 @@
                                 "Coulomb's Law",
                                 "Electric Force"
                             ],
-                            "en": "Coulomb's Law"
+                            "en": "Electromagnetism Coulomb's Law"
                         },
                         {
                             "id": "3.2.3",
@@ -619,7 +619,7 @@
                                 "Electric Field",
                                 "E"
                             ],
-                            "en": "Electric Field"
+                            "en": "Electromagnetism Electric Field"
                         },
                         {
                             "id": "3.2.4",
@@ -628,7 +628,7 @@
                                 "Voltage",
                                 "Potential Difference"
                             ],
-                            "en": "Voltage"
+                            "en": "Electromagnetism Voltage"
                         },
                         {
                             "id": "3.2.5",
@@ -638,7 +638,7 @@
                                 "Capacitance",
                                 "Dielectric"
                             ],
-                            "en": "Capacitor"
+                            "en": "Electromagnetism Capacitor"
                         },
                         {
                             "id": "3.2.6",
@@ -648,7 +648,7 @@
                                 "B",
                                 "Tesla"
                             ],
-                            "en": "Magnetic Field"
+                            "en": "Electromagnetism Magnetic Field"
                         },
                         {
                             "id": "3.2.7",
@@ -657,7 +657,7 @@
                                 "Faraday's Law",
                                 "Electromagnetic Induction"
                             ],
-                            "en": "Faraday's Law"
+                            "en": "Electromagnetism Faraday's Law"
                         },
                         {
                             "id": "3.2.8",
@@ -665,7 +665,7 @@
                             "keywords": [
                                 "Lenz's Law"
                             ],
-                            "en": "Lenz's Law"
+                            "en": "Electromagnetism Lenz's Law"
                         },
                         {
                             "id": "3.2.9",
@@ -675,7 +675,7 @@
                                 "Motor",
                                 "AC/DC"
                             ],
-                            "en": "Generator"
+                            "en": "Electromagnetism Generator"
                         }
                     ],
                     "en": "Electromagnetism"
@@ -693,7 +693,7 @@
                                 "FCC",
                                 "HCP"
                             ],
-                            "en": "Crystal Structure"
+                            "en": "Material Science Crystal Structure"
                         },
                         {
                             "id": "3.3.2",
@@ -703,7 +703,7 @@
                                 "Strain",
                                 "Hooke's Law"
                             ],
-                            "en": "Stress"
+                            "en": "Material Science Stress"
                         },
                         {
                             "id": "3.3.3",
@@ -713,7 +713,7 @@
                                 "Elastic",
                                 "Plastic"
                             ],
-                            "en": "Young's Modulus"
+                            "en": "Material Science Young's Modulus"
                         },
                         {
                             "id": "3.3.4",
@@ -723,7 +723,7 @@
                                 "Annealing",
                                 "Quenching"
                             ],
-                            "en": "Heat Treatment"
+                            "en": "Material Science Heat Treatment"
                         },
                         {
                             "id": "3.3.5",
@@ -733,7 +733,7 @@
                                 "Rockwell",
                                 "Brinell"
                             ],
-                            "en": "Hardness"
+                            "en": "Material Science Hardness"
                         }
                     ],
                     "en": "Material Science"
@@ -759,7 +759,7 @@
                                 "Current",
                                 "Resistance"
                             ],
-                            "en": "Ohm's Law"
+                            "en": "Circuit Analysis Ohm's Law"
                         },
                         {
                             "id": "4.1.2",
@@ -769,7 +769,7 @@
                                 "Watt",
                                 "Energy"
                             ],
-                            "en": "Power"
+                            "en": "Circuit Analysis Power"
                         },
                         {
                             "id": "4.1.3",
@@ -778,7 +778,7 @@
                                 "Kirchhoff Current Law",
                                 "Node Analysis"
                             ],
-                            "en": "Kirchhoff Current Law"
+                            "en": "Circuit Analysis Kirchhoff Current Law"
                         },
                         {
                             "id": "4.1.4",
@@ -787,7 +787,7 @@
                                 "Kirchhoff Voltage Law",
                                 "Loop Analysis"
                             ],
-                            "en": "Kirchhoff Voltage Law"
+                            "en": "Circuit Analysis Kirchhoff Voltage Law"
                         },
                         {
                             "id": "4.1.5",
@@ -797,7 +797,7 @@
                                 "Parallel",
                                 "Combination"
                             ],
-                            "en": "Series"
+                            "en": "Circuit Analysis Series"
                         },
                         {
                             "id": "4.1.6",
@@ -806,7 +806,7 @@
                                 "Thevenin",
                                 "Equivalent Circuit"
                             ],
-                            "en": "Thevenin"
+                            "en": "Circuit Analysis Thevenin"
                         },
                         {
                             "id": "4.1.7",
@@ -815,7 +815,7 @@
                                 "Norton",
                                 "Current Source"
                             ],
-                            "en": "Norton"
+                            "en": "Circuit Analysis Norton"
                         },
                         {
                             "id": "4.1.8",
@@ -824,7 +824,7 @@
                                 "Superposition",
                                 "Linear Circuits"
                             ],
-                            "en": "Superposition"
+                            "en": "Circuit Analysis Superposition"
                         },
                         {
                             "id": "4.1.9",
@@ -834,7 +834,7 @@
                                 "Phasor",
                                 "Complex Impedance"
                             ],
-                            "en": "AC Analysis"
+                            "en": "Circuit Analysis AC Analysis"
                         },
                         {
                             "id": "4.1.10",
@@ -844,7 +844,7 @@
                                 "Reactance",
                                 "Z=R+jX"
                             ],
-                            "en": "Impedance"
+                            "en": "Circuit Analysis Impedance"
                         }
                     ],
                     "en": "Circuit Analysis"
@@ -860,7 +860,7 @@
                                 "PN Junction",
                                 "Depletion Region"
                             ],
-                            "en": "PN Junction"
+                            "en": "Semiconductors PN Junction"
                         },
                         {
                             "id": "4.2.2",
@@ -870,7 +870,7 @@
                                 "Forward Bias",
                                 "Reverse Bias"
                             ],
-                            "en": "Diode"
+                            "en": "Semiconductors Diode"
                         },
                         {
                             "id": "4.2.3",
@@ -881,7 +881,7 @@
                                 "Full Wave",
                                 "Bridge"
                             ],
-                            "en": "Rectifier"
+                            "en": "Semiconductors Rectifier"
                         },
                         {
                             "id": "4.2.4",
@@ -890,16 +890,16 @@
                                 "Zener Diode",
                                 "Voltage Regulation"
                             ],
-                            "en": "Zener Diode"
+                            "en": "Semiconductors Zener Diode"
                         },
                         {
                             "id": "4.2.5",
-                            "title": "LED",
+                            "title": "LED (Yarı İletkenler)",
                             "keywords": [
                                 "Light Emitting Diode",
                                 "LED"
                             ],
-                            "en": "Light Emitting Diode"
+                            "en": "Semiconductors Light Emitting Diode"
                         },
                         {
                             "id": "4.2.6",
@@ -909,7 +909,7 @@
                                 "NPN",
                                 "PNP"
                             ],
-                            "en": "Bipolar Junction Transistor"
+                            "en": "Semiconductors Bipolar Junction Transistor"
                         },
                         {
                             "id": "4.2.7",
@@ -920,7 +920,7 @@
                                 "PMOS",
                                 "Switching"
                             ],
-                            "en": "MOSFET"
+                            "en": "Semiconductors MOSFET"
                         },
                         {
                             "id": "4.2.8",
@@ -930,7 +930,7 @@
                                 "Gain",
                                 "Common Emitter"
                             ],
-                            "en": "Amplifier"
+                            "en": "Semiconductors Amplifier"
                         }
                     ],
                     "en": "Semiconductors"
@@ -946,7 +946,7 @@
                                 "Operational Amplifier",
                                 "Ideal OpAmp"
                             ],
-                            "en": "Operational Amplifier"
+                            "en": "Analog Electronics Operational Amplifier"
                         },
                         {
                             "id": "4.3.2",
@@ -955,7 +955,7 @@
                                 "Inverting",
                                 "Negative Feedback"
                             ],
-                            "en": "Inverting"
+                            "en": "Analog Electronics Inverting"
                         },
                         {
                             "id": "4.3.3",
@@ -964,7 +964,7 @@
                                 "Non-Inverting",
                                 "Voltage Follower"
                             ],
-                            "en": "Non-Inverting"
+                            "en": "Analog Electronics Non-Inverting"
                         },
                         {
                             "id": "4.3.4",
@@ -973,7 +973,7 @@
                                 "Summing",
                                 "Adder"
                             ],
-                            "en": "Summing"
+                            "en": "Analog Electronics Summing"
                         },
                         {
                             "id": "4.3.5",
@@ -982,7 +982,7 @@
                                 "Integrator Circuit",
                                 "RC"
                             ],
-                            "en": "Integrator Circuit"
+                            "en": "Analog Electronics Integrator Circuit"
                         },
                         {
                             "id": "4.3.6",
@@ -990,7 +990,7 @@
                             "keywords": [
                                 "Differentiator Circuit"
                             ],
-                            "en": "Differentiator Circuit"
+                            "en": "Analog Electronics Differentiator Circuit"
                         },
                         {
                             "id": "4.3.7",
@@ -1001,7 +1001,7 @@
                                 "High Pass",
                                 "Band Pass"
                             ],
-                            "en": "Active Filter"
+                            "en": "Analog Electronics Active Filter"
                         }
                     ],
                     "en": "Analog Electronics"
@@ -1017,7 +1017,7 @@
                                 "Boolean Algebra",
                                 "Logic Gates"
                             ],
-                            "en": "Boolean Algebra"
+                            "en": "Digital Electronics Boolean Algebra"
                         },
                         {
                             "id": "4.4.2",
@@ -1027,7 +1027,7 @@
                                 "OR Gate",
                                 "NOT Gate"
                             ],
-                            "en": "AND Gate"
+                            "en": "Digital Electronics AND Gate"
                         },
                         {
                             "id": "4.4.3",
@@ -1037,7 +1037,7 @@
                                 "NOR",
                                 "XOR"
                             ],
-                            "en": "NAND"
+                            "en": "Digital Electronics NAND"
                         },
                         {
                             "id": "4.4.4",
@@ -1049,7 +1049,7 @@
                                 "D",
                                 "T"
                             ],
-                            "en": "Flip-Flop"
+                            "en": "Digital Electronics Flip-Flop"
                         },
                         {
                             "id": "4.4.5",
@@ -1059,7 +1059,7 @@
                                 "Up Counter",
                                 "Down Counter"
                             ],
-                            "en": "Counter"
+                            "en": "Digital Electronics Counter"
                         },
                         {
                             "id": "4.4.6",
@@ -1068,26 +1068,26 @@
                                 "Register",
                                 "Shift Register"
                             ],
-                            "en": "Register"
+                            "en": "Digital Electronics Register"
                         },
                         {
                             "id": "4.4.7",
-                            "title": "ADC",
+                            "title": "ADC (Dijital Elektronik)",
                             "keywords": [
                                 "Analog to Digital Converter",
                                 "ADC",
                                 "Quantization"
                             ],
-                            "en": "Analog to Digital Converter"
+                            "en": "Digital Electronics Analog to Digital Converter"
                         },
                         {
                             "id": "4.4.8",
-                            "title": "DAC",
+                            "title": "DAC (Dijital Elektronik)",
                             "keywords": [
                                 "Digital to Analog Converter",
                                 "DAC"
                             ],
-                            "en": "Digital to Analog Converter"
+                            "en": "Digital Electronics Digital to Analog Converter"
                         }
                     ],
                     "en": "Digital Electronics"
@@ -1111,7 +1111,7 @@
                                 "Pseudocode",
                                 "Algorithm Design"
                             ],
-                            "en": "Pseudocode"
+                            "en": "Algorithms and Data Structures Pseudocode"
                         },
                         {
                             "id": "5.1.2",
@@ -1120,7 +1120,7 @@
                                 "Flowchart",
                                 "Process Model"
                             ],
-                            "en": "Flowchart"
+                            "en": "Algorithms and Data Structures Flowchart"
                         },
                         {
                             "id": "5.1.3",
@@ -1130,7 +1130,7 @@
                                 "Big O",
                                 "O(n)"
                             ],
-                            "en": "Time Complexity"
+                            "en": "Algorithms and Data Structures Time Complexity"
                         },
                         {
                             "id": "5.1.4",
@@ -1139,7 +1139,7 @@
                                 "Arrays",
                                 "Static Data"
                             ],
-                            "en": "Arrays"
+                            "en": "Algorithms and Data Structures Arrays"
                         },
                         {
                             "id": "5.1.5",
@@ -1149,7 +1149,7 @@
                                 "Node",
                                 "Pointer"
                             ],
-                            "en": "Linked List"
+                            "en": "Algorithms and Data Structures Linked List"
                         },
                         {
                             "id": "5.1.6",
@@ -1160,7 +1160,7 @@
                                 "Push",
                                 "Pop"
                             ],
-                            "en": "Stack"
+                            "en": "Algorithms and Data Structures Stack"
                         },
                         {
                             "id": "5.1.7",
@@ -1171,7 +1171,7 @@
                                 "Enqueue",
                                 "Dequeue"
                             ],
-                            "en": "Queue"
+                            "en": "Algorithms and Data Structures Queue"
                         },
                         {
                             "id": "5.1.8",
@@ -1181,7 +1181,7 @@
                                 "Tree Traversal",
                                 "BST"
                             ],
-                            "en": "Binary Tree"
+                            "en": "Algorithms and Data Structures Binary Tree"
                         },
                         {
                             "id": "5.1.9",
@@ -1191,7 +1191,7 @@
                                 "Hash Function",
                                 "Collision"
                             ],
-                            "en": "Hash Table"
+                            "en": "Algorithms and Data Structures Hash Table"
                         },
                         {
                             "id": "5.1.10",
@@ -1202,7 +1202,7 @@
                                 "Quick Sort",
                                 "Merge Sort"
                             ],
-                            "en": "Sorting"
+                            "en": "Algorithms and Data Structures Sorting"
                         },
                         {
                             "id": "5.1.11",
@@ -1212,7 +1212,7 @@
                                 "Binary Search",
                                 "Linear Search"
                             ],
-                            "en": "Search"
+                            "en": "Algorithms and Data Structures Search"
                         }
                     ],
                     "en": "Algorithms and Data Structures"
@@ -1229,7 +1229,7 @@
                                 "Object",
                                 "Instance"
                             ],
-                            "en": "Class"
+                            "en": "Object Oriented Programming Class"
                         },
                         {
                             "id": "5.2.2",
@@ -1239,7 +1239,7 @@
                                 "Private",
                                 "Public"
                             ],
-                            "en": "Encapsulation"
+                            "en": "Object Oriented Programming Encapsulation"
                         },
                         {
                             "id": "5.2.3",
@@ -1249,7 +1249,7 @@
                                 "Parent",
                                 "Child"
                             ],
-                            "en": "Inheritance"
+                            "en": "Object Oriented Programming Inheritance"
                         },
                         {
                             "id": "5.2.4",
@@ -1258,7 +1258,7 @@
                                 "Polymorphism",
                                 "Method Overriding"
                             ],
-                            "en": "Polymorphism"
+                            "en": "Object Oriented Programming Polymorphism"
                         },
                         {
                             "id": "5.2.5",
@@ -1268,7 +1268,7 @@
                                 "Abstract Class",
                                 "Interface"
                             ],
-                            "en": "Abstraction"
+                            "en": "Object Oriented Programming Abstraction"
                         }
                     ],
                     "en": "Object Oriented Programming"
@@ -1287,7 +1287,7 @@
                                 "UPDATE",
                                 "DELETE"
                             ],
-                            "en": "SQL"
+                            "en": "Databases SQL"
                         },
                         {
                             "id": "5.3.2",
@@ -1298,7 +1298,7 @@
                                 "Primary Key",
                                 "Foreign Key"
                             ],
-                            "en": "Relational Database"
+                            "en": "Databases Relational Database"
                         },
                         {
                             "id": "5.3.3",
@@ -1309,7 +1309,7 @@
                                 "2NF",
                                 "3NF"
                             ],
-                            "en": "Normalization"
+                            "en": "Databases Normalization"
                         },
                         {
                             "id": "5.3.4",
@@ -1320,7 +1320,7 @@
                                 "LEFT JOIN",
                                 "RIGHT JOIN"
                             ],
-                            "en": "JOIN"
+                            "en": "Databases JOIN"
                         },
                         {
                             "id": "5.3.5",
@@ -1330,7 +1330,7 @@
                                 "MongoDB",
                                 "Document Database"
                             ],
-                            "en": "NoSQL"
+                            "en": "Databases NoSQL"
                         }
                     ],
                     "en": "Databases"
@@ -1354,7 +1354,7 @@
                                 "Continuous Signal",
                                 "Analog"
                             ],
-                            "en": "Continuous Signal"
+                            "en": "Signals and Systems Continuous Signal"
                         },
                         {
                             "id": "6.1.2",
@@ -1364,7 +1364,7 @@
                                 "Digital",
                                 "Sampling"
                             ],
-                            "en": "Discrete Signal"
+                            "en": "Signals and Systems Discrete Signal"
                         },
                         {
                             "id": "6.1.3",
@@ -1374,7 +1374,7 @@
                                 "Nyquist",
                                 "Aliasing"
                             ],
-                            "en": "Sampling Theorem"
+                            "en": "Signals and Systems Sampling Theorem"
                         },
                         {
                             "id": "6.1.4",
@@ -1383,7 +1383,7 @@
                                 "Fourier Transform",
                                 "Frequency Domain"
                             ],
-                            "en": "Fourier Transform"
+                            "en": "Signals and Systems Fourier Transform"
                         },
                         {
                             "id": "6.1.5",
@@ -1392,7 +1392,7 @@
                                 "Z Transform",
                                 "Digital Systems"
                             ],
-                            "en": "Z Transform"
+                            "en": "Signals and Systems Z Transform"
                         }
                     ],
                     "en": "Signals and Systems"
@@ -1408,7 +1408,7 @@
                                 "Open Loop",
                                 "No Feedback"
                             ],
-                            "en": "Open Loop"
+                            "en": "Control Systems Open Loop"
                         },
                         {
                             "id": "6.2.2",
@@ -1417,7 +1417,7 @@
                                 "Closed Loop",
                                 "Feedback Control"
                             ],
-                            "en": "Closed Loop"
+                            "en": "Control Systems Closed Loop"
                         },
                         {
                             "id": "6.2.3",
@@ -1427,7 +1427,7 @@
                                 "Gain",
                                 "Kp"
                             ],
-                            "en": "Proportional Control"
+                            "en": "Control Systems Proportional Control"
                         },
                         {
                             "id": "6.2.4",
@@ -1436,7 +1436,7 @@
                                 "Proportional Integral",
                                 "Steady State Error"
                             ],
-                            "en": "Proportional Integral"
+                            "en": "Control Systems Proportional Integral"
                         },
                         {
                             "id": "6.2.5",
@@ -1445,7 +1445,7 @@
                                 "Proportional Derivative",
                                 "Damping"
                             ],
-                            "en": "Proportional Derivative"
+                            "en": "Control Systems Proportional Derivative"
                         },
                         {
                             "id": "6.2.6",
@@ -1455,7 +1455,7 @@
                                 "Tuning",
                                 "Ziegler-Nichols"
                             ],
-                            "en": "PID Control"
+                            "en": "Control Systems PID Control"
                         },
                         {
                             "id": "6.2.7",
@@ -1464,7 +1464,7 @@
                                 "Bode Plot",
                                 "Frequency Response"
                             ],
-                            "en": "Bode Plot"
+                            "en": "Control Systems Bode Plot"
                         },
                         {
                             "id": "6.2.8",
@@ -1474,7 +1474,7 @@
                                 "Routh-Hurwitz",
                                 "Nyquist"
                             ],
-                            "en": "Stability"
+                            "en": "Control Systems Stability"
                         }
                     ],
                     "en": "Control Systems"
@@ -1490,7 +1490,7 @@
                                 "Programmable Logic Controller",
                                 "Industrial Automation"
                             ],
-                            "en": "Programmable Logic Controller"
+                            "en": "PLC and Industrial Automation Programmable Logic Controller"
                         },
                         {
                             "id": "6.3.2",
@@ -1500,7 +1500,7 @@
                                 "Relay Logic",
                                 "Rungs"
                             ],
-                            "en": "Ladder Diagram"
+                            "en": "PLC and Industrial Automation Ladder Diagram"
                         },
                         {
                             "id": "6.3.3",
@@ -1511,7 +1511,7 @@
                                 "TOF",
                                 "TP"
                             ],
-                            "en": "Timers"
+                            "en": "PLC and Industrial Automation Timers"
                         },
                         {
                             "id": "6.3.4",
@@ -1522,17 +1522,17 @@
                                 "CTD",
                                 "CTUD"
                             ],
-                            "en": "Counters"
+                            "en": "PLC and Industrial Automation Counters"
                         },
                         {
                             "id": "6.3.5",
-                            "title": "SCADA",
+                            "title": "SCADA (PLC ve Endüstriyel Otomasyon)",
                             "keywords": [
                                 "SCADA",
                                 "Supervisory Control",
                                 "HMI"
                             ],
-                            "en": "SCADA"
+                            "en": "PLC and Industrial Automation SCADA"
                         },
                         {
                             "id": "6.3.6",
@@ -1542,7 +1542,7 @@
                                 "Proximity",
                                 "Photoelectric"
                             ],
-                            "en": "Sensors"
+                            "en": "PLC and Industrial Automation Sensors"
                         },
                         {
                             "id": "6.3.7",
@@ -1553,7 +1553,7 @@
                                 "Hydraulic",
                                 "Electric"
                             ],
-                            "en": "Actuators"
+                            "en": "PLC and Industrial Automation Actuators"
                         }
                     ],
                     "en": "PLC and Industrial Automation"
@@ -1579,7 +1579,7 @@
                                 "Regression",
                                 "Labeled Data"
                             ],
-                            "en": "Supervised"
+                            "en": "Machine Learning Supervised"
                         },
                         {
                             "id": "7.1.2",
@@ -1590,7 +1590,7 @@
                                 "K-Means",
                                 "PCA"
                             ],
-                            "en": "Unsupervised"
+                            "en": "Machine Learning Unsupervised"
                         },
                         {
                             "id": "7.1.3",
@@ -1601,7 +1601,7 @@
                                 "Agent",
                                 "Reward"
                             ],
-                            "en": "Reinforcement"
+                            "en": "Machine Learning Reinforcement"
                         },
                         {
                             "id": "7.1.4",
@@ -1610,7 +1610,7 @@
                                 "Linear Regression",
                                 "Least Squares"
                             ],
-                            "en": "Linear Regression"
+                            "en": "Machine Learning Linear Regression"
                         },
                         {
                             "id": "7.1.5",
@@ -1619,7 +1619,7 @@
                                 "Logistic Regression",
                                 "Binary Classification"
                             ],
-                            "en": "Logistic Regression"
+                            "en": "Machine Learning Logistic Regression"
                         },
                         {
                             "id": "7.1.6",
@@ -1629,16 +1629,16 @@
                                 "CART",
                                 "Random Forest"
                             ],
-                            "en": "Decision Tree"
+                            "en": "Machine Learning Decision Tree"
                         },
                         {
                             "id": "7.1.7",
-                            "title": "SVM",
+                            "title": "SVM (Makine Öğrenmesi)",
                             "keywords": [
                                 "Support Vector Machine",
                                 "Kernel Trick"
                             ],
-                            "en": "Support Vector Machine"
+                            "en": "Machine Learning Support Vector Machine"
                         },
                         {
                             "id": "7.1.8",
@@ -1648,7 +1648,7 @@
                                 "Perceptron",
                                 "Backpropagation"
                             ],
-                            "en": "Neural Network"
+                            "en": "Machine Learning Neural Network"
                         }
                     ],
                     "en": "Machine Learning"
@@ -1659,22 +1659,22 @@
                     "subtopics": [
                         {
                             "id": "7.2.1",
-                            "title": "CNN",
+                            "title": "CNN (Derin Öğrenme)",
                             "keywords": [
                                 "Convolutional Neural Network",
                                 "Image Recognition"
                             ],
-                            "en": "Convolutional Neural Network"
+                            "en": "Deep Learning Convolutional Neural Network"
                         },
                         {
                             "id": "7.2.2",
-                            "title": "RNN",
+                            "title": "RNN (Derin Öğrenme)",
                             "keywords": [
                                 "Recurrent Neural Network",
                                 "LSTM",
                                 "Time Series"
                             ],
-                            "en": "Recurrent Neural Network"
+                            "en": "Deep Learning Recurrent Neural Network"
                         },
                         {
                             "id": "7.2.3",
@@ -1683,7 +1683,7 @@
                                 "Generative Adversarial Networks",
                                 "Image Generation"
                             ],
-                            "en": "Generative Adversarial Networks"
+                            "en": "Deep Learning Generative Adversarial Networks"
                         },
                         {
                             "id": "7.2.4",
@@ -1692,7 +1692,7 @@
                                 "Transfer Learning",
                                 "Pre-trained Models"
                             ],
-                            "en": "Transfer Learning"
+                            "en": "Deep Learning Transfer Learning"
                         }
                     ],
                     "en": "Deep Learning"
@@ -1709,7 +1709,7 @@
                                 "Filters",
                                 "Edge Detection"
                             ],
-                            "en": "Image Processing"
+                            "en": "Computer Vision Image Processing"
                         },
                         {
                             "id": "7.3.2",
@@ -1719,7 +1719,7 @@
                                 "YOLO",
                                 "R-CNN"
                             ],
-                            "en": "Object Detection"
+                            "en": "Computer Vision Object Detection"
                         },
                         {
                             "id": "7.3.3",
@@ -1728,7 +1728,7 @@
                                 "Segmentation",
                                 "U-Net"
                             ],
-                            "en": "Segmentation"
+                            "en": "Computer Vision Segmentation"
                         }
                     ],
                     "en": "Computer Vision"
@@ -1739,12 +1739,12 @@
                     "subtopics": [
                         {
                             "id": "7.4.1",
-                            "title": "SLAM",
+                            "title": "SLAM (Otonom Sistemler)",
                             "keywords": [
                                 "Simultaneous Localization and Mapping",
                                 "SLAM"
                             ],
-                            "en": "Simultaneous Localization and Mapping"
+                            "en": "Autonomous Systems Simultaneous Localization and Mapping"
                         },
                         {
                             "id": "7.4.2",
@@ -1754,7 +1754,7 @@
                                 "A* Algorithm",
                                 "Dijkstra"
                             ],
-                            "en": "Path Planning"
+                            "en": "Autonomous Systems Path Planning"
                         },
                         {
                             "id": "7.4.3",
@@ -1765,7 +1765,7 @@
                                 "Radar",
                                 "Camera"
                             ],
-                            "en": "Sensor Fusion"
+                            "en": "Autonomous Systems Sensor Fusion"
                         }
                     ],
                     "en": "Autonomous Systems"

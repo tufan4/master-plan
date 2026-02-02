@@ -96,6 +96,7 @@ export default function MasterTufanOS() {
     const [generatedKeywords, setGeneratedKeywords] = useState<Record<string, string[]>>({});
     const [showAboutModal, setShowAboutModal] = useState(false);
     const [runTutorial, setRunTutorial] = useState(false);
+    const [searchPlaylist, setSearchPlaylist] = useState(false); // New state for playlist toggle
 
 
 
@@ -312,6 +313,76 @@ export default function MasterTufanOS() {
 
             // 3. Fallback to Direct Search (No Random Scraping)
             if (newTab && newTab.document.getElementById('status')) newTab.document.getElementById('status')!.innerText = "Redirecting to Search Results...";
+
+            let url: string;
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            if (platformId === 'reddit') {
+                query = `${query} site:reddit.com`;
+            } else if (platformId === 'youtube') {
+                const playlistParam = searchPlaylist ? '&sp=EgIQAw%253D%253D' : ''; // Filter for Playlists
+                if (isMobile) {
+                    // Mobile Deep Link
+                    window.location.href = `vnd.youtube://results?search_query=${encodeURIComponent(query)}${playlistParam}`;
+                    // Fallback timeout
+                    setTimeout(() => {
+                        window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}${playlistParam}`, '_blank');
+                    }, 1000);
+                    return;
+                } else {
+                    url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}${playlistParam}`;
+                }
+            } else if (platformId === 'medium') {
+                query = `${query} site:medium.com`;
+            } else if (platformId === 'wikipedia') {
+                url = `https://${lang}.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(query)}`;
+            } else if (platformId === 'google') {
+                url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+            } else if (platformId === 'github') {
+                url = `https://github.com/search?q=${encodeURIComponent(query)}`;
+            } else if (platformId === 'arxiv') {
+                url = `https://arxiv.org/search/?query=${encodeURIComponent(query)}&searchtype=all`;
+            } else if (platformId === 'ieee') {
+                url = `https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=${encodeURIComponent(query)}`;
+            } else if (platformId === 'semantic') {
+                url = `https://www.semanticscholar.org/search?q=${encodeURIComponent(query)}`;
+            } else if (platformId === 'researchgate') {
+                url = `https://www.researchgate.net/search?q=${encodeURIComponent(query)}`;
+            } else if (platformId === 'sciencedirect') {
+                url = `https://www.sciencedirect.com/search?qs=${encodeURIComponent(query)}`;
+            } else if (platformId === 'stackoverflow') {
+                url = `https://stackoverflow.com/search?q=${encodeURIComponent(query)}`;
+            } else if (platformId === 'mdn') {
+                url = `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(query)}`;
+            } else if (platformId === 'devto') {
+                url = `https://dev.to/search?q=${encodeURIComponent(query)}`;
+            } else if (platformId === 'leetcode') {
+                url = `https://leetcode.com/problemset/all/?search=${encodeURIComponent(query)}`;
+            } else if (platformId === 'udemy') {
+                url = `https://www.udemy.com/courses/search/?q=${encodeURIComponent(query)}`;
+            } else if (platformId === 'coursera') {
+                url = `https://www.coursera.org/search?query=${encodeURIComponent(query)}`;
+            } else if (platformId === 'mitocw') {
+                url = `https://ocw.mit.edu/search/?q=${encodeURIComponent(query)}`;
+            } else if (platformId === 'khan') {
+                url = `https://www.khanacademy.org/search?page_search_query=${encodeURIComponent(query)}`;
+            } else if (platformId === 'wolfram') {
+                url = `https://www.wolframalpha.com/input?i=${encodeURIComponent(query)}`;
+            } else if (platformId === 'desmos') {
+                url = `https://www.google.com/search?q=site:desmos.com+${encodeURIComponent(query)}`;
+            } else if (platformId === 'geogebra') {
+                url = `https://www.geogebra.org/search/${encodeURIComponent(query)}`;
+            } else if (platformId === 'arduino') {
+                url = `https://www.arduino.cc/search?q=${encodeURIComponent(query)}`;
+            } else if (platformId === 'hackster') {
+                url = `https://www.hackster.io/search?q=${encodeURIComponent(query)}`;
+            } else if (platformId === 'instructables') {
+                url = `https://www.instructables.com/search/?q=${encodeURIComponent(query)}`;
+            } else if (platformId === 'pinterest') {
+                url = `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(query)}`;
+            } else {
+                url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+            }
 
             // Construct Direct Search URL
             const randomUrls: Record<string, string> = {
@@ -550,9 +621,26 @@ export default function MasterTufanOS() {
                                 >
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="text-xs text-blue-400 font-bold uppercase tracking-wider">Arama Dili Seçimi / Search Language</span>
-                                        <button onClick={() => setActivePlatformPanel(null)} className="hover:bg-slate-600 rounded p-1">
-                                            <X size={14} className="text-slate-400" />
-                                        </button>
+                                        <div className="flex items-center gap-3">
+                                            {/* YOUTUBE PLAYLIST TOGGLE */}
+                                            {activePlatformPanel.platform === 'youtube' && (
+                                                <label className="flex items-center gap-2 cursor-pointer bg-slate-800/50 px-2 py-1 rounded border border-slate-600 hover:border-red-500 transition-colors">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="w-3 h-3 accent-red-500"
+                                                        checked={searchPlaylist}
+                                                        onChange={(e) => setSearchPlaylist(e.target.checked)}
+                                                    />
+                                                    <span className="text-[10px] sm:text-xs font-bold text-red-400 flex items-center gap-1">
+                                                        <Youtube size={12} />
+                                                        Oynatma Listesi
+                                                    </span>
+                                                </label>
+                                            )}
+                                            <button onClick={() => setActivePlatformPanel(null)} className="hover:bg-slate-600 rounded p-1">
+                                                <X size={14} className="text-slate-400" />
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2 bg-slate-800/30 rounded">
