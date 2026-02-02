@@ -763,24 +763,27 @@ export default function MasterTufanOS() {
                         HAKKINDA
                     </h3>
 
-                    <div className="space-y-3 text-xs text-slate-400">
-                        <div>
-                            <p className="font-semibold text-amber-300 mb-1">Geliştirici</p>
-                            <p className="text-slate-300">Emre Tufan</p>
-                            <p className="text-slate-500">Kontrol ve Otomasyon</p>
+                    <div className="space-y-4 text-xs text-slate-400">
+                        {/* Developer Info Mini */}
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xs ring-2 ring-slate-700">ET</div>
+                            <div>
+                                <p className="font-bold text-slate-200">Emre Tufan</p>
+                                <p className="text-[10px] text-amber-500 leading-tight">Kontrol ve Otomasyon Teknolojisi<br />Önlisans Öğrencisi</p>
+                            </div>
                         </div>
 
-                        <div>
-                            <p className="font-semibold text-blue-300 mb-1">Sistem Özellikleri</p>
-                            <ul className="space-y-1 text-slate-400">
-                                <li>• 277+ Mühendislik Konusu</li>
-                                <li>• AI Destekli Arama</li>
-                                <li>• Unsplash Görseller</li>
-                                <li>• Cloud Sync (Supabase)</li>
-                            </ul>
-                        </div>
+                        {/* Open Detailed Manual Button */}
+                        <button
+                            onClick={() => setShowAboutModal(true)}
+                            className="w-full flex items-center justify-center gap-2 p-3 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 hover:border-amber-500/50 rounded-xl transition-all group"
+                        >
+                            <Book size={16} className="text-amber-400 group-hover:scale-110 transition-transform" />
+                            <span className="font-semibold text-slate-300 group-hover:text-white">Sistem Manuelini Aç</span>
+                        </button>
 
-                        <div className="flex gap-2 pt-2">
+                        {/* Social Links */}
+                        <div className="flex gap-2">
                             <a
                                 href="https://instagram.com/emretufan"
                                 target="_blank"
@@ -794,42 +797,40 @@ export default function MasterTufanOS() {
                                 href="https://linkedin.com/in/emretufan"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 rounded-lg text-white transition-all text-xs"
+                                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 rounded-lg text-white transition-all text-xs"
                             >
                                 <Linkedin size={14} />
                                 LinkedIn
                             </a>
                         </div>
-
-                        <motion.div
-                            className="pt-2 border-t border-slate-700/50 text-center"
-                            initial="hidden"
-                            animate="visible"
-                            variants={{
-                                hidden: { opacity: 0 },
-                                visible: {
-                                    opacity: 1,
-                                    transition: {
-                                        staggerChildren: 0.05
-                                    }
-                                }
-                            }}
-                        >
-                            <p className="italic text-slate-500 text-xs">
-                                {Array.from("An Emre Tufan Masterpiece...").map((char, index) => (
-                                    <motion.span
-                                        key={index}
-                                        variants={{
-                                            hidden: { opacity: 0, x: -10 },
-                                            visible: { opacity: 1, x: 0 }
-                                        }}
-                                    >
-                                        {char}
-                                    </motion.span>
-                                ))}
-                            </p>
-                        </motion.div>
                     </div>
+
+                    <motion.div
+                        className="pt-2 border-t border-slate-700/50 text-center"
+                        initial="hidden"
+                        animate="visible"
+                        variants={{
+                            hidden: { opacity: 0 },
+                            visible: {
+                                opacity: 1,
+                                transition: { staggerChildren: 0.05 }
+                            }
+                        }}
+                    >
+                        <p className="italic text-slate-500 text-xs">
+                            {Array.from("An Emre Tufan Masterpiece...").map((char, index) => (
+                                <motion.span
+                                    key={index}
+                                    variants={{
+                                        hidden: { opacity: 0, x: -10 },
+                                        visible: { opacity: 1, x: 0 }
+                                    }}
+                                >
+                                    {char}
+                                </motion.span>
+                            ))}
+                        </p>
+                    </motion.div>
                 </div>
             </aside>
 
@@ -866,7 +867,7 @@ export default function MasterTufanOS() {
                             <p className="text-xs text-slate-500 font-mono">{completedItems.size} / {TOTAL}</p>
                         </div>
                     </div>
-                </div>
+                </div >
 
                 <header className="border-b border-slate-800 bg-slate-900/50 p-6">
                     <h2 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
@@ -930,7 +931,7 @@ export default function MasterTufanOS() {
                         activeData?.topics?.map((topic: any) => renderRecursive(topic))
                     )}
                 </div>
-            </main>
+            </main >
         </div >
     );
 }
