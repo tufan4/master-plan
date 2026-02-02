@@ -43,50 +43,75 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
                         </div>
 
                         {/* Content */}
-                        <div className="p-6 overflow-y-auto space-y-6">
-                            {/* Section 1 */}
+                        <div className="p-6 overflow-y-auto space-y-8 custom-scrollbar">
+
+                            {/* Section: Developer */}
+                            <div className="text-center">
+                                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl font-black text-white shadow-xl ring-4 ring-slate-800">
+                                    ET
+                                </div>
+                                <h3 className="text-xl font-bold text-white mb-1">Emre Tufan</h3>
+                                <p className="text-amber-400 text-sm font-medium">Kontrol ve Otomasyon Teknolojisi<br />Önlisans Öğrencisi</p>
+                                <p className="text-slate-500 text-xs mt-1">Designed & Developed by Emre Tufan</p>
+
+                                <div className="mt-4 flex justify-center gap-3">
+                                    <a href="https://instagram.com/emretufan" target="_blank" className="p-2.5 bg-slate-800 hover:bg-pink-600 rounded-lg transition-colors text-slate-400 hover:text-white border border-slate-700">
+                                        <Instagram size={20} />
+                                    </a>
+                                    <a href="https://linkedin.com/in/emretufan" target="_blank" className="p-2.5 bg-slate-800 hover:bg-blue-600 rounded-lg transition-colors text-slate-400 hover:text-white border border-slate-700">
+                                        <Linkedin size={20} />
+                                    </a>
+                                </div>
+                            </div>
+
+                            {/* Section: Mission & Vision */}
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
+                                    <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Vizyon
+                                    </h4>
+                                    <p className="text-slate-400 text-xs leading-relaxed">
+                                        Mühendislik eğitimini dijital bir beyne dönüştürerek, karmaşık bilgi yığınlarını sistematik ve erişilebilir bir yapıya kavuşturmak.
+                                    </p>
+                                </div>
+                                <div className="bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
+                                    <h4 className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Misyon
+                                    </h4>
+                                    <p className="text-slate-400 text-xs leading-relaxed">
+                                        Öğrencilerin ve mühendislerin, ihtiyaç duydukları teknik bilgiye "nokta atışı" (Direct Deep Link) teknolojisi ile en hızlı şekilde ulaşmalarını sağlamak.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Section: System Architecture */}
                             <div>
-                                <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">Geliştirici Kimliği</h3>
-                                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                                    <p className="text-lg font-bold text-white mb-1">Emre Tufan</p>
-                                    <p className="text-slate-400 text-sm">Kontrol ve Otomasyon Mühendisliği</p>
-                                    <div className="mt-3 flex gap-2">
-                                        <a href="https://instagram.com/emretufan" target="_blank" className="p-2 bg-slate-700 hover:bg-pink-600 rounded-lg transition-colors text-white">
-                                            <Instagram size={18} />
-                                        </a>
-                                        <a href="https://linkedin.com/in/emretufan" target="_blank" className="p-2 bg-slate-700 hover:bg-blue-600 rounded-lg transition-colors text-white">
-                                            <Linkedin size={18} />
-                                        </a>
+                                <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                                    <Info size={16} className="text-purple-400" />
+                                    Sistem Mantığı
+                                </h3>
+                                <div className="space-y-3">
+                                    <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                                        <span className="text-xs font-bold text-amber-400 block mb-1">1. Master Curriculum (Veri İskeleti)</span>
+                                        <p className="text-xs text-slate-400">
+                                            Sistem, matematikten yapay zekaya uzanan 277+ mühendislik başlığını hiyerarşik bir ağaç yapısında tutar. Her başlık, Türkçe ve Global (İngilizce) anahtar kelimelerle eşleştirilmiştir.
+                                        </p>
+                                    </div>
+                                    <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                                        <span className="text-xs font-bold text-cyan-400 block mb-1">2. Deep Dive Motoru (Çekirdek)</span>
+                                        <p className="text-xs text-slate-400">
+                                            Kullanıcı bir platform seçtiğinde (YouTube, Reddit, IEEE...), sistem araya girer ve "Rastgele Arama" yerine, o platformun API yapısına uygun <strong>doğrudan sorgu linkleri</strong> üretir.
+                                        </p>
+                                    </div>
+                                    <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                                        <span className="text-xs font-bold text-pink-400 block mb-1">3. Hibrit Arayüz (UX)</span>
+                                        <p className="text-xs text-slate-400">
+                                            Hem mobil hem masaüstü için optimize edilmiş "Responsive Design". Odak Modu sayesinde sadece ilgilendiğiniz kaynağı görürsünüz.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Section 2 */}
-                            <div>
-                                <h3 className="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-2">Sistem Mimarisi</h3>
-                                <ul className="space-y-2">
-                                    {[
-                                        "Next.js 14 App Router Core",
-                                        "Real-time Supabase Sync",
-                                        "Framer Motion Animation Engine",
-                                        "Recursive Curriculum Data Structure",
-                                        "Smart Caching & Offline Support"
-                                    ].map((item, i) => (
-                                        <li key={i} className="flex items-center gap-2 text-slate-300 text-sm p-2 bg-slate-800/30 rounded-lg border border-slate-800">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                                            {item}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-
-                            {/* Section 3 */}
-                            <div>
-                                <h3 className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-2">Misyon</h3>
-                                <p className="text-slate-400 text-sm leading-relaxed italic border-l-2 border-amber-500/50 pl-4">
-                                    "Mühendislik disiplinini dijital bir beyne dönüştürmek ve bilgiye erişimi ışık hızına çıkarmak."
-                                </p>
-                            </div>
                         </div>
 
                         {/* Footer */}
