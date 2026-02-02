@@ -97,6 +97,7 @@ export default function MasterTufanOS() {
     const [showAboutModal, setShowAboutModal] = useState(false);
     const [runTutorial, setRunTutorial] = useState(false);
     const [searchPlaylist, setSearchPlaylist] = useState(false); // New state for playlist toggle
+    const [searchShorts, setSearchShorts] = useState(false); // New state for shorts toggle
 
 
 
@@ -320,7 +321,9 @@ export default function MasterTufanOS() {
             if (platformId === 'reddit') {
                 url = `https://www.reddit.com/search/?q=${encodeURIComponent(query)}`;
             } else if (platformId === 'youtube') {
-                const playlistParam = searchPlaylist ? '&sp=EgIQAw%253D%253D' : ''; // Filter for Playlists
+                let playlistParam = '';
+                if (searchShorts) playlistParam = '&sp=EgIQCQ%253D%253D';
+                else if (searchPlaylist) playlistParam = '&sp=EgIQAw%253D%253D';
                 if (isMobile) {
                     // Mobile Deep Link
                     window.location.href = `vnd.youtube://results?search_query=${encodeURIComponent(query)}${playlistParam}`;
@@ -600,11 +603,31 @@ export default function MasterTufanOS() {
                                                         type="checkbox"
                                                         className="w-3 h-3 accent-red-500"
                                                         checked={searchPlaylist}
-                                                        onChange={(e) => setSearchPlaylist(e.target.checked)}
+                                                        onChange={(e) => {
+                                                            setSearchPlaylist(e.target.checked);
+                                                            if (e.target.checked) setSearchShorts(false);
+                                                        }}
                                                     />
                                                     <span className="text-[10px] sm:text-xs font-bold text-red-400 flex items-center gap-1">
                                                         <Youtube size={12} />
                                                         Oynatma Listesi
+                                                    </span>
+                                                </label>
+                                            )}
+                                            {activePlatformPanel?.platform === 'youtube' && (
+                                                <label className="flex items-center gap-2 cursor-pointer bg-slate-800/50 px-2 py-1 rounded border border-slate-600 hover:border-red-500 transition-colors">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="w-3 h-3 accent-red-500"
+                                                        checked={searchShorts}
+                                                        onChange={(e) => {
+                                                            setSearchShorts(e.target.checked);
+                                                            if (e.target.checked) setSearchPlaylist(false);
+                                                        }}
+                                                    />
+                                                    <span className="text-[10px] sm:text-xs font-bold text-red-400 flex items-center gap-1">
+                                                        <Youtube size={12} />
+                                                        Shorts
                                                     </span>
                                                 </label>
                                             )}
