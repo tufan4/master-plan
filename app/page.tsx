@@ -301,7 +301,7 @@ export default function MasterTufanOS() {
 
         try {
             // 2. Attempt Level 1 API Deep Link (Reddit/Wiki/YouTube/etc.)
-            if (newTab && newTab.document.getElementById('status')) newTab.document.getElementById('status')!.innerText = "Trying Deep Discovery API...";
+            if (newTab && newTab.document.getElementById('status')) newTab.document.getElementById('status')!.innerText = "Connecting to Knowledge Base...";
 
             const apiLink = await getDeepDiscoveryLink(platformId, query, lang);
 
@@ -310,10 +310,10 @@ export default function MasterTufanOS() {
                 return;
             }
 
-            // 3. Fallback to Deep Scrape (Level 2)
-            if (newTab && newTab.document.getElementById('status')) newTab.document.getElementById('status')!.innerText = "Deep Scanning Search Results...";
+            // 3. Fallback to Direct Search (No Random Scraping)
+            if (newTab && newTab.document.getElementById('status')) newTab.document.getElementById('status')!.innerText = "Redirecting to Search Results...";
 
-            // Construct Fallback Search URL
+            // Construct Direct Search URL
             const randomUrls: Record<string, string> = {
                 youtube: `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,
                 google: `https://www.google.com/search?q=${encodeURIComponent(query)}+filetype:pdf`,
@@ -344,25 +344,10 @@ export default function MasterTufanOS() {
 
             const fallbackUrl = randomUrls[platformId] || `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 
-            // Call Internal Scraper API
-            try {
-                const scrapeRes = await fetch(`/api/deep-dive?url=${encodeURIComponent(fallbackUrl)}`);
-                const scrapeData = await scrapeRes.json();
-
-                if (scrapeData.success && scrapeData.deepUrl && newTab) {
-                    newTab.document.getElementById('status')!.innerText = "Deep Link Found! Redirecting...";
-                    // Small delay to let user see "Found" state
-                    setTimeout(() => {
-                        newTab.location.href = scrapeData.deepUrl;
-                    }, 500);
-                    return;
-                }
-            } catch (err) {
-                console.warn("Scraper failed, using fallback");
-            }
-
-            // Final Fallback
-            if (newTab) newTab.location.href = fallbackUrl;
+            // Direct Redirect
+            setTimeout(() => {
+                if (newTab) newTab.location.href = fallbackUrl;
+            }, 300);
 
         } catch (e) {
             console.warn("Deep scan failed");
@@ -690,7 +675,10 @@ export default function MasterTufanOS() {
                         </button>
                     ))}
                 </div>
-                <button onClick={() => setShowAboutModal(true)} className="absolute bottom-6 p-3 bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-colors border border-slate-700"><Info size={20} /></button>
+                <div className="absolute bottom-6 flex flex-col gap-3">
+                    <button onClick={() => setRunTutorial(true)} className="p-3 bg-amber-500/10 rounded-xl text-amber-500 hover:text-amber-400 transition-colors border border-amber-500/50" title="Tutorial"><HelpCircle size={20} /></button>
+                    <button onClick={() => setShowAboutModal(true)} className="p-3 bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-colors border border-slate-700" title="About"><Info size={20} /></button>
+                </div>
             </div>
 
             {/* MODALS */}
@@ -943,6 +931,6 @@ export default function MasterTufanOS() {
                     )}
                 </div>
             </main>
-        </div>
+        </div >
     );
 }
