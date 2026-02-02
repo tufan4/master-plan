@@ -623,7 +623,7 @@ export default function MasterTufanOS() {
                                         <span className="text-xs text-blue-400 font-bold uppercase tracking-wider">Arama Dili Seçimi / Search Language</span>
                                         <div className="flex items-center gap-3">
                                             {/* YOUTUBE PLAYLIST TOGGLE */}
-                                            {activePlatformPanel.platform === 'youtube' && (
+                                            {activePlatformPanel?.platform === 'youtube' && (
                                                 <label className="flex items-center gap-2 cursor-pointer bg-slate-800/50 px-2 py-1 rounded border border-slate-600 hover:border-red-500 transition-colors">
                                                     <input
                                                         type="checkbox"
