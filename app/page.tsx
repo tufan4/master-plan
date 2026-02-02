@@ -318,7 +318,7 @@ export default function MasterTufanOS() {
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
             if (platformId === 'reddit') {
-                query = `${query} site:reddit.com`;
+                url = `https://www.reddit.com/search/?q=${encodeURIComponent(query)}`;
             } else if (platformId === 'youtube') {
                 const playlistParam = searchPlaylist ? '&sp=EgIQAw%253D%253D' : ''; // Filter for Playlists
                 if (isMobile) {
@@ -333,7 +333,7 @@ export default function MasterTufanOS() {
                     url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}${playlistParam}`;
                 }
             } else if (platformId === 'medium') {
-                query = `${query} site:medium.com`;
+                url = `https://www.google.com/search?q=${encodeURIComponent(query + ' site:medium.com')}`;
             } else if (platformId === 'wikipedia') {
                 url = `https://${lang}.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(query)}`;
             } else if (platformId === 'google') {
@@ -384,36 +384,7 @@ export default function MasterTufanOS() {
                 url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
             }
 
-            // Construct Direct Search URL
-            const randomUrls: Record<string, string> = {
-                youtube: `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,
-                google: `https://www.google.com/search?q=${encodeURIComponent(query)}+filetype:pdf`,
-                reddit: `https://www.reddit.com/search/?q=${encodeURIComponent(query)}`,
-                wikipedia: `https://${lang}.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(query)}`,
-                github: `https://github.com/search?q=${encodeURIComponent(query)}`,
-                arxiv: `https://arxiv.org/search/?query=${encodeURIComponent(query)}&searchtype=all`,
-                ieee: `https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=${encodeURIComponent(query)}`,
-                semantic: `https://www.semanticscholar.org/search?q=${encodeURIComponent(query)}`,
-                researchgate: `https://www.researchgate.net/search?q=${encodeURIComponent(query)}`,
-                sciencedirect: `https://www.sciencedirect.com/search?qs=${encodeURIComponent(query)}`,
-                stackoverflow: `https://stackoverflow.com/search?q=${encodeURIComponent(query)}`,
-                mdn: `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(query)}`,
-                devto: `https://dev.to/search?q=${encodeURIComponent(query)}`,
-                leetcode: `https://leetcode.com/problemset/all/?search=${encodeURIComponent(query)}`,
-                udemy: `https://www.udemy.com/courses/search/?q=${encodeURIComponent(query)}`,
-                coursera: `https://www.coursera.org/search?query=${encodeURIComponent(query)}`,
-                mitocw: `https://ocw.mit.edu/search/?q=${encodeURIComponent(query)}`,
-                khan: `https://www.khanacademy.org/search?page_search_query=${encodeURIComponent(query)}`,
-                wolfram: `https://www.wolframalpha.com/input?i=${encodeURIComponent(query)}`,
-                desmos: `https://www.google.com/search?q=site:desmos.com+${encodeURIComponent(query)}`,
-                geogebra: `https://www.geogebra.org/search/${encodeURIComponent(query)}`,
-                arduino: `https://www.arduino.cc/search?q=${encodeURIComponent(query)}`,
-                hackster: `https://www.hackster.io/search?q=${encodeURIComponent(query)}`,
-                instructables: `https://www.instructables.com/search/?q=${encodeURIComponent(query)}`,
-                pinterest: `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(query)}`
-            };
-
-            const fallbackUrl = randomUrls[platformId] || `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+            const fallbackUrl = url;
 
             // Direct Redirect
             setTimeout(() => {
