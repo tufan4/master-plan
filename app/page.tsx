@@ -146,7 +146,8 @@ export default function MasterTufanOS() {
             }
         } catch (error) {
             console.error(error);
-            alert("Müfredat oluşturulurken hata oluştu.");
+            const errorMessage = error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu";
+            alert(`Müfredat oluşturulurken hata oluştu: ${errorMessage}`);
         } finally {
             setIsGenerating(false);
         }
