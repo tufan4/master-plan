@@ -1,7 +1,10 @@
-// Gemini AI Client for Smart Content Discovery and Keyword Generation
 
-const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+import Groq from "groq-sdk";
+
+const groq = new Groq({
+    apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
+    dangerouslyAllowBrowser: true // Client-side usage (Not recommended for prod but required for this architecture)
+});
 
 /**
  * AI-powered Translation
@@ -12,30 +15,24 @@ export async function generateDiverseKeywords(
     topic: string,
     language: 'tr' | 'en' = 'en'
 ): Promise<string[]> {
-    if (!GEMINI_API_KEY) {
+    if (!process.env.NEXT_PUBLIC_GROQ_API_KEY) {
         return fallbackKeywords(topic);
     }
 
     try {
         const prompt = `Translate the engineering topic "${topic}" to English. Return ONLY the translated term. Do not add any extra text, punctuation, or explanations. If it is already in English or proper noun, return it as is.`;
 
-        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.1, maxOutputTokens: 50 } // Low temp for precision
-            })
+        const completion = await groq.chat.completions.create({
+            messages: [{ role: "user", content: prompt }],
+            model: "llama3-70b-8192",
+            temperature: 0.1,
+            max_tokens: 50,
         });
 
-        if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
-
-        const data = await response.json();
-        const englishTitle = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        const englishTitle = completion.choices[0]?.message?.content?.trim();
 
         if (!englishTitle) return fallbackKeywords(topic);
 
-        // Return only the English title as a single-item array
         return [englishTitle];
 
     } catch (error) {
@@ -47,10 +44,10 @@ export async function generateDiverseKeywords(
 
 /**
  * AI Curriculum Generator
- * Generates a full hierarchical learning path for ANY topic using Gemini.
+ * Generates a full hierarchical learning path for ANY topic using Groq (Llama 3).
  */
 export async function generateFullCurriculum(topic: string): Promise<any> {
-    if (!GEMINI_API_KEY) {
+    if (!process.env.NEXT_PUBLIC_GROQ_API_KEY) {
         throw new Error("API Key eksik. Lütfen .env.local dosyasını kontrol edin.");
     }
 
@@ -87,28 +84,19 @@ export async function generateFullCurriculum(topic: string): Promise<any> {
         5. Return ONLY raw JSON. No markdown formatting, no backticks.
         `;
 
-        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.7, maxOutputTokens: 4000 },
-                safetySettings: [
-                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
-                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
-                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
-                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" }
-                ]
-            })
+        const completion = await groq.chat.completions.create({
+            messages: [{ role: "user", content: prompt }],
+            model: "llama3-70b-8192",
+            temperature: 0.5,
+            max_tokens: 4000,
+            response_format: { type: "json_object" } // Enforces JSON mode
         });
 
-        if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
+        const rawText = completion.choices[0]?.message?.content?.trim();
 
-        const data = await response.json();
-        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         if (!rawText) throw new Error("AI boş yanıt döndürdü.");
 
-        return JSON.parse(rawText.replace(/```json/g, "").replace(/```/g, "").trim());
+        return JSON.parse(rawText);
     } catch (error) {
         console.error('Curriculum generation failed:', error);
         throw error;
