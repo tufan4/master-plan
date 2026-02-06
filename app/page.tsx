@@ -19,7 +19,7 @@ import {
     Globe, MessageCircle, Sparkles, BookOpen, Info, Instagram, Linkedin,
     Github, Lightbulb, HelpCircle, Layout, Settings, Download, Leaf
 } from "lucide-react";
-import { generateDiverseKeywords } from "@/lib/geminiClient";
+import { generateDiverseKeywords, generateFullCurriculum } from "@/lib/geminiClient";
 import { getDeepDiscoveryLink } from "@/lib/deepDiscovery";
 
 // ==================== PLATFORMS ====================
@@ -64,7 +64,12 @@ const PLATFORMS = [
 ];
 
 export default function MasterTufanOS() {
-    const [activeCategory, setActiveCategory] = useState(CURRICULUM.categories[0].id);
+    // DYNAMIC CURRICULUM STATE (Correctly integrated)
+    const [allCategories, setAllCategories] = useState<any[]>((CURRICULUM as any).categories || []);
+    const [activeCategory, setActiveCategory] = useState((CURRICULUM as any).categories?.[0]?.id || "");
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [aiPrompt, setAiPrompt] = useState("");
+
     const [globalSearch, setGlobalSearch] = useState("");
     const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
@@ -81,6 +86,10 @@ export default function MasterTufanOS() {
     const [parentMap, setParentMap] = useState<Map<string, string>>(new Map());
     const [pulsingMatch, setPulsingMatch] = useState<string | null>(null);
 
+
+
+
+    // Initial Parent Map Calculation (Updated to depend on allCategories)
     useEffect(() => {
         const map = new Map<string, string>();
         const traverse = (items: any[], parentId: string | null) => {
@@ -89,9 +98,60 @@ export default function MasterTufanOS() {
                 if (item.subtopics) traverse(item.subtopics, item.id);
             });
         };
-        CURRICULUM.categories.forEach(cat => { if (cat.topics) traverse(cat.topics, null); });
+        allCategories.forEach(cat => { if (cat.topics) traverse(cat.topics, null); });
         setParentMap(map);
+    }, [allCategories]);
+
+    // LOAD CUSTOM CURRICULUMS FROM LOCAL STORAGE
+    useEffect(() => {
+        const loadCustom = () => {
+            try {
+                const saved = localStorage.getItem("customCurriculums");
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    // Merge default curriculum with saved custom ones
+                    setAllCategories([...(CURRICULUM as any).categories, ...parsed]);
+                }
+            } catch (e) {
+                console.error("Failed to load custom curriculums", e);
+            }
+        };
+        loadCustom();
     }, []);
+
+    // HANDLE AI GENERATION
+    const handleGenerateCurriculum = async () => {
+        if (!aiPrompt.trim()) return;
+        setIsGenerating(true);
+        try {
+            const result = await generateFullCurriculum(aiPrompt);
+
+            if (result && result.categories) {
+                const newCategories = result.categories.map((cat: any) => ({
+                    ...cat,
+                    id: `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                    isCustom: true
+                }));
+
+                const updatedList = [...allCategories, ...newCategories];
+                setAllCategories(updatedList);
+
+                const currentCustom = JSON.parse(localStorage.getItem("customCurriculums") || "[]");
+                localStorage.setItem("customCurriculums", JSON.stringify([...currentCustom, ...newCategories]));
+
+                setActiveCategory(newCategories[0].id);
+                setAiPrompt("");
+            } else {
+                alert("AI geçerli bir müfredat üretemedi.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Müfredat oluşturulurken hata oluştu.");
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
 
     const [generatedKeywords, setGeneratedKeywords] = useState<Record<string, string[]>>({});
     const [showAboutModal, setShowAboutModal] = useState(false);
@@ -798,20 +858,43 @@ export default function MasterTufanOS() {
                 </div>
 
                 <div className="p-4 space-y-2 flex-1">
-                    {CURRICULUM.categories.map((cat: any) => (
-                        <button
-                            key={cat.id}
-                            onClick={() => {
-                                setActiveCategory(cat.id);
-                                setShowDictionary(false);
-                            }}
-                            className={`w-full text-left px-4 py-3 rounded-xl transition-all ${activeCategory === cat.id && !showDictionary
-                                ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg'
-                                : 'bg-slate-700/30 hover:bg-slate-700/50 text-slate-300'
-                                }`}
-                        >
-                            <span className="text-sm font-medium truncate block">{cat.id} {cat.title.split(' ')[0].replace(',', '')}</span>
-                        </button>
+                    {allCategories.map((cat: any) => (
+                        <div key={cat.id} className="relative group">
+                            <button
+                                onClick={() => {
+                                    setActiveCategory(cat.id);
+                                    setShowDictionary(false);
+                                }}
+                                className={`w-full text-left px-4 py-3 rounded-xl transition-all ${activeCategory === cat.id && !showDictionary
+                                    ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg'
+                                    : 'bg-slate-700/30 hover:bg-slate-700/50 text-slate-300'
+                                    }`}
+                            >
+                                <span className="text-sm font-medium truncate block pr-6">
+                                    {cat.id.startsWith('custom') ? '✨ ' : ''}
+                                    {cat.title}
+                                </span>
+                            </button>
+
+                            {/* DELETE BUTTON FOR CUSTOM CATEGORIES */}
+                            {cat.isCustom && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (confirm('Silmek istediğine emin misin?')) {
+                                            const newList = allCategories.filter(c => c.id !== cat.id);
+                                            setAllCategories(newList);
+                                            const customOnly = newList.filter((c: any) => c.isCustom);
+                                            localStorage.setItem("customCurriculums", JSON.stringify(customOnly));
+                                            if (activeCategory === cat.id) setActiveCategory(newList[0]?.id || "");
+                                        }
+                                    }}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-400 transition-all"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
+                        </div>
                     ))}
 
                     {/* DICTIONARY MENU BUTTON */}
@@ -941,7 +1024,36 @@ export default function MasterTufanOS() {
                             <p className="text-xs text-slate-500 font-mono">{completedItems.size} / {TOTAL}</p>
                         </div>
                     </div>
-                </div >
+                </div>
+
+                {/* AI CURRICULUM GENERATOR (HERO) */}
+                <div className="px-4 py-2 bg-slate-900/40 border-b border-indigo-500/20">
+                    <div className="max-w-4xl mx-auto flex items-center gap-3">
+                        <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg">
+                            <Sparkles className="text-white animate-pulse" size={18} />
+                        </div>
+                        <div className="flex-1 relative group">
+                            <input
+                                type="text"
+                                value={aiPrompt}
+                                onChange={(e) => setAiPrompt(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleGenerateCurriculum()}
+                                placeholder="✨ Ne öğrenmek istersin? (Yeni bir müfredat yarat...)"
+                                className="w-full bg-slate-800/80 border border-slate-700/50 hover:border-indigo-500/50 focus:border-indigo-500 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-500"
+                            />
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                {isGenerating && <span className="text-xs text-indigo-400 animate-pulse font-medium">Oluşturuluyor...</span>}
+                                <button
+                                    onClick={handleGenerateCurriculum}
+                                    disabled={!aiPrompt.trim() || isGenerating}
+                                    className="p-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 rounded-md text-white transition-colors"
+                                >
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <header className="border-b border-slate-800 bg-slate-900/50 p-6">
                     <h2 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">

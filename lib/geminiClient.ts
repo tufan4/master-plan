@@ -44,7 +44,71 @@ export async function generateDiverseKeywords(
     }
 }
 
+
+/**
+ * AI Curriculum Generator
+ * Generates a full hierarchical learning path for ANY topic using Gemini.
+ */
+export async function generateFullCurriculum(topic: string): Promise<any> {
+    if (!GEMINI_API_KEY) {
+        throw new Error("API Key eksik. Lütfen .env.local dosyasını kontrol edin.");
+    }
+
+    try {
+        const prompt = `
+        Act as a Professor and Curriculum Designer.
+        Create a detailed, hierarchical learning path for the topic: "${topic}".
+        
+        The output must be a VALID JSON object with the following structure:
+        {
+            "id": "generated-${Date.now()}",
+            "title": "${topic} (AI Generated)",
+            "categories": [
+                {
+                    "id": "cat-1",
+                    "title": "Module 1: Foundations",
+                    "topics": [
+                        {
+                            "id": "topic-1-1",
+                            "title": "Introduction to ${topic}",
+                            "en": "Introduction to ${topic}",
+                            "subtopics": []
+                        }
+                    ]
+                }
+            ]
+        }
+
+        Rules:
+        1. Create at least 4 main modules (Categories).
+        2. Each module should have at least 5 sub-topics.
+        3. Use nested subtopics where necessary for complex concepts.
+        4. "en" field should be the English translation of the title.
+        5. Return ONLY raw JSON. No markdown formatting, no backticks.
+        `;
+
+        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.7, maxOutputTokens: 4000 }
+            })
+        });
+
+        if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
+
+        const data = await response.json();
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (!rawText) throw new Error("AI boş yanıt döndürdü.");
+
+        return JSON.parse(rawText.replace(/```json/g, "").replace(/```/g, "").trim());
+    } catch (error) {
+        console.error('Curriculum generation failed:', error);
+        throw error;
+    }
+}
+
 function fallbackKeywords(topic: string): string[] {
-    // If AI fails, just return the topic itself as "English" fallback (better than nothing)
     return [topic];
 }
