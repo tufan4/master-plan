@@ -2,7 +2,7 @@
 import Groq from "groq-sdk";
 
 const groq = new Groq({
-    apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
+    apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || 'dummy_key_for_build',
     dangerouslyAllowBrowser: true // Client-side usage (Not recommended for prod but required for this architecture)
 });
 
@@ -24,7 +24,7 @@ export async function generateDiverseKeywords(
 
         const completion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
-            model: "llama3-70b-8192",
+            model: "llama-3.3-70b-versatile",
             temperature: 0.1,
             max_tokens: 50,
         });
@@ -86,7 +86,7 @@ export async function generateFullCurriculum(topic: string): Promise<any> {
 
         const completion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
-            model: "llama3-70b-8192",
+            model: "llama-3.3-70b-versatile",
             temperature: 0.5,
             max_tokens: 4000,
             response_format: { type: "json_object" } // Enforces JSON mode
