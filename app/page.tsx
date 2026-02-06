@@ -17,7 +17,7 @@ import {
     Search, ChevronDown, ChevronRight, CheckCircle2, Circle,
     Youtube, FileText, Book, X, Image as ImageIcon,
     Globe, MessageCircle, Sparkles, BookOpen, Info, Instagram, Linkedin,
-    Github, Lightbulb, HelpCircle, Layout, Settings, Download, Leaf
+    Github, Lightbulb, HelpCircle, Layout, Settings, Download, Leaf, Plus
 } from "lucide-react";
 import { generateDiverseKeywords, generateFullCurriculum } from "@/lib/geminiClient";
 import { getDeepDiscoveryLink } from "@/lib/deepDiscovery";
@@ -64,9 +64,9 @@ const PLATFORMS = [
 ];
 
 export default function MasterTufanOS() {
-    // DYNAMIC CURRICULUM STATE (Correctly integrated)
-    const [allCategories, setAllCategories] = useState<any[]>((CURRICULUM as any).categories || []);
-    const [activeCategory, setActiveCategory] = useState((CURRICULUM as any).categories?.[0]?.id || "");
+    // DYNAMIC CURRICULUM STATE (Starts Empty per Request)
+    const [allCategories, setAllCategories] = useState<any[]>([]);
+    const [activeCategory, setActiveCategory] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
     const [aiPrompt, setAiPrompt] = useState("");
 
@@ -76,6 +76,7 @@ export default function MasterTufanOS() {
     const [activeControlPanel, setActiveControlPanel] = useState<string | null>(null);
     const [showDictionary, setShowDictionary] = useState(false);
     const [activePlatformPanel, setActivePlatformPanel] = useState<{ topicId: string; platform: string } | null>(null);
+    const [showNewCurriculumModal, setShowNewCurriculumModal] = useState(false); // New State
 
     const [language, setLanguage] = useState<'tr' | 'en'>('en');
     const [showImageGallery, setShowImageGallery] = useState<string | null>(null);
@@ -102,15 +103,15 @@ export default function MasterTufanOS() {
         setParentMap(map);
     }, [allCategories]);
 
-    // LOAD CUSTOM CURRICULUMS FROM LOCAL STORAGE
+    // LOAD CUSTOM CURRICULUMS FROM LOCAL STORAGE (ONLY)
     useEffect(() => {
         const loadCustom = () => {
             try {
                 const saved = localStorage.getItem("customCurriculums");
                 if (saved) {
                     const parsed = JSON.parse(saved);
-                    // Merge default curriculum with saved custom ones
-                    setAllCategories([...(CURRICULUM as any).categories, ...parsed]);
+                    setAllCategories(parsed);
+                    if (parsed.length > 0) setActiveCategory(parsed[0].id);
                 }
             } catch (e) {
                 console.error("Failed to load custom curriculums", e);
@@ -136,11 +137,12 @@ export default function MasterTufanOS() {
                 const updatedList = [...allCategories, ...newCategories];
                 setAllCategories(updatedList);
 
-                const currentCustom = JSON.parse(localStorage.getItem("customCurriculums") || "[]");
-                localStorage.setItem("customCurriculums", JSON.stringify([...currentCustom, ...newCategories]));
+                // Save entire list as custom since we are starting fresh
+                localStorage.setItem("customCurriculums", JSON.stringify(updatedList));
 
                 setActiveCategory(newCategories[0].id);
                 setAiPrompt("");
+                setShowNewCurriculumModal(false);
             } else {
                 alert("AI geçerli bir müfredat üretemedi.");
             }
@@ -795,330 +797,369 @@ export default function MasterTufanOS() {
         );
     };
 
-    const activeData = CURRICULUM.categories.find((c: any) => c.id === activeCategory);
+    const activeData = allCategories.find((c: any) => c.id === activeCategory);
+    const hasCurriculum = allCategories.length > 0;
 
     return (
         <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
-
-            {/* MOBILE STRIP SIDEBAR (ALWAYS VISIBLE ON MOBILE) */}
-            <div className="lg:hidden fixed left-0 top-0 bottom-0 w-[60px] bg-slate-900/90 backdrop-blur border-r border-slate-700/50 z-[45] flex flex-col items-center py-6 gap-4" onClick={(e) => e.stopPropagation()}>
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center font-black text-slate-900 text-xl shadow-lg shadow-amber-500/20 mb-2">M</div>
-                <div className="flex flex-col gap-3 w-full items-center overflow-y-auto custom-scrollbar no-scrollbar flex-1 pb-20">
-                    {CURRICULUM.categories.slice(0, 6).map((cat: any) => (
-                        <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${activeCategory === cat.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 ring-2 ring-blue-400/50' : 'bg-slate-800 text-slate-500 hover:bg-slate-700'}`}>
-                            {cat.id.substring(0, 2)}
-                        </button>
-                    ))}
-                </div>
-                <div className="absolute bottom-6 flex flex-col gap-3">
-                    <button onClick={() => setRunTutorial(true)} className="p-3 bg-amber-500/10 rounded-xl text-amber-500 hover:text-amber-400 transition-colors border border-amber-500/50" title="Tutorial"><HelpCircle size={20} /></button>
-                    <button onClick={() => setShowAboutModal(true)} className="p-3 bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-colors border border-slate-700" title="About"><Info size={20} /></button>
-                </div>
-            </div>
-
-            {/* MODALS */}
-
-
-            {/* SessionHistoryPanel Removed - Integrated into topic view */}
-
-            {/* TUTORIAL & ABOUT MODALS */}
-            <TutorialOverlay
-                forceRun={runTutorial}
-                onComplete={() => setRunTutorial(false)}
-            />
-            <AboutModal isOpen={showAboutModal} onClose={() => setShowAboutModal(false)} />
-
-            {/* HYBRID SIDEBAR (REPLACES MOBILE MENU) */}
-            <HybridSidebar
-                categories={CURRICULUM.categories}
-                activeCategory={activeCategory}
-                setActiveCategory={setActiveCategory}
-                setShowDictionary={setShowDictionary}
-                showDictionary={showDictionary}
-                dictionaryCount={CURRICULUM.dictionary.length}
-                openAbout={() => setShowAboutModal(true)}
-            />
-            {/* Main content padding adjustment for mobile sidebar space */}
-            <div className="lg:hidden w-[60px] shrink-0 bg-slate-900" />
-
-            {/* SIDEBAR */}
-            <aside className="hidden lg:flex w-72 bg-slate-800/50 backdrop-blur-sm border-r border-slate-700/50 flex-col overflow-y-auto custom-scrollbar">
-                <div className="p-6 border-b border-slate-700/50">
-                    {/* MASTER TUFAN HEADER */}
-                    <div
-                        className="cursor-pointer group mb-4"
-                        onClick={resetApp}
-                    >
-                        <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 hover:to-yellow-400 transition-all font-[family-name:var(--font-syncopate)] tracking-[0.15em] uppercase drop-shadow-sm">
-                            Master Tufan
-                        </h1>
-                    </div>
-                    <div className="mt-2">
+            {!hasCurriculum && (
+                <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 p-4">
+                    <div className="max-w-3xl w-full text-center space-y-12">
+                        <h1 className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 font-[family-name:var(--font-syncopate)] tracking-[0.1em] uppercase">MASTER TUFAN</h1>
                         <TypewriterSlogan />
+                        <div className="relative group max-w-2xl mx-auto w-full">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-80 transition duration-1000 group-hover:duration-200"></div>
+                            <div className="relative flex items-center bg-slate-900 rounded-2xl p-2 border border-slate-700/50 hover:border-blue-500/50 transition-colors">
+                                <Sparkles className="ml-3 text-amber-400 animate-pulse" size={28} />
+                                <input
+                                    type="text"
+                                    value={aiPrompt}
+                                    onChange={(e) => setAiPrompt(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleGenerateCurriculum()}
+                                    placeholder="Neyi öğrenmek istersin?"
+                                    className="w-full bg-transparent border-none px-4 py-5 text-xl text-slate-100 placeholder:text-slate-600 focus:outline-none"
+                                    autoFocus
+                                />
+                                <button onClick={handleGenerateCurriculum} disabled={!aiPrompt.trim() || isGenerating} className="p-4 bg-blue-600 hover:bg-blue-500 rounded-xl text-white transition-all shadow-lg">
+                                    {isGenerating ? <div className="animate-spin border-2 border-white/30 border-t-white rounded-full w-6 h-6" /> : <ChevronRight size={28} />}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            )}
 
-                <div className="p-4 space-y-2 flex-1">
-                    {allCategories.map((cat: any) => (
-                        <div key={cat.id} className="relative group">
+            {hasCurriculum && (
+                <>
+
+                    {/* MOBILE STRIP SIDEBAR (ALWAYS VISIBLE ON MOBILE) */}
+                    <div className="lg:hidden fixed left-0 top-0 bottom-0 w-[60px] bg-slate-900/90 backdrop-blur border-r border-slate-700/50 z-[45] flex flex-col items-center py-6 gap-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center font-black text-slate-900 text-xl shadow-lg shadow-amber-500/20 mb-2">M</div>
+
+                        {/* New Add Button */}
+                        <button onClick={() => setShowNewCurriculumModal(true)} className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-600 border border-blue-500 text-white shadow-lg hover:bg-blue-500 transition-all"><Plus size={20} /></button>
+
+                        <div className="flex flex-col gap-3 w-full items-center overflow-y-auto custom-scrollbar no-scrollbar flex-1 pb-20">
+                            {allCategories.slice(0, 6).map((cat: any) => (
+                                <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${activeCategory === cat.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 ring-2 ring-blue-400/50' : 'bg-slate-800 text-slate-500 hover:bg-slate-700'}`}>
+                                    {cat.title ? cat.title.substring(0, 2).toUpperCase() : '??'}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="absolute bottom-6 flex flex-col gap-3">
+                            <button onClick={() => setRunTutorial(true)} className="p-3 bg-amber-500/10 rounded-xl text-amber-500 hover:text-amber-400 transition-colors border border-amber-500/50" title="Tutorial"><HelpCircle size={20} /></button>
+                            <button onClick={() => setShowAboutModal(true)} className="p-3 bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-colors border border-slate-700" title="About"><Info size={20} /></button>
+                        </div>
+                    </div>
+
+                    {/* MODALS */}
+                    <TutorialOverlay forceRun={runTutorial} onComplete={() => setRunTutorial(false)} />
+                    <AboutModal isOpen={showAboutModal} onClose={() => setShowAboutModal(false)} />
+
+                    {/* NEW CURRICULUM MODAL */}
+                    {showNewCurriculumModal && (
+                        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-lg w-full shadow-2xl relative overflow-hidden">
+                                <button onClick={() => setShowNewCurriculumModal(false)} className="absolute right-4 top-4 text-slate-500 hover:text-white transition-colors"><X size={20} /></button>
+                                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                                    <div className="p-2 bg-blue-600/20 rounded-lg"><Plus size={24} className="text-blue-400" /></div>
+                                    Yeni Müfredat Ekle
+                                </h3>
+                                <div className="relative group">
+                                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-30 group-hover:opacity-75 transition duration-200"></div>
+                                    <div className="relative flex items-center bg-slate-800 rounded-xl p-1 border border-slate-600">
+                                        <input
+                                            type="text"
+                                            value={aiPrompt}
+                                            onChange={(e) => setAiPrompt(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleGenerateCurriculum()}
+                                            placeholder="Konu başlığı (örn: İleri Java)"
+                                            className="w-full bg-transparent border-none px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:outline-none"
+                                            autoFocus
+                                        />
+                                        <button onClick={handleGenerateCurriculum} disabled={!aiPrompt.trim() || isGenerating} className="p-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-white ml-2 transition-all">
+                                            {isGenerating ? <div className="animate-spin border-2 border-white/30 border-t-white rounded-full w-5 h-5" /> : <ChevronRight size={20} />}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* HYBRID SIDEBAR (REPLACES MOBILE MENU) */}
+                    <HybridSidebar
+                        categories={allCategories}
+                        activeCategory={activeCategory}
+                        setActiveCategory={setActiveCategory}
+                        setShowDictionary={setShowDictionary}
+                        showDictionary={showDictionary}
+                        dictionaryCount={CURRICULUM.dictionary.length}
+                        openAbout={() => setShowAboutModal(true)}
+                    />
+                    {/* Main content padding adjustment for mobile sidebar space */}
+                    <div className="lg:hidden w-[60px] shrink-0 bg-slate-900" />
+
+                    {/* SIDEBAR */}
+                    <aside className="hidden lg:flex w-72 bg-slate-800/50 backdrop-blur-sm border-r border-slate-700/50 flex-col overflow-y-auto custom-scrollbar">
+                        <div className="p-6 border-b border-slate-700/50">
+                            {/* MASTER TUFAN HEADER */}
+                            <div
+                                className="cursor-pointer group mb-4"
+                                onClick={resetApp}
+                            >
+                                <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 hover:to-yellow-400 transition-all font-[family-name:var(--font-syncopate)] tracking-[0.15em] uppercase drop-shadow-sm">
+                                    Master Tufan
+                                </h1>
+                            </div>
+                            <div className="mt-2">
+                                <TypewriterSlogan />
+                            </div>
+                        </div>
+
+                        <div className="p-4 space-y-2 flex-1">
+                            <button
+                                onClick={() => setShowNewCurriculumModal(true)}
+                                className="w-full flex items-center justify-center gap-2 p-3 mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl shadow-lg transition-all font-bold group border border-blue-400/20 hover:border-blue-400/50"
+                            >
+                                <Plus size={18} className="group-hover:scale-110 transition-transform" />
+                                <span className="text-sm">Müfredat Ekle</span>
+                            </button>
+
+                            {allCategories.map((cat: any) => (
+                                <div key={cat.id} className="relative group">
+                                    <button
+                                        onClick={() => {
+                                            setActiveCategory(cat.id);
+                                            setShowDictionary(false);
+                                        }}
+                                        className={`w-full text-left px-4 py-3 rounded-xl transition-all ${activeCategory === cat.id && !showDictionary
+                                            ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg'
+                                            : 'bg-slate-700/30 hover:bg-slate-700/50 text-slate-300'
+                                            }`}
+                                    >
+                                        <span className="text-sm font-medium truncate block pr-6">
+                                            {cat.id.startsWith('custom') ? '✨ ' : ''}
+                                            {cat.title}
+                                        </span>
+                                    </button>
+
+                                    {/* DELETE BUTTON FOR CUSTOM CATEGORIES */}
+                                    {cat.isCustom && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (confirm('Silmek istediğine emin misin?')) {
+                                                    const newList = allCategories.filter(c => c.id !== cat.id);
+                                                    setAllCategories(newList);
+                                                    const customOnly = newList.filter((c: any) => c.isCustom);
+                                                    localStorage.setItem("customCurriculums", JSON.stringify(customOnly));
+                                                    if (activeCategory === cat.id) setActiveCategory(newList[0]?.id || "");
+                                                }
+                                            }}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-400 transition-all"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+
+                            {/* DICTIONARY MENU BUTTON */}
                             <button
                                 onClick={() => {
-                                    setActiveCategory(cat.id);
-                                    setShowDictionary(false);
+                                    setShowDictionary(true);
+                                    setActiveCategory('');
                                 }}
-                                className={`w-full text-left px-4 py-3 rounded-xl transition-all ${activeCategory === cat.id && !showDictionary
-                                    ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg'
+                                className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-2 ${showDictionary
+                                    ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg'
                                     : 'bg-slate-700/30 hover:bg-slate-700/50 text-slate-300'
                                     }`}
                             >
-                                <span className="text-sm font-medium truncate block pr-6">
-                                    {cat.id.startsWith('custom') ? '✨ ' : ''}
-                                    {cat.title}
-                                </span>
+                                <BookOpen size={18} />
+                                <span className="text-sm font-medium">Sözlük ({CURRICULUM.dictionary.length})</span>
                             </button>
+                        </div>
 
-                            {/* DELETE BUTTON FOR CUSTOM CATEGORIES */}
-                            {cat.isCustom && (
+                        {/* ABOUT SECTION - BOTTOM OF SIDEBAR */}
+                        <div className="border-t border-slate-700/50 p-4 bg-slate-800/80">
+                            <h3 className="text-xs font-bold text-amber-400 mb-3 flex items-center gap-2">
+                                <Info size={16} />
+                                HAKKINDA
+                            </h3>
+
+                            <div className="space-y-4 text-xs text-slate-400">
+                                {/* Developer Info Mini */}
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xs ring-2 ring-slate-700">ET</div>
+                                    <div>
+                                        <p className="font-bold text-slate-200">Emre Tufan</p>
+                                        <p className="text-[10px] text-amber-500 leading-tight">Kontrol ve Otomasyon Teknolojisi<br />Önlisans Öğrencisi</p>
+                                    </div>
+                                </div>
+
+                                {/* Open Detailed Manual Button */}
                                 <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (confirm('Silmek istediğine emin misin?')) {
-                                            const newList = allCategories.filter(c => c.id !== cat.id);
-                                            setAllCategories(newList);
-                                            const customOnly = newList.filter((c: any) => c.isCustom);
-                                            localStorage.setItem("customCurriculums", JSON.stringify(customOnly));
-                                            if (activeCategory === cat.id) setActiveCategory(newList[0]?.id || "");
-                                        }
-                                    }}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-400 transition-all"
+                                    onClick={() => setShowAboutModal(true)}
+                                    className="w-full flex items-center justify-center gap-2 p-3 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 hover:border-amber-500/50 rounded-xl transition-all group"
                                 >
-                                    <X size={14} />
+                                    <Book size={16} className="text-amber-400 group-hover:scale-110 transition-transform" />
+                                    <span className="font-semibold text-slate-300 group-hover:text-white">Sistem Manuelini Aç</span>
                                 </button>
+
+                                {/* Social Links */}
+                                <div className="flex gap-2">
+                                    <a
+                                        href="https://instagram.com/emretufan"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 rounded-lg text-white transition-all text-xs"
+                                    >
+                                        <Instagram size={14} />
+                                        Instagram
+                                    </a>
+                                    <a
+                                        href="https://linkedin.com/in/emretufan"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 rounded-lg text-white transition-all text-xs"
+                                    >
+                                        <Linkedin size={14} />
+                                        LinkedIn
+                                    </a>
+                                </div>
+                            </div>
+
+                            <motion.div
+                                className="pt-2 border-t border-slate-700/50 text-center"
+                                initial="hidden"
+                                animate="visible"
+                                variants={{
+                                    hidden: { opacity: 0 },
+                                    visible: {
+                                        opacity: 1,
+                                        transition: { staggerChildren: 0.05 }
+                                    }
+                                }}
+                            >
+                                <p className="italic text-slate-500 text-xs">
+                                    {Array.from("An Emre Tufan Masterpiece...").map((char, index) => (
+                                        <motion.span
+                                            key={index}
+                                            variants={{
+                                                hidden: { opacity: 0, x: -10 },
+                                                visible: { opacity: 1, x: 0 }
+                                            }}
+                                        >
+                                            {char}
+                                        </motion.span>
+                                    ))}
+                                </p>
+                            </motion.div>
+                        </div>
+                    </aside>
+
+                    {/* MAIN */}
+                    <main className="flex-1 flex flex-col overflow-hidden">
+                        {/* GLOBAL SEARCH TERMINAL - FIXED TOP */}
+                        <div className="bg-gradient-to-r from-slate-800 via-slate-800/95 to-slate-800 backdrop-blur-sm border-b border-amber-500/20 p-3 md:p-4 shadow-lg">
+                            <div className="flex items-center gap-2 md:gap-3">
+                                <Sparkles className="hidden sm:block text-amber-400 animate-pulse" size={24} />
+                                <div className="flex-1 relative">
+                                    <input
+                                        type="text"
+                                        placeholder="🔍 MASTER SEARCH..."
+                                        className="w-full px-4 py-3 pl-10 md:pl-12 rounded-xl bg-slate-900/70 border-2 border-slate-700 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all text-sm md:text-base"
+                                        value={globalSearch}
+                                        onChange={(e) => setGlobalSearch(e.target.value)}
+                                    />
+                                    <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-amber-400" size={18} />
+                                </div>
+                                <div className="hidden md:flex flex-col items-end gap-1 px-4">
+                                    <button
+                                        onClick={() => setRunTutorial(true)}
+                                        className="group relative w-12 h-12 flex items-center justify-center bg-slate-800/50 rounded-lg hover:bg-slate-700/50 border border-slate-600 transition-all shadow-[0_0_15px_rgba(251,191,36,0.1)] hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] animate-pulse"
+                                        title="Start Tutorial"
+                                    >
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-amber-400 group-hover:scale-110 transition-transform">
+                                            <path d="M4 6H20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                            <path d="M12 6V20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                            <path d="M12 6L6 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.7" />
+                                            <path d="M12 6L18 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.7" />
+                                        </svg>
+                                    </button>
+                                    <p className="text-3xl font-black text-emerald-400">{Math.round(progress)}%</p>
+                                    <p className="text-xs text-slate-500 font-mono">{completedItems.size} / {TOTAL}</p>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <header className="border-b border-slate-800 bg-slate-900/50 p-6">
+                            <h2 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                                {showDictionary ? "📖 Mühendislik Sözlüğü" : activeData?.title}
+                            </h2>
+                            {!showDictionary && (
+                                <div className="h-3 bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                                    <motion.div
+                                        className="h-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500"
+                                        animate={{
+                                            width: `${progress}%`,
+                                            backgroundPosition: ['0%', '200%']
+                                        }}
+                                        transition={{
+                                            width: { duration: 0.5 },
+                                            backgroundPosition: { duration: 3, repeat: Infinity }
+                                        }}
+                                    />
+                                </div>
+                            )}
+                        </header>
+
+                        <div className="flex-1 overflow-y-auto p-6">
+                            {showDictionary ? (
+                                /* DICTIONARY VIEW */
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {CURRICULUM.dictionary
+                                        .sort((a: any, b: any) => a.term.localeCompare(b.term))
+                                        .filter((entry: any) => {
+                                            if (!globalSearch.trim()) return true;
+                                            const searchLower = globalSearch.toLowerCase();
+                                            return (
+                                                entry.term.toLowerCase().includes(searchLower) ||
+                                                entry.tr.toLowerCase().includes(searchLower) ||
+                                                entry.category.toLowerCase().includes(searchLower)
+                                            );
+                                        })
+                                        .map((entry: any, idx: number) => (
+                                            <motion.div
+                                                key={idx}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: idx * 0.02 }}
+                                                className="bg-slate-800/50 border border-purple-500/20 rounded-xl p-4 hover:bg-slate-800/70 hover:border-purple-500/40 transition-all"
+                                            >
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <h3 className="text-lg font-bold text-purple-300">{entry.term}</h3>
+                                                    <span className="text-xs px-2 py-1 bg-purple-900/30 rounded-full text-purple-400">
+                                                        {entry.category}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-amber-400 mb-2">🇹🇷 {entry.tr}</p>
+                                                {entry.definition && (
+                                                    <p className="text-xs text-slate-400 italic">{entry.definition}</p>
+                                                )}
+                                            </motion.div>
+                                        ))}
+                                </div>
+                            ) : (
+                                /* TOPICS VIEW */
+                                activeData?.topics?.map((topic: any) => renderRecursive(topic))
                             )}
                         </div>
-                    ))}
-
-                    {/* DICTIONARY MENU BUTTON */}
-                    <button
-                        onClick={() => {
-                            setShowDictionary(true);
-                            setActiveCategory('');
-                        }}
-                        className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-2 ${showDictionary
-                            ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg'
-                            : 'bg-slate-700/30 hover:bg-slate-700/50 text-slate-300'
-                            }`}
-                    >
-                        <BookOpen size={18} />
-                        <span className="text-sm font-medium">Sözlük ({CURRICULUM.dictionary.length})</span>
-                    </button>
-                </div>
-
-                {/* ABOUT SECTION - BOTTOM OF SIDEBAR */}
-                <div className="border-t border-slate-700/50 p-4 bg-slate-800/80">
-                    <h3 className="text-xs font-bold text-amber-400 mb-3 flex items-center gap-2">
-                        <Info size={16} />
-                        HAKKINDA
-                    </h3>
-
-                    <div className="space-y-4 text-xs text-slate-400">
-                        {/* Developer Info Mini */}
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xs ring-2 ring-slate-700">ET</div>
-                            <div>
-                                <p className="font-bold text-slate-200">Emre Tufan</p>
-                                <p className="text-[10px] text-amber-500 leading-tight">Kontrol ve Otomasyon Teknolojisi<br />Önlisans Öğrencisi</p>
-                            </div>
-                        </div>
-
-                        {/* Open Detailed Manual Button */}
-                        <button
-                            onClick={() => setShowAboutModal(true)}
-                            className="w-full flex items-center justify-center gap-2 p-3 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 hover:border-amber-500/50 rounded-xl transition-all group"
-                        >
-                            <Book size={16} className="text-amber-400 group-hover:scale-110 transition-transform" />
-                            <span className="font-semibold text-slate-300 group-hover:text-white">Sistem Manuelini Aç</span>
-                        </button>
-
-                        {/* Social Links */}
-                        <div className="flex gap-2">
-                            <a
-                                href="https://instagram.com/emretufan"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 rounded-lg text-white transition-all text-xs"
-                            >
-                                <Instagram size={14} />
-                                Instagram
-                            </a>
-                            <a
-                                href="https://linkedin.com/in/emretufan"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 rounded-lg text-white transition-all text-xs"
-                            >
-                                <Linkedin size={14} />
-                                LinkedIn
-                            </a>
-                        </div>
-                    </div>
-
-                    <motion.div
-                        className="pt-2 border-t border-slate-700/50 text-center"
-                        initial="hidden"
-                        animate="visible"
-                        variants={{
-                            hidden: { opacity: 0 },
-                            visible: {
-                                opacity: 1,
-                                transition: { staggerChildren: 0.05 }
-                            }
-                        }}
-                    >
-                        <p className="italic text-slate-500 text-xs">
-                            {Array.from("An Emre Tufan Masterpiece...").map((char, index) => (
-                                <motion.span
-                                    key={index}
-                                    variants={{
-                                        hidden: { opacity: 0, x: -10 },
-                                        visible: { opacity: 1, x: 0 }
-                                    }}
-                                >
-                                    {char}
-                                </motion.span>
-                            ))}
-                        </p>
-                    </motion.div>
-                </div>
-            </aside>
-
-            {/* MAIN */}
-            <main className="flex-1 flex flex-col overflow-hidden">
-                {/* GLOBAL SEARCH TERMINAL - FIXED TOP */}
-                <div className="bg-gradient-to-r from-slate-800 via-slate-800/95 to-slate-800 backdrop-blur-sm border-b border-amber-500/20 p-3 md:p-4 shadow-lg">
-                    <div className="flex items-center gap-2 md:gap-3">
-                        <Sparkles className="hidden sm:block text-amber-400 animate-pulse" size={24} />
-                        <div className="flex-1 relative">
-                            <input
-                                type="text"
-                                placeholder="🔍 MASTER SEARCH..."
-                                className="w-full px-4 py-3 pl-10 md:pl-12 rounded-xl bg-slate-900/70 border-2 border-slate-700 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all text-sm md:text-base"
-                                value={globalSearch}
-                                onChange={(e) => setGlobalSearch(e.target.value)}
-                            />
-                            <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-amber-400" size={18} />
-                        </div>
-                        <div className="hidden md:flex flex-col items-end gap-1 px-4">
-                            <button
-                                onClick={() => setRunTutorial(true)}
-                                className="group relative w-12 h-12 flex items-center justify-center bg-slate-800/50 rounded-lg hover:bg-slate-700/50 border border-slate-600 transition-all shadow-[0_0_15px_rgba(251,191,36,0.1)] hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] animate-pulse"
-                                title="Start Tutorial"
-                            >
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-amber-400 group-hover:scale-110 transition-transform">
-                                    <path d="M4 6H20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                                    <path d="M12 6V20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                                    <path d="M12 6L6 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.7" />
-                                    <path d="M12 6L18 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.7" />
-                                </svg>
-                            </button>
-                            <p className="text-3xl font-black text-emerald-400">{Math.round(progress)}%</p>
-                            <p className="text-xs text-slate-500 font-mono">{completedItems.size} / {TOTAL}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* AI CURRICULUM GENERATOR (HERO) */}
-                <div className="px-4 py-2 bg-slate-900/40 border-b border-indigo-500/20">
-                    <div className="max-w-4xl mx-auto flex items-center gap-3">
-                        <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg">
-                            <Sparkles className="text-white animate-pulse" size={18} />
-                        </div>
-                        <div className="flex-1 relative group">
-                            <input
-                                type="text"
-                                value={aiPrompt}
-                                onChange={(e) => setAiPrompt(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleGenerateCurriculum()}
-                                placeholder="✨ Ne öğrenmek istersin? (Yeni bir müfredat yarat...)"
-                                className="w-full bg-slate-800/80 border border-slate-700/50 hover:border-indigo-500/50 focus:border-indigo-500 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-500"
-                            />
-                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                                {isGenerating && <span className="text-xs text-indigo-400 animate-pulse font-medium">Oluşturuluyor...</span>}
-                                <button
-                                    onClick={handleGenerateCurriculum}
-                                    disabled={!aiPrompt.trim() || isGenerating}
-                                    className="p-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 rounded-md text-white transition-colors"
-                                >
-                                    <ChevronRight size={16} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <header className="border-b border-slate-800 bg-slate-900/50 p-6">
-                    <h2 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                        {showDictionary ? "📖 Mühendislik Sözlüğü" : activeData?.title}
-                    </h2>
-                    {!showDictionary && (
-                        <div className="h-3 bg-slate-800 rounded-full overflow-hidden shadow-inner">
-                            <motion.div
-                                className="h-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500"
-                                animate={{
-                                    width: `${progress}%`,
-                                    backgroundPosition: ['0%', '200%']
-                                }}
-                                transition={{
-                                    width: { duration: 0.5 },
-                                    backgroundPosition: { duration: 3, repeat: Infinity }
-                                }}
-                            />
-                        </div>
-                    )}
-                </header>
-
-                <div className="flex-1 overflow-y-auto p-6">
-                    {showDictionary ? (
-                        /* DICTIONARY VIEW */
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {CURRICULUM.dictionary
-                                .sort((a: any, b: any) => a.term.localeCompare(b.term))
-                                .filter((entry: any) => {
-                                    if (!globalSearch.trim()) return true;
-                                    const searchLower = globalSearch.toLowerCase();
-                                    return (
-                                        entry.term.toLowerCase().includes(searchLower) ||
-                                        entry.tr.toLowerCase().includes(searchLower) ||
-                                        entry.category.toLowerCase().includes(searchLower)
-                                    );
-                                })
-                                .map((entry: any, idx: number) => (
-                                    <motion.div
-                                        key={idx}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: idx * 0.02 }}
-                                        className="bg-slate-800/50 border border-purple-500/20 rounded-xl p-4 hover:bg-slate-800/70 hover:border-purple-500/40 transition-all"
-                                    >
-                                        <div className="flex items-start justify-between mb-2">
-                                            <h3 className="text-lg font-bold text-purple-300">{entry.term}</h3>
-                                            <span className="text-xs px-2 py-1 bg-purple-900/30 rounded-full text-purple-400">
-                                                {entry.category}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm text-amber-400 mb-2">🇹🇷 {entry.tr}</p>
-                                        {entry.definition && (
-                                            <p className="text-xs text-slate-400 italic">{entry.definition}</p>
-                                        )}
-                                    </motion.div>
-                                ))}
-                        </div>
-                    ) : (
-                        /* TOPICS VIEW */
-                        activeData?.topics?.map((topic: any) => renderRecursive(topic))
-                    )}
-                </div>
-            </main >
+                    </main >
+                </>
+            )}
         </div >
     );
 }
