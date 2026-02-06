@@ -52,38 +52,42 @@ export async function generateFullCurriculum(topic: string): Promise<any> {
     }
 
     try {
-        const prompt = `
-        Act as a Professor and Curriculum Designer.
-        Create a detailed, hierarchical learning path for the topic: "${topic}" in TURKISH.
-        
-        The output must be a VALID JSON object with the following structure:
+        const prompt = `Act as an Elite Engineering Professor and Curriculum Architect.
+Create an extremely detailed, high-level technical learning path for: "${topic}" in TURKISH.
+
+Your goal is to provide a "Master Plan" that functions as a professional search index.
+
+The output must be a VALID JSON object:
+{
+    "id": "gen-${Date.now()}",
+    "title": "${topic}",
+    "categories": [
         {
-            "id": "generated-${Date.now()}",
-            "title": "${topic}",
-            "categories": [
+            "id": "lvl-1",
+            "title": "SEVİYE 1: TEMEL TEKNİKLER VE MANTIKSAL YAPI",
+            "topics": [
                 {
-                    "id": "cat-1",
-                    "title": "Modül 1: Temeller",
-                    "topics": [
-                        {
-                            "id": "topic-1-1",
-                            "title": "${topic} Giriş",
-                            "en": "Introduction to ${topic}",
-                            "subtopics": []
-                        }
+                    "id": "t-1",
+                    "title": "Hassas Teknik Terim (Örn: PLC Donanım Mimarisi ve CPU Yapısı)",
+                    "en": "English Technical Term",
+                    "subtopics": [
+                        { "id": "st-1", "title": "Alt Detay terimi", "en": "Subterm" }
                     ]
                 }
             ]
         }
+    ]
+}
 
-        Rules:
-        1. LANGUAGE: The entire content (titles, categories) MUST be in TURKISH.
-        2. STRUCTURE: Create exactly 1 main category (Module) representing the whole course if possible, or split into logical Modules like "Modül 1: ...", "Modül 2: ...".
-        3. Do NOT include numbering in the 'title' fields (e.g. use "Temeller" instead of "1. Temeller"). The UI handles numbering.
-        4. "en" field MUST be the English translation of the title for search purposes.
-        5. Return ONLY raw JSON. No markdown formatting, no backticks.
-        6. Ensure deep coverage (at least 6-8 main topics per module).
-        `;
+STRICT RULES:
+1. LANGUAGE: Use professional Turkish engineering terminology ONLY.
+2. DEPTH: You MUST generate at least 3 main levels (Basics, Intermediate, Advanced).
+3. VOLUME: Each level must contain at least 10-15 high-precision technical topics. Total topics (Category -> Topic -> Subtopic) should be around 35-45.
+4. SEARCH OPTIMIZATION: Do NOT use generic words like "Giriş", "Nedir", "Basit". 
+   INSTEAD use: "Ladder Logic Sinyal Akış Diyagramları", "STL Komut Listesi ve Akümülatör Yapısı".
+5. "en" field: Provide the absolute most accurate English engineering equivalent for international searches.
+6. RELEVANCE: Every single topic must be a viable search query that leads to deep technical PDFs or videos.
+7. No markdown, no backticks, ONLY raw JSON. Ensure it is a valid object.`;
 
         const completion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],

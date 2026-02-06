@@ -86,6 +86,13 @@ export default function MasterTufanOS() {
     const [loadingImages, setLoadingImages] = useState(false);
     const [parentMap, setParentMap] = useState<Map<string, string>>(new Map());
     const [pulsingMatch, setPulsingMatch] = useState<string | null>(null);
+    const [customDict, setCustomDict] = useState<any[]>([]);
+
+    // Load custom dictionary on mount
+    useEffect(() => {
+        const saved = localStorage.getItem("customDictionary");
+        if (saved) setCustomDict(JSON.parse(saved));
+    }, []);
 
 
 
@@ -300,9 +307,10 @@ export default function MasterTufanOS() {
                 }
             });
         };
-        CURRICULUM.categories.forEach(cat => {
-            if (cat.topics) traverse(cat.topics);
-        });
+
+        const activeData = allCategories.find((c: any) => c.id === activeCategory);
+        if (activeData && activeData.topics) traverse(activeData.topics);
+
         return count;
     };
 
@@ -365,14 +373,14 @@ export default function MasterTufanOS() {
                 </style>
                 <div class="loader"></div>
                 <div class="title">${query}</div>
-                <div class="sub">Accessing ${platform.name}...</div>
-                <div class="status" id="status">Connecting via Neural Link...</div>
+                <div class="sub">${platform.name} Erişim Birimi...</div>
+                <div class="status" id="status">Bilgi Kaynağına Bağlanıyor...</div>
             `);
         }
 
         try {
             // 2. Attempt Level 1 API Deep Link (Reddit/Wiki/YouTube/etc.)
-            if (newTab && newTab.document.getElementById('status')) newTab.document.getElementById('status')!.innerText = "Connecting to Knowledge Base...";
+            if (newTab && newTab.document.getElementById('status')) newTab.document.getElementById('status')!.innerText = "Bilgi Bankası Sorgulanıyor...";
 
             const apiLink = await getDeepDiscoveryLink(platformId, query, lang);
 
@@ -622,11 +630,58 @@ export default function MasterTufanOS() {
                                             loadImagesFromAPI(item.title, item.id, imageThreshold);
                                         }
                                     }}
-                                    className={`p-2 rounded-lg transition-all ${showImageGallery === item.id ? 'bg-purple-600' : 'bg-purple-900/30 hover:bg-purple-900/50'
+                                    className={`p-2 flex flex-col items-center justify-center rounded-xl border border-purple-900/30 transition-all ${showImageGallery === item.id ? 'bg-purple-600 shadow-[0_0_15px_rgba(147,51,234,0.5)]' : 'bg-purple-900/20 hover:bg-purple-900/40 hover:border-purple-500/50'
                                         }`}
                                     title="Görselleştir"
                                 >
-                                    <ImageIcon size={16} className="text-purple-400" />
+                                    <ImageIcon size={20} className="text-purple-400 mb-1" />
+                                    <span className={`text-[9px] font-medium tracking-wide uppercase ${showImageGallery === item.id ? 'text-purple-100' : 'text-slate-400'}`}>GÖRSEL</span>
+                                </button>
+
+                                {/* EXPAND BUTTON */}
+                                <button
+                                    onClick={async (e) => {
+                                        e.stopPropagation();
+                                        if (isGenerating) return;
+                                        setIsGenerating(true);
+                                        try {
+                                            const res = await generateFullCurriculum(item.title);
+                                            if (res && res.categories) {
+                                                // Function to inject new topics into specific item
+                                                const injectTopics = (list: any[]): any[] => {
+                                                    return list.map(node => {
+                                                        if (node.id === item.id) {
+                                                            const newTopics = res.categories.flatMap((c: any) => c.topics || []);
+                                                            return {
+                                                                ...node,
+                                                                subtopics: [...(node.subtopics || []), ...newTopics]
+                                                            };
+                                                        }
+                                                        if (node.subtopics) return { ...node, subtopics: injectTopics(node.subtopics) };
+                                                        return node;
+                                                    });
+                                                };
+
+                                                const updated = allCategories.map(cat => ({
+                                                    ...cat,
+                                                    topics: cat.topics ? injectTopics(cat.topics) : cat.topics
+                                                }));
+
+                                                setAllCategories(updated);
+                                                localStorage.setItem("customCurriculums", JSON.stringify(updated.filter(c => c.isCustom)));
+                                                setExpandedItems(prev => new Set([...Array.from(prev), item.id]));
+                                            }
+                                        } catch (err) {
+                                            alert("Genişletme başarısız oldu.");
+                                        } finally {
+                                            setIsGenerating(false);
+                                        }
+                                    }}
+                                    className="p-2 flex flex-col items-center justify-center rounded-xl border border-amber-900/30 bg-amber-900/20 hover:bg-amber-900/40 hover:border-amber-500/50 transition-all"
+                                    title="Genişlet"
+                                >
+                                    <Sparkles size={20} className="text-amber-400 mb-1" />
+                                    <span className="text-[9px] font-medium tracking-wide uppercase text-slate-400">GENİŞLET</span>
                                 </button>
                             </div>
 
@@ -1094,47 +1149,80 @@ export default function MasterTufanOS() {
                         <div className="flex-1 overflow-y-auto p-6">
                             {showDictionary ? (
                                 /* DICTIONARY VIEW */
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {CURRICULUM.dictionary
-                                        .sort((a: any, b: any) => a.term.localeCompare(b.term))
-                                        .filter((entry: any) => {
-                                            if (!globalSearch.trim()) return true;
-                                            const searchLower = globalSearch.toLowerCase();
-                                            return (
-                                                entry.term.toLowerCase().includes(searchLower) ||
-                                                entry.tr.toLowerCase().includes(searchLower) ||
-                                                entry.category.toLowerCase().includes(searchLower)
-                                            );
-                                        })
-                                        .map((entry: any, idx: number) => (
-                                            <motion.div
-                                                key={idx}
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: idx * 0.02 }}
-                                                className="bg-slate-800/50 border border-purple-500/20 rounded-xl p-4 hover:bg-slate-800/70 hover:border-purple-500/40 transition-all"
-                                            >
-                                                <div className="flex items-start justify-between mb-2">
-                                                    <h3 className="text-lg font-bold text-purple-300">{entry.term}</h3>
-                                                    <span className="text-xs px-2 py-1 bg-purple-900/30 rounded-full text-purple-400">
-                                                        {entry.category}
-                                                    </span>
-                                                </div>
-                                                <p className="text-sm text-amber-400 mb-2">🇹🇷 {entry.tr}</p>
-                                                {entry.definition && (
-                                                    <p className="text-xs text-slate-400 italic">{entry.definition}</p>
-                                                )}
-                                            </motion.div>
-                                        ))}
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-xl font-bold text-purple-400">Teknik Terimler</h3>
+                                        <button
+                                            onClick={() => {
+                                                const term = prompt("Terim:");
+                                                const tr = prompt("Türkçe Karşılığı:");
+                                                const def = prompt("Tanımı (Opsiyonel):");
+                                                if (term && tr) {
+                                                    const newEntry = { term, tr, definition: def || "", category: "Kullanıcı" };
+                                                    const current = JSON.parse(localStorage.getItem("customDictionary") || "[]");
+                                                    const updated = [...current, newEntry];
+                                                    localStorage.setItem("customDictionary", JSON.stringify(updated));
+                                                    // Trigger re-render by updating state
+                                                    setCustomDict(updated);
+                                                }
+                                            }}
+                                            className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg"
+                                        >
+                                            <Plus size={16} />
+                                            Yeni Terim Ekle
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {[...CURRICULUM.dictionary, ...customDict]
+                                            .sort((a: any, b: any) => a.term.localeCompare(b.term))
+                                            .filter((entry: any) => {
+                                                if (!globalSearch.trim()) return true;
+                                                const searchLower = globalSearch.toLowerCase();
+                                                return (
+                                                    entry.term.toLowerCase().includes(searchLower) ||
+                                                    entry.tr.toLowerCase().includes(searchLower) ||
+                                                    (entry.category && entry.category.toLowerCase().includes(searchLower))
+                                                );
+                                            })
+                                            .map((entry: any, idx: number) => (
+                                                <motion.div
+                                                    key={idx}
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: idx * 0.01 }}
+                                                    className="bg-slate-800/50 border border-purple-500/20 rounded-xl p-4 hover:bg-slate-800/70 hover:border-purple-500/40 transition-all group"
+                                                >
+                                                    <div className="flex items-start justify-between mb-2">
+                                                        <h3 className="text-lg font-bold text-purple-300">{entry.term}</h3>
+                                                        <span className="text-[10px] px-2 py-1 bg-purple-900/30 rounded-full text-purple-400 font-bold uppercase">
+                                                            {entry.category || "GENEL"}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-amber-500 mb-2 font-medium">🇹🇷 {entry.tr}</p>
+                                                    {entry.definition && (
+                                                        <p className="text-xs text-slate-400 italic leading-relaxed">{entry.definition}</p>
+                                                    )}
+                                                </motion.div>
+                                            ))}
+                                    </div>
                                 </div>
                             ) : (
                                 /* TOPICS VIEW */
-                                activeData?.topics?.map((topic: any) => renderRecursive(topic))
+                                <div className="max-w-4xl mx-auto space-y-4">
+                                    {activeData?.topics?.map((topic: any) => renderRecursive(topic))}
+                                </div>
                             )}
                         </div>
-                    </main >
+                    </main>
+
+                    {/* FOOTER WATERMARK */}
+                    <div className="fixed bottom-4 right-6 pointer-events-none opacity-20 hidden lg:block">
+                        <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Designed & Programmed by Emre Tufan</span>
+                    </div>
                 </>
             )}
-        </div >
+        </div>
     );
 }
+
