@@ -55,7 +55,7 @@ export async function generateFullCurriculum(topic: string): Promise<any> {
         const prompt = `Act as an Elite Engineering Professor and Curriculum Architect.
 Create an extremely detailed, high-level technical learning path for: "${topic}" in TURKISH.
 
-Your goal is to provide a "Master Plan" that functions as a professional search index.
+Your goal is to provide a "Master Plan" where every title is a professional search query.
 
 The output must be a VALID JSON object:
 {
@@ -64,14 +64,14 @@ The output must be a VALID JSON object:
     "categories": [
         {
             "id": "lvl-1",
-            "title": "SEVİYE 1: TEMEL TEKNİKLER VE MANTIKSAL YAPI",
+            "title": "TEMEL TEKNİKLER VE MANTIKSAL YAPI",
             "topics": [
                 {
                     "id": "t-1",
-                    "title": "Hassas Teknik Terim (Örn: PLC Donanım Mimarisi ve CPU Yapısı)",
-                    "en": "English Technical Term",
+                    "title": "PLC Donanım Mimarisi ve CPU İşleyişi",
+                    "en": "PLC Hardware Architecture and CPU Operation",
                     "subtopics": [
-                        { "id": "st-1", "title": "Alt Detay terimi", "en": "Subterm" }
+                        { "id": "st-1", "title": "Giriş Çıkış (I/O) Görüntü Belleği", "en": "I/O Image Memory" }
                     ]
                 }
             ]
@@ -85,9 +85,10 @@ STRICT RULES:
 3. VOLUME: Each level must contain at least 10-15 high-precision technical topics. Total topics (Category -> Topic -> Subtopic) should be around 35-45.
 4. SEARCH OPTIMIZATION: Do NOT use generic words like "Giriş", "Nedir", "Basit". 
    INSTEAD use: "Ladder Logic Sinyal Akış Diyagramları", "STL Komut Listesi ve Akümülatör Yapısı".
-5. "en" field: Provide the absolute most accurate English engineering equivalent for international searches.
-6. RELEVANCE: Every single topic must be a viable search query that leads to deep technical PDFs or videos.
-7. No markdown, no backticks, ONLY raw JSON. Ensure it is a valid object.`;
+5. NO PREFIXES: DO NOT include prefixes like "Modül 1:", "Seviye 2:", "Bölüm:", or any numbering. Titles must be 100% pure keywords.
+6. "en" field: Provide the absolute most accurate English engineering equivalent for international searches.
+7. RELEVANCE: Every single topic must be a viable search query that leads to deep technical PDFs or videos.
+8. No markdown, no backticks, ONLY raw JSON. Ensure it is a valid object.`;
 
         const completion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
