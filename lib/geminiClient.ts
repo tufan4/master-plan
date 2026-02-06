@@ -54,20 +54,20 @@ export async function generateFullCurriculum(topic: string): Promise<any> {
     try {
         const prompt = `
         Act as a Professor and Curriculum Designer.
-        Create a detailed, hierarchical learning path for the topic: "${topic}".
+        Create a detailed, hierarchical learning path for the topic: "${topic}" in TURKISH.
         
         The output must be a VALID JSON object with the following structure:
         {
             "id": "generated-${Date.now()}",
-            "title": "${topic} (AI Generated)",
+            "title": "${topic}",
             "categories": [
                 {
                     "id": "cat-1",
-                    "title": "Module 1: Foundations",
+                    "title": "Modül 1: Temeller",
                     "topics": [
                         {
                             "id": "topic-1-1",
-                            "title": "Introduction to ${topic}",
+                            "title": "${topic} Giriş",
                             "en": "Introduction to ${topic}",
                             "subtopics": []
                         }
@@ -77,11 +77,12 @@ export async function generateFullCurriculum(topic: string): Promise<any> {
         }
 
         Rules:
-        1. Create at least 4 main modules (Categories).
-        2. Each module should have at least 5 sub-topics.
-        3. Use nested subtopics where necessary for complex concepts.
-        4. "en" field should be the English translation of the title.
+        1. LANGUAGE: The entire content (titles, categories) MUST be in TURKISH.
+        2. STRUCTURE: Create exactly 1 main category (Module) representing the whole course if possible, or split into logical Modules like "Modül 1: ...", "Modül 2: ...".
+        3. Do NOT include numbering in the 'title' fields (e.g. use "Temeller" instead of "1. Temeller"). The UI handles numbering.
+        4. "en" field MUST be the English translation of the title for search purposes.
         5. Return ONLY raw JSON. No markdown formatting, no backticks.
+        6. Ensure deep coverage (at least 6-8 main topics per module).
         `;
 
         const completion = await groq.chat.completions.create({

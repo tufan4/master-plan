@@ -128,19 +128,25 @@ export default function MasterTufanOS() {
             const result = await generateFullCurriculum(aiPrompt);
 
             if (result && result.categories) {
-                const newCategories = result.categories.map((cat: any) => ({
-                    ...cat,
-                    id: `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                    isCustom: true
-                }));
+                // Create a SINGLE main container for the new curriculum
+                const mainContainer = {
+                    id: `custom-${Date.now()}`,
+                    title: aiPrompt, // Use the user's prompt as the main folder name
+                    isCustom: true,
+                    topics: result.categories.map((cat: any) => ({
+                        ...cat,
+                        // Ensure IDs are unique
+                        id: `sub-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                    }))
+                };
 
-                const updatedList = [...allCategories, ...newCategories];
+                const updatedList = [...allCategories, mainContainer];
                 setAllCategories(updatedList);
 
                 // Save entire list as custom since we are starting fresh
                 localStorage.setItem("customCurriculums", JSON.stringify(updatedList));
 
-                setActiveCategory(newCategories[0].id);
+                setActiveCategory(mainContainer.id);
                 setAiPrompt("");
                 setShowNewCurriculumModal(false);
             } else {
@@ -379,67 +385,50 @@ export default function MasterTufanOS() {
             if (newTab && newTab.document.getElementById('status')) newTab.document.getElementById('status')!.innerText = "Redirecting to Search Results...";
 
             let url: string;
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+            // SMART QUERY CONSTRUCTION
             if (platformId === 'reddit') {
-                url = `https://www.reddit.com/search/?q=${encodeURIComponent(query)}`;
+                url = `https://www.google.com/search?q=${encodeURIComponent(query + ' site:reddit.com')}`;
             } else if (platformId === 'youtube') {
                 let playlistParam = '';
                 if (searchShorts) playlistParam = '&sp=EgIQCQ%253D%253D';
                 else if (searchPlaylist) playlistParam = '&sp=EgIQAw%253D%253D';
-
-                // Unified logic: Use standard web URL. Mobile devices handle this via App Links.
                 url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}${playlistParam}`;
-            } else if (platformId === 'medium') {
-                url = `https://www.google.com/search?q=${encodeURIComponent(query + ' site:medium.com')}`;
+            } else if (platformId === 'google') {
+                // PDF SMART SEARCH
+                url = `https://www.google.com/search?q=${encodeURIComponent(query + ' filetype:pdf')}`;
             } else if (platformId === 'wikipedia') {
                 url = `https://${lang}.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(query)}`;
-            } else if (platformId === 'google') {
-                url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-            } else if (platformId === 'github') {
-                url = `https://github.com/search?q=${encodeURIComponent(query)}`;
-            } else if (platformId === 'arxiv') {
-                url = `https://arxiv.org/search/?query=${encodeURIComponent(query)}&searchtype=all`;
-            } else if (platformId === 'ieee') {
-                url = `https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=${encodeURIComponent(query)}`;
-            } else if (platformId === 'semantic') {
-                url = `https://www.semanticscholar.org/search?q=${encodeURIComponent(query)}`;
-            } else if (platformId === 'researchgate') {
-                url = `https://www.researchgate.net/search?q=${encodeURIComponent(query)}`;
-            } else if (platformId === 'sciencedirect') {
-                url = `https://www.sciencedirect.com/search?qs=${encodeURIComponent(query)}`;
-            } else if (platformId === 'stackoverflow') {
-                url = `https://stackoverflow.com/search?q=${encodeURIComponent(query)}`;
-            } else if (platformId === 'mdn') {
-                url = `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(query)}`;
-            } else if (platformId === 'devto') {
-                url = `https://dev.to/search?q=${encodeURIComponent(query)}`;
-            } else if (platformId === 'leetcode') {
-                url = `https://leetcode.com/problemset/all/?search=${encodeURIComponent(query)}`;
-            } else if (platformId === 'udemy') {
-                url = `https://www.udemy.com/courses/search/?q=${encodeURIComponent(query)}`;
-            } else if (platformId === 'coursera') {
-                url = `https://www.coursera.org/search?query=${encodeURIComponent(query)}`;
-            } else if (platformId === 'mitocw') {
-                url = `https://ocw.mit.edu/search/?q=${encodeURIComponent(query)}`;
-            } else if (platformId === 'khan') {
-                url = `https://www.khanacademy.org/search?page_search_query=${encodeURIComponent(query)}`;
-            } else if (platformId === 'wolfram') {
-                url = `https://www.wolframalpha.com/input?i=${encodeURIComponent(query)}`;
-            } else if (platformId === 'desmos') {
-                url = `https://www.google.com/search?q=site:desmos.com+${encodeURIComponent(query)}`;
-            } else if (platformId === 'geogebra') {
-                url = `https://www.geogebra.org/search/${encodeURIComponent(query)}`;
-            } else if (platformId === 'arduino') {
-                url = `https://www.arduino.cc/search?q=${encodeURIComponent(query)}`;
-            } else if (platformId === 'hackster') {
-                url = `https://www.hackster.io/search?q=${encodeURIComponent(query)}`;
-            } else if (platformId === 'instructables') {
-                url = `https://www.instructables.com/search/?q=${encodeURIComponent(query)}`;
-            } else if (platformId === 'pinterest') {
-                url = `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(query)}`;
             } else {
-                url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                // GENERIC SITE SEARCH
+                const domainMap: Record<string, string> = {
+                    'medium': 'medium.com',
+                    'github': 'github.com',
+                    'stackoverflow': 'stackoverflow.com',
+                    'mdn': 'developer.mozilla.org',
+                    'arxiv': 'arxiv.org',
+                    'ieee': 'ieeexplore.ieee.org',
+                    'researchgate': 'researchgate.net',
+                    'sciencedirect': 'sciencedirect.com',
+                    'coursera': 'coursera.org',
+                    'udemy': 'udemy.com',
+                    'mitocw': 'ocw.mit.edu',
+                    'khan': 'khanacademy.org',
+                    'wolfram': 'wolframalpha.com',
+                    'desmos': 'desmos.com',
+                    'geogebra': 'geogebra.org',
+                    'arduino': 'arduino.cc',
+                    'hackster': 'hackster.io',
+                    'instructables': 'instructables.com',
+                    'pinterest': 'pinterest.com'
+                };
+
+                const site = domainMap[platformId];
+                if (site) {
+                    url = `https://www.google.com/search?q=${encodeURIComponent(query + ' site:' + site)}`;
+                } else {
+                    url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                }
             }
 
             const fallbackUrl = url;
@@ -948,17 +937,16 @@ export default function MasterTufanOS() {
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                if (confirm('Silmek istediğine emin misin?')) {
-                                                    const newList = allCategories.filter(c => c.id !== cat.id);
-                                                    setAllCategories(newList);
-                                                    const customOnly = newList.filter((c: any) => c.isCustom);
-                                                    localStorage.setItem("customCurriculums", JSON.stringify(customOnly));
-                                                    if (activeCategory === cat.id) setActiveCategory(newList[0]?.id || "");
-                                                }
+                                                const newList = allCategories.filter(c => c.id !== cat.id);
+                                                setAllCategories(newList);
+                                                const customOnly = newList.filter((c: any) => c.isCustom);
+                                                localStorage.setItem("customCurriculums", JSON.stringify(customOnly));
+                                                if (activeCategory === cat.id) setActiveCategory(newList[0]?.id || "");
                                             }}
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-400 transition-all"
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 px-2 py-1 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded text-[10px] font-bold transition-all"
+                                            title="Sil"
                                         >
-                                            <X size={14} />
+                                            SİL
                                         </button>
                                     )}
                                 </div>
@@ -1035,24 +1023,11 @@ export default function MasterTufanOS() {
                                 animate="visible"
                                 variants={{
                                     hidden: { opacity: 0 },
-                                    visible: {
-                                        opacity: 1,
-                                        transition: { staggerChildren: 0.05 }
-                                    }
+                                    visible: { opacity: 1 }
                                 }}
                             >
                                 <p className="italic text-slate-500 text-xs">
-                                    {Array.from("An Emre Tufan Masterpiece...").map((char, index) => (
-                                        <motion.span
-                                            key={index}
-                                            variants={{
-                                                hidden: { opacity: 0, x: -10 },
-                                                visible: { opacity: 1, x: 0 }
-                                            }}
-                                        >
-                                            {char}
-                                        </motion.span>
-                                    ))}
+                                    Designed by Emre Tufan © 2026
                                 </p>
                             </motion.div>
                         </div>

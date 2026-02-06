@@ -84,29 +84,29 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
                                 </div>
                             </div>
 
-                            {/* Section: System Architecture */}
+                            {/* Section: System Usage Guide */}
                             <div>
                                 <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
                                     <Info size={16} className="text-purple-400" />
-                                    Sistem Mantığı
+                                    Nasıl Kullanılır?
                                 </h3>
                                 <div className="space-y-3">
                                     <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                                        <span className="text-xs font-bold text-amber-400 block mb-1">1. Master Curriculum (Veri İskeleti)</span>
+                                        <span className="text-xs font-bold text-amber-400 block mb-1">1. Müfredat Oluşturucu (AI Core)</span>
                                         <p className="text-xs text-slate-400">
-                                            Sistem, matematikten yapay zekaya uzanan 277+ mühendislik başlığını hiyerarşik bir ağaç yapısında tutar. Her başlık, Türkçe ve Global (İngilizce) anahtar kelimelerle eşleştirilmiştir.
+                                            Ana sayfadaki veya sol menüdeki "Müfredat Ekle" butonu ile istediğiniz herhangi bir konuda (örn: "PLC Programlama", "Kuantum Fiziği") saniyeler içinde kapsamlı bir öğrenme haritası oluşturabilirsiniz.
                                         </p>
                                     </div>
                                     <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                                        <span className="text-xs font-bold text-cyan-400 block mb-1">2. Deep Dive Motoru (Çekirdek)</span>
+                                        <span className="text-xs font-bold text-cyan-400 block mb-1">2. Akıllı platformlar (Smart Deep Link)</span>
                                         <p className="text-xs text-slate-400">
-                                            Kullanıcı bir platform seçtiğinde (YouTube, Reddit, IEEE...), sistem araya girer ve "Rastgele Arama" yerine, o platformun API yapısına uygun <strong>doğrudan sorgu linkleri</strong> üretir.
+                                            Bir konuya tıkladığınızda açılan panelden platform seçin. Sistem, PDF'ler için 'filetype:pdf', YouTube için 'Playlist/Shorts' gibi özel filtrelerle nokta atışı kaynak bulur.
                                         </p>
                                     </div>
                                     <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                                        <span className="text-xs font-bold text-pink-400 block mb-1">3. Hibrit Arayüz (UX)</span>
+                                        <span className="text-xs font-bold text-pink-400 block mb-1">3. Dinamik Yapı</span>
                                         <p className="text-xs text-slate-400">
-                                            Hem mobil hem masaüstü için optimize edilmiş "Responsive Design". Odak Modu sayesinde sadece ilgilendiğiniz kaynağı görürsünüz.
+                                            Sol menü kirlilik yaratmaz. Oluşturduğunuz müfredatlar ana başlıklar altında toplanır. İstediğinizi tek tıkla silebilir, tamamladıklarınızı işaretleyerek ilerlemenizi takip edebilirsiniz.
                                         </p>
                                     </div>
                                 </div>
