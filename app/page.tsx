@@ -87,6 +87,7 @@ export default function MasterTufanOS() {
     const [parentMap, setParentMap] = useState<Map<string, string>>(new Map());
     const [pulsingMatch, setPulsingMatch] = useState<string | null>(null);
     const [customDict, setCustomDict] = useState<any[]>([]);
+    const [visibleCount, setVisibleCount] = useState<Record<string, number>>({});
 
     // Load custom dictionary on mount
     useEffect(() => {
@@ -134,39 +135,51 @@ export default function MasterTufanOS() {
         try {
             const result = await generateFullCurriculum(aiPrompt);
 
-            if (result && result.categories) {
-                // Create a SINGLE main container for the new curriculum
+            if (result && (result.categories || result.topics)) {
+                // Determine if it is a flat massive list or categorical
+                let processedTopics = [];
+                if (result.isMassive || result.topics) {
+                    processedTopics = result.topics.map((t: any) => ({
+                        ...t,
+                        id: `t-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                        subtopics: t.subtopics || []
+                    }));
+                } else if (result.categories) {
+                    processedTopics = result.categories.map((cat: any) => ({
+                        ...cat,
+                        id: `sub-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                    }));
+                }
+
                 const mainContainer = {
                     id: `custom-${Date.now()}`,
-                    title: aiPrompt, // Use the user's prompt as the main folder name
+                    title: aiPrompt,
                     isCustom: true,
-                    topics: result.categories.map((cat: any) => ({
-                        ...cat,
-                        // Ensure IDs are unique
-                        id: `sub-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                    }))
+                    topics: processedTopics
                 };
 
                 const updatedList = [...allCategories, mainContainer];
                 setAllCategories(updatedList);
-
-                // Save entire list as custom since we are starting fresh
                 localStorage.setItem("customCurriculums", JSON.stringify(updatedList));
 
                 setActiveCategory(mainContainer.id);
+                // Initialize visible count
+                setVisibleCount(prev => ({ ...prev, [mainContainer.id]: 20 }));
+
                 setAiPrompt("");
                 setShowNewCurriculumModal(false);
             } else {
                 alert("AI geçerli bir müfredat üretemedi.");
             }
         } catch (error) {
-            console.error(error);
-            const errorMessage = error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu";
-            alert(`Müfredat oluşturulurken hata oluştu: ${errorMessage}`);
+            console.error("Generation error:", error);
+            alert("Müfredat oluşturulurken hata oluştu.");
         } finally {
             setIsGenerating(false);
         }
     };
+
+
 
 
     const [generatedKeywords, setGeneratedKeywords] = useState<Record<string, string[]>>({});
@@ -645,15 +658,24 @@ export default function MasterTufanOS() {
                                         setIsGenerating(true);
                                         try {
                                             const res = await generateFullCurriculum(item.title);
-                                            if (res && res.categories) {
+                                            if (res && (res.categories || res.topics)) {
                                                 // Function to inject new topics into specific item
                                                 const injectTopics = (list: any[]): any[] => {
                                                     return list.map(node => {
                                                         if (node.id === item.id) {
-                                                            const newTopics = res.categories.flatMap((c: any) => c.topics || []);
+                                                            let newTopics = [];
+                                                            if (res.topics) newTopics = res.topics;
+                                                            else if (res.categories) newTopics = res.categories.flatMap((c: any) => c.topics || []);
+
+                                                            // Ensure unique IDs for new subtopics
+                                                            const uniqueSubtopics = newTopics.map((nt: any) => ({
+                                                                ...nt,
+                                                                id: `t-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`
+                                                            }));
+
                                                             return {
                                                                 ...node,
-                                                                subtopics: [...(node.subtopics || []), ...newTopics]
+                                                                subtopics: [...(node.subtopics || []), ...uniqueSubtopics]
                                                             };
                                                         }
                                                         if (node.subtopics) return { ...node, subtopics: injectTopics(node.subtopics) };
@@ -1211,7 +1233,22 @@ export default function MasterTufanOS() {
                             ) : (
                                 /* TOPICS VIEW */
                                 <div className="max-w-4xl mx-auto space-y-4">
-                                    {activeData?.topics?.map((topic: any) => renderRecursive(topic))}
+                                    {activeData?.topics?.slice(0, visibleCount[activeCategory] || 20).map((topic: any) => renderRecursive(topic))}
+
+                                    {activeData?.topics && activeData.topics.length > (visibleCount[activeCategory] || 20) && (
+                                        <div className="flex justify-center pt-8 pb-12">
+                                            <button
+                                                onClick={() => setVisibleCount(prev => ({
+                                                    ...prev,
+                                                    [activeCategory]: (prev[activeCategory] || 20) + 30
+                                                }))}
+                                                className="px-8 py-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500 text-blue-400 font-black rounded-2xl transition-all shadow-xl flex items-center gap-3 group"
+                                            >
+                                                <ChevronDown size={24} className="group-hover:translate-y-1 transition-transform" />
+                                                DAHA FAZLA GÖSTER ({activeData.topics.length - (visibleCount[activeCategory] || 20)} Konu Kaldı)
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
