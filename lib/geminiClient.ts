@@ -62,14 +62,14 @@ export async function generateFullCurriculum(topic: string): Promise<any> {
 
     try {
         const prompt = `Act as an Elite Engineering Professor and High-Granularity Knowledge Indexer.
-Create an EXTREMELY MASSIVE, numbered learning path for: "${normalizedTopic}" in TURKISH.
+Create an EXTREMELY MASSIVE, hierarchical learning path for: "${normalizedTopic}" in TURKISH.
 
 Your goal is to provide a "Staircase Table of Contents" (Merdiven Yapısı) where every concept is broken into the smallest technical steps.
 
 FORMAT RULES:
-- Use strict numbering: 1.0, 1.1, 1.2, 2.0, 2.1...
-- Every title must be a deep technical search term.
-- DO NOT skip any technical detail.
+- Titles MUST be clean and technical. 
+- NEVER include numbers like "1.0", "1.1", "1.a" inside the title.
+- Use the "level" field to indicate hierarchy: 0 for main topics, 1 for sub-steps, 2 for micro-details.
 
 The output must be a VALID JSON object:
 {
@@ -79,8 +79,16 @@ The output must be a VALID JSON object:
     "topics": [
         {
             "id": "t-1",
-            "title": "1.0 [${normalizedTopic}] Giriş: Donanım Mimarisi ve Veri Akış Şeması",
+            "level": 0,
+            "title": "[${normalizedTopic}] Donanım Mimarisi ve Veri Akış Şeması",
             "en": "${normalizedTopic} Hardware Architecture and Data Flow Diagram",
+            "subtopics": []
+        },
+        {
+            "id": "t-2",
+            "level": 1,
+            "title": "S7-1200 Merkezi İşlem Birimi ve Bellek Yapısı",
+            "en": "S7-1200 CPU and Memory Structure",
             "subtopics": []
         }
     ]
@@ -90,7 +98,7 @@ STRICT ARCHITECTURE RULES:
 1. NO CATEGORIES: Return a single flat array in the "topics" field.
 2. STAIRCASE LOGIC: Topics must follow a perfect logical order.
 3. SEARCH PRECISION: Titles must return specialized results (PDF/Video) on Google.
-4. MASSIVE VOLUME: Generate as many items as the context window allow (aim for 80-100+).
+4. MASSIVE VOLUME: Generate as many items as possible (aim for 80-100+).
 5. REPETITION: Every title MUST mention "${normalizedTopic}" or its direct context.
 6. Return ONLY raw JSON.`;
 

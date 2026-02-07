@@ -599,24 +599,30 @@ export default function MasterTufanOS() {
                         <span className={`text-sm ${isCompleted ? 'text-emerald-300 line-through' : 'text-slate-200'}`}>
                             {/* Auto-Indent Staircase Logic */}
                             {(() => {
-                                const match = item.title.match(/^(\d+(\.\d+)+)/);
-                                if (match) {
-                                    const parts = match[1].split('.');
-                                    // If it ends in .0, it's a main heading (level 0)
-                                    // Otherwise, indent based on length. e.g. 1.1 = level 1, 1.1.1 = level 2
-                                    const isMain = parts[parts.length - 1] === '0';
-                                    const depth = isMain ? 0 : (parts.length - 1) * 24;
+                                // 1. Clean title for display (Strip any leading numbers if they exist)
+                                const cleanTitle = item.title.replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim();
 
-                                    return (
-                                        <span
-                                            style={{ marginLeft: `${depth}px` }}
-                                            className={`inline-block ${isMain ? 'font-black text-blue-400 text-base mb-1' : 'font-medium'}`}
-                                        >
-                                            {item.title}
-                                        </span>
-                                    );
+                                // 2. Check for level field or try to guess from numbering (fallback)
+                                let level = item.level !== undefined ? item.level : 0;
+                                const match = item.title.match(/^(\d+(\.\d+)*)/);
+
+                                if (item.level === undefined && match) {
+                                    const parts = match[1].split('.');
+                                    const isMain = parts[parts.length - 1] === '0';
+                                    level = isMain ? 0 : (parts.length - 1);
                                 }
-                                return item.title;
+
+                                const depth = level * 24;
+                                const isMain = level === 0;
+
+                                return (
+                                    <span
+                                        style={{ marginLeft: `${depth}px` }}
+                                        className={`inline-block ${isMain ? 'font-black text-blue-400 text-base mb-1' : 'font-medium'}`}
+                                    >
+                                        {cleanTitle}
+                                    </span>
+                                );
                             })()}
                         </span>
                     </div>
@@ -809,7 +815,7 @@ export default function MasterTufanOS() {
                                                     TÜRKÇE
                                                 </span>
                                                 <span className="text-sm font-medium text-slate-200 group-hover:text-white truncate w-full text-left">
-                                                    {item.title}
+                                                    {item.title.replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim()}
                                                 </span>
                                             </div>
                                             <ChevronRight size={16} className="text-slate-500 group-hover:text-white shrink-0 ml-2" />
@@ -830,7 +836,7 @@ export default function MasterTufanOS() {
                                                     ENGLISH (GLOBAL)
                                                 </span>
                                                 <span className="text-sm font-medium text-slate-200 group-hover:text-white truncate w-full text-left">
-                                                    {item.en || item.title}
+                                                    {(item.en || item.title).replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim()}
                                                 </span>
                                             </div>
                                             <ChevronRight size={16} className="text-slate-500 group-hover:text-white shrink-0 ml-2" />
