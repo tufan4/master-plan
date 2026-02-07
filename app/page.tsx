@@ -141,7 +141,18 @@ export default function MasterTufanOS() {
         loadCustom();
     }, []);
 
-    // HANDLE AI GENERATION
+    const deleteCurriculum = (id: string) => {
+        const updatedList = allCategories.filter(cat => cat.id !== id);
+        setAllCategories(updatedList);
+        localStorage.setItem("customCurriculums", JSON.stringify(updatedList));
+
+        // If the deleted one was active, switch to another
+        if (activeCategory === id) {
+            if (updatedList.length > 0) setActiveCategory(updatedList[0].id);
+            else setActiveCategory("");
+        }
+    };
+
     const handleGenerateCurriculum = async () => {
         if (!aiPrompt.trim()) return;
         const finalPrompt = normalizeTopic(aiPrompt);
@@ -995,6 +1006,7 @@ export default function MasterTufanOS() {
                         dictionaryCount={CURRICULUM.dictionary.length}
                         openAbout={() => setShowAboutModal(true)}
                         setShowNewCurriculumModal={setShowNewCurriculumModal}
+                        deleteCategory={deleteCurriculum}
                     />
                     {/* Main content padding adjustment for mobile sidebar space */}
                     <div className="lg:hidden w-[60px] shrink-0 bg-slate-900" />
