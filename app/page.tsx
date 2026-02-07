@@ -709,10 +709,12 @@ export default function MasterTufanOS() {
                                                             if (res.topics) newTopics = res.topics;
                                                             else if (res.categories) newTopics = res.categories.flatMap((c: any) => c.topics || []);
 
-                                                            // Ensure unique IDs for new subtopics
+                                                            const parentLevel = node.level || 0;
+                                                            // Ensure unique IDs and offset levels for new subtopics
                                                             const uniqueSubtopics = newTopics.map((nt: any) => ({
                                                                 ...nt,
-                                                                id: `t-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`
+                                                                id: `t-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                                                                level: (nt.level !== undefined ? nt.level : 1) + parentLevel + 1
                                                             }));
 
                                                             return {

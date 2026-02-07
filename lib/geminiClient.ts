@@ -64,12 +64,17 @@ export async function generateFullCurriculum(topic: string): Promise<any> {
         const prompt = `Act as an Elite Engineering Professor and High-Granularity Knowledge Indexer.
 Create an EXTREMELY MASSIVE, hierarchical learning path for: "${normalizedTopic}" in TURKISH.
 
-Your goal is to provide a "Staircase Table of Contents" (Merdiven Yapısı) where every concept is broken into the smallest technical steps.
+Your goal is to provide a "Staircase Table of Contents" where every concept is a MICRO-KEYWORD.
+
+STRICT WORD COUNT RULES:
+- EVERY TITLE MUST BE MAX 3-5 WORDS.
+- Use extreme conciseness. Only technical "keys". 
+- WRONG: "PLC Programlama İçin Gereken Temel Giriş ve Çıkış Üniteleri" (9 words)
+- RIGHT: "PLC Giriş/Çıkış Üniteleri" (3 words)
 
 FORMAT RULES:
-- Titles MUST be clean and technical. 
-- NEVER include numbers like "1.0", "1.1", "1.a" inside the title.
-- Use the "level" field to indicate hierarchy: 0 for main topics, 1 for sub-steps, 2 for micro-details.
+- Titles MUST be clean, keyword-style technical terms.
+- Use the "level" field to indicate hierarchy: 0 for main, 1 for sub, 2 for detail.
 
 The output must be a VALID JSON object:
 {
@@ -80,15 +85,8 @@ The output must be a VALID JSON object:
         {
             "id": "t-1",
             "level": 0,
-            "title": "[${normalizedTopic}] Donanım Mimarisi ve Veri Akış Şeması",
-            "en": "${normalizedTopic} Hardware Architecture and Data Flow Diagram",
-            "subtopics": []
-        },
-        {
-            "id": "t-2",
-            "level": 1,
-            "title": "S7-1200 Merkezi İşlem Birimi ve Bellek Yapısı",
-            "en": "S7-1200 CPU and Memory Structure",
+            "title": "[${normalizedTopic}] Donanım Mimarisi",
+            "en": "${normalizedTopic} Hardware Architecture",
             "subtopics": []
         }
     ]
@@ -96,11 +94,10 @@ The output must be a VALID JSON object:
 
 STRICT ARCHITECTURE RULES:
 1. NO CATEGORIES: Return a single flat array in the "topics" field.
-2. STAIRCASE LOGIC: Topics must follow a perfect logical order.
-3. SEARCH PRECISION: Titles must return specialized results (PDF/Video) on Google.
-4. MASSIVE VOLUME: Generate as many items as possible (aim for 80-100+).
-5. REPETITION: Every title MUST mention "${normalizedTopic}" or its direct context.
-6. Return ONLY raw JSON.`;
+2. SEARCH PRECISION: Titles must be optimized "Key Concepts" for finding PDF/Videos.
+3. MASSIVE VOLUME: Generate at least 80-100 micro-keywords.
+4. REPETITION: Every title MUST mention or imply "${normalizedTopic}".
+5. Return ONLY raw JSON.`;
 
         const completion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
