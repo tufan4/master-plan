@@ -612,13 +612,15 @@ export default function MasterTufanOS() {
                                     level = isMain ? 0 : (parts.length - 1);
                                 }
 
-                                const depth = level * 24;
+                                const depthCount = level;
                                 const isMain = level === 0;
+                                const indentMultiplier = typeof window !== 'undefined' && window.innerWidth < 480 ? 12 : 20;
+                                const depth = level * indentMultiplier;
 
                                 return (
                                     <span
+                                        className={`inline-block ${isMain ? 'font-black text-blue-400 text-sm sm:text-base mb-1' : 'font-medium text-xs sm:text-sm'}`}
                                         style={{ marginLeft: `${depth}px` }}
-                                        className={`inline-block ${isMain ? 'font-black text-blue-400 text-base mb-1' : 'font-medium'}`}
                                     >
                                         {cleanTitle}
                                     </span>
@@ -1290,9 +1292,9 @@ export default function MasterTufanOS() {
                                                     ...prev,
                                                     [activeCategory]: (prev[activeCategory] || 20) + 30
                                                 }))}
-                                                className="px-8 py-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500 text-blue-400 font-black rounded-2xl transition-all shadow-xl flex items-center gap-3 group"
+                                                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500 text-blue-400 font-black rounded-2xl transition-all shadow-xl flex items-center justify-center gap-3 group text-xs sm:text-sm"
                                             >
-                                                <ChevronDown size={24} className="group-hover:translate-y-1 transition-transform" />
+                                                <ChevronDown size={20} className="group-hover:translate-y-1 transition-transform" />
                                                 DAHA FAZLA GÖSTER ({activeData.topics.length - (visibleCount[activeCategory] || 20)} Konu Kaldı)
                                             </button>
                                         </div>
