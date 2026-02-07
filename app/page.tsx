@@ -563,7 +563,9 @@ export default function MasterTufanOS() {
         const isCompleted = completedItems.has(item.id);
         const hasChildren = item.subtopics && item.subtopics.length > 0;
         const showPanel = activeControlPanel === item.id;
-        const isPulsing = pulsingMatch === item.id;
+        const isPulsing = pulsingMatch === item.id ||
+            (globalSearch.trim().length > 1 &&
+                item.title.toLowerCase().includes(globalSearch.toLowerCase().trim()));
 
         return (
             <div key={item.id} style={{ marginLeft: `${depth * 16}px` }} className="mb-1">
