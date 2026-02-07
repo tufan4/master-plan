@@ -948,26 +948,6 @@ export default function MasterTufanOS() {
             {hasCurriculum && (
                 <>
 
-                    {/* MOBILE STRIP SIDEBAR (ALWAYS VISIBLE ON MOBILE) */}
-                    <div className="lg:hidden fixed left-0 top-0 bottom-0 w-[60px] bg-slate-900/90 backdrop-blur border-r border-slate-700/50 z-[45] flex flex-col items-center py-6 gap-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center font-black text-slate-900 text-xl shadow-lg shadow-amber-500/20 mb-2">M</div>
-
-                        {/* New Add Button */}
-                        <button onClick={() => setShowNewCurriculumModal(true)} className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-600 border border-blue-500 text-white shadow-lg hover:bg-blue-500 transition-all"><Plus size={20} /></button>
-
-                        <div className="flex flex-col gap-3 w-full items-center overflow-y-auto custom-scrollbar no-scrollbar flex-1 pb-20">
-                            {allCategories.slice(0, 6).map((cat: any) => (
-                                <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${activeCategory === cat.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 ring-2 ring-blue-400/50' : 'bg-slate-800 text-slate-500 hover:bg-slate-700'}`}>
-                                    {cat.title ? cat.title.substring(0, 2).toUpperCase() : '??'}
-                                </button>
-                            ))}
-                        </div>
-                        <div className="absolute bottom-6 flex flex-col gap-3">
-                            <button onClick={() => setRunTutorial(true)} className="p-3 bg-amber-500/10 rounded-xl text-amber-500 hover:text-amber-400 transition-colors border border-amber-500/50" title="Tutorial"><HelpCircle size={20} /></button>
-                            <button onClick={() => setShowAboutModal(true)} className="p-3 bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-colors border border-slate-700" title="About"><Info size={20} /></button>
-                        </div>
-                    </div>
-
                     {/* MODALS */}
                     <TutorialOverlay forceRun={runTutorial} onComplete={() => setRunTutorial(false)} />
                     <AboutModal isOpen={showAboutModal} onClose={() => setShowAboutModal(false)} />
@@ -1014,6 +994,7 @@ export default function MasterTufanOS() {
                         showDictionary={showDictionary}
                         dictionaryCount={CURRICULUM.dictionary.length}
                         openAbout={() => setShowAboutModal(true)}
+                        setShowNewCurriculumModal={setShowNewCurriculumModal}
                     />
                     {/* Main content padding adjustment for mobile sidebar space */}
                     <div className="lg:hidden w-[60px] shrink-0 bg-slate-900" />
@@ -1168,7 +1149,7 @@ export default function MasterTufanOS() {
                         {/* GLOBAL SEARCH TERMINAL - FIXED TOP */}
                         <div className="bg-gradient-to-r from-slate-800 via-slate-800/95 to-slate-800 backdrop-blur-sm border-b border-amber-500/20 p-3 md:p-4 shadow-lg">
                             <div className="flex items-center gap-2 md:gap-3">
-                                <Sparkles className="hidden sm:block text-amber-400 animate-pulse" size={24} />
+                                <Sparkles className="text-amber-400 animate-pulse" size={24} />
                                 <div className="flex-1 relative">
                                     <input
                                         type="text"

@@ -4,7 +4,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Menu, X, BookOpen, ChevronRight, Info, Instagram, Linkedin,
-    Settings, Search, Home
+    Settings, Search, Home, Plus
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -16,6 +16,7 @@ interface HybridSidebarProps {
     showDictionary: boolean;
     dictionaryCount: number;
     openAbout: () => void;
+    setShowNewCurriculumModal: (show: boolean) => void;
 }
 
 export default function HybridSidebar({
@@ -25,7 +26,8 @@ export default function HybridSidebar({
     setShowDictionary,
     showDictionary,
     dictionaryCount,
-    openAbout
+    openAbout,
+    setShowNewCurriculumModal
 }: HybridSidebarProps) {
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -92,10 +94,30 @@ export default function HybridSidebar({
                     </motion.div>
                 </div>
 
-                {/* CONTENT */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar py-2">
+                {/* CONTENT AREA */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                    {/* New Add Button - Mobile prominence */}
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setShowNewCurriculumModal(true);
+                            setIsExpanded(false);
+                        }}
+                        className="w-full flex items-center h-12 hover:bg-slate-800 transition-all text-blue-400 group border-b border-slate-800/50"
+                    >
+                        <div className="w-[60px] flex justify-center shrink-0">
+                            <Plus size={22} className="group-hover:scale-110 transition-transform" />
+                        </div>
+                        <motion.span
+                            className="whitespace-nowrap text-sm font-bold"
+                            animate={{ opacity: isExpanded ? 1 : 0, x: isExpanded ? 0 : -10 }}
+                        >
+                            Yeni Müfredat Ekle
+                        </motion.span>
+                    </button>
+
                     {/* Categories */}
-                    <div className="space-y-1">
+                    <div className="space-y-1 mt-2">
                         {categories.map((cat: any) => {
                             const isActive = activeCategory === cat.id && !showDictionary;
                             return (
@@ -184,7 +206,7 @@ export default function HybridSidebar({
                         </motion.span>
                     </button>
                 </div>
-            </motion.aside>
+            </motion.aside >
         </>
     );
 }
