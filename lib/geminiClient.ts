@@ -61,55 +61,54 @@ export async function generateFullCurriculum(topic: string): Promise<any> {
     const normalizedTopic = normalizeTopic(topic);
 
     try {
-        const prompt = `Act as an Elite Engineering Professor and High-Granularity Knowledge Indexer.
-Create an EXTREMELY MASSIVE, hierarchical learning path for: "${normalizedTopic}" in TURKISH.
+        const prompt = `Act as an Elite Engineering Professor.
+Create a high-granularity technical curriculum for: "${normalizedTopic}" in TURKISH.
 
-Your goal is to provide a "Staircase Table of Contents" where every concept is a MICRO-KEYWORD.
+STRICT RULES:
+1. TITLES: Max 3-4 words. Extremely concise. (e.g., "PLC Donanım Birimleri")
+2. VOLUME: Generate exactly 40-60 Micro-Keywords.
+3. HIERARCHY: Use "level" (0=Main, 1=Sub, 2=Detail).
+4. REPETITION: Every item must be related to "${normalizedTopic}".
+5. FORMAT: Return ONLY a valid JSON object.
 
-STRICT WORD COUNT RULES:
-- EVERY TITLE MUST BE MAX 3-5 WORDS.
-- Use extreme conciseness. Only technical "keys". 
-- WRONG: "PLC Programlama İçin Gereken Temel Giriş ve Çıkış Üniteleri" (9 words)
-- RIGHT: "PLC Giriş/Çıkış Üniteleri" (3 words)
-
-FORMAT RULES:
-- Titles MUST be clean, keyword-style technical terms.
-- Use the "level" field to indicate hierarchy: 0 for main, 1 for sub, 2 for detail.
-
-The output must be a VALID JSON object:
+JSON STRUCTURE:
 {
-    "id": "gen-${Date.now()}",
+    "id": "gen-path",
     "title": "${normalizedTopic}",
     "isMassive": true,
     "topics": [
-        {
-            "id": "t-1",
-            "level": 0,
-            "title": "[${normalizedTopic}] Donanım Mimarisi",
-            "en": "${normalizedTopic} Hardware Architecture",
-            "subtopics": []
-        }
+        { "id": "1", "level": 0, "title": "Giriş ve Temel", "en": "Introduction" },
+        ...
     ]
-}
-
-STRICT ARCHITECTURE RULES:
-1. NO CATEGORIES: Return a single flat array in the "topics" field.
-2. SEARCH PRECISION: Titles must be optimized "Key Concepts" for finding PDF/Videos.
-3. MASSIVE VOLUME: Generate at least 80-100 micro-keywords.
-4. REPETITION: Every title MUST mention or imply "${normalizedTopic}".
-5. Return ONLY raw JSON.`;
+}`;
 
         const completion = await groq.chat.completions.create({
-            messages: [{ role: "user", content: prompt }],
+            messages: [
+                { role: "system", content: "You are a curriculum architect that outputs technical learning paths in valid JSON." },
+                { role: "user", content: prompt }
+            ],
             model: "llama-3.3-70b-versatile",
-            temperature: 0.5,
-            max_tokens: 8000, // Maximizing output
+            temperature: 0.2,
+            max_tokens: 6000,
             response_format: { type: "json_object" }
         });
 
         const rawText = completion.choices[0]?.message?.content?.trim();
-        if (!rawText) throw new Error("AI boş yanıt döndürdü.");
-        return JSON.parse(rawText);
+        if (!rawText) throw new Error("AI response was empty.");
+
+        const parsed = JSON.parse(rawText);
+
+        if (parsed.topics && Array.isArray(parsed.topics)) {
+            parsed.topics = parsed.topics.map((t: any) => ({
+                ...t,
+                level: t.level ?? 1,
+                subtopics: t.subtopics || []
+            }));
+        } else {
+            throw new Error("Invalid structure: missing topics array.");
+        }
+
+        return parsed;
     } catch (error) {
         console.error('Curriculum generation failed:', error);
         throw error;
