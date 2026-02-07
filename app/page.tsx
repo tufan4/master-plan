@@ -432,50 +432,37 @@ export default function MasterTufanOS() {
 
             let url: string;
 
-            // SMART QUERY CONSTRUCTION
-            if (platformId === 'reddit') {
-                url = `https://www.google.com/search?q=${encodeURIComponent(query + ' site:reddit.com')}`;
-            } else if (platformId === 'youtube') {
-                let playlistParam = '';
-                if (searchShorts) playlistParam = '&sp=EgIQCQ%253D%253D';
-                else if (searchPlaylist) playlistParam = '&sp=EgIQAw%253D%253D';
-                url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}${playlistParam}`;
-            } else if (platformId === 'google') {
-                // PDF SMART SEARCH
-                url = `https://www.google.com/search?q=${encodeURIComponent(query + ' filetype:pdf')}`;
-            } else if (platformId === 'wikipedia') {
-                url = `https://${lang}.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(query)}`;
-            } else {
-                // GENERIC SITE SEARCH
-                const domainMap: Record<string, string> = {
-                    'medium': 'medium.com',
-                    'github': 'github.com',
-                    'stackoverflow': 'stackoverflow.com',
-                    'mdn': 'developer.mozilla.org',
-                    'arxiv': 'arxiv.org',
-                    'ieee': 'ieeexplore.ieee.org',
-                    'researchgate': 'researchgate.net',
-                    'sciencedirect': 'sciencedirect.com',
-                    'coursera': 'coursera.org',
-                    'udemy': 'udemy.com',
-                    'mitocw': 'ocw.mit.edu',
-                    'khan': 'khanacademy.org',
-                    'wolfram': 'wolframalpha.com',
-                    'desmos': 'desmos.com',
-                    'geogebra': 'geogebra.org',
-                    'arduino': 'arduino.cc',
-                    'hackster': 'hackster.io',
-                    'instructables': 'instructables.com',
-                    'pinterest': 'pinterest.com'
-                };
+            // SMART QUERY CONSTRUCTION (DIRECT SITE SEARCH)
+            const searchUrlMap: Record<string, string> = {
+                'youtube': `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}${searchShorts ? '&sp=EgIQCQ%253D%253D' : searchPlaylist ? '&sp=EgIQAw%253D%253D' : ''}`,
+                'google': `https://www.google.com/search?q=${encodeURIComponent(query + ' filetype:pdf')}`,
+                'wikipedia': `https://${lang}.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(query)}`,
+                'reddit': `https://www.reddit.com/search/?q=${encodeURIComponent(query)}`,
+                'github': `https://github.com/search?q=${encodeURIComponent(query)}`,
+                'stackoverflow': `https://stackoverflow.com/search?q=${encodeURIComponent(query)}`,
+                'medium': `https://medium.com/search?q=${encodeURIComponent(query)}`,
+                'mdn': `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(query)}`,
+                'arxiv': `https://arxiv.org/search/?query=${encodeURIComponent(query)}&searchtype=all`,
+                'ieee': `https://ieeexplore.ieee.org/search/searchresult.jsp?newsearch=true&queryText=${encodeURIComponent(query)}`,
+                'researchgate': `https://www.researchgate.net/search?q=${encodeURIComponent(query)}`,
+                'sciencedirect': `https://www.sciencedirect.com/search?qs=${encodeURIComponent(query)}`,
+                'coursera': `https://www.coursera.org/courses?query=${encodeURIComponent(query)}`,
+                'udemy': `https://www.udemy.com/courses/search/?q=${encodeURIComponent(query)}`,
+                'mitocw': `https://ocw.mit.edu/search/?q=${encodeURIComponent(query)}`,
+                'khan': `https://www.khanacademy.org/search?page_search_query=${encodeURIComponent(query)}`,
+                'wolfram': `https://www.wolframalpha.com/input/?i=${encodeURIComponent(query)}`,
+                'desmos': `https://www.google.com/search?q=${encodeURIComponent(query + ' site:desmos.com/calculator')}`,
+                'geogebra': `https://www.geogebra.org/search/${encodeURIComponent(query)}`,
+                'arduino': `https://www.arduino.cc/search?q=${encodeURIComponent(query)}`,
+                'hackster': `https://www.hackster.io/search?q=${encodeURIComponent(query)}`,
+                'instructables': `https://www.instructables.com/howto/${encodeURIComponent(query)}/`,
+                'pinterest': `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(query)}`,
+                'leetcode': `https://leetcode.com/problemset/all/?search=${encodeURIComponent(query)}`,
+                'devto': `https://dev.to/search?q=${encodeURIComponent(query)}`,
+                'semantic': `https://www.semanticscholar.org/search?q=${encodeURIComponent(query)}`
+            };
 
-                const site = domainMap[platformId];
-                if (site) {
-                    url = `https://www.google.com/search?q=${encodeURIComponent(query + ' site:' + site)}`;
-                } else {
-                    url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-                }
-            }
+            url = searchUrlMap[platformId] || `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 
             const fallbackUrl = url;
 
@@ -547,7 +534,7 @@ export default function MasterTufanOS() {
             }
 
             const response = await fetch(
-                `https://api.unsplash.com/search/photos?query=${encodeURIComponent(topic + ' engineering diagram technical')}&per_page=${count}&client_id=${accessKey}`
+                `https://api.unsplash.com/search/photos?query=${encodeURIComponent(topic + ' engineering technical')}&per_page=${count}&content_filter=high&client_id=${accessKey}`
             );
 
             if (!response.ok) throw new Error('Unsplash API error');
@@ -822,7 +809,11 @@ export default function MasterTufanOS() {
                                             onClick={() => {
                                                 if (!activePlatformPanel) return;
                                                 const cleanedTitle = item.title.replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim();
-                                                const fullQuery = `${activeData?.title || ""} ${cleanedTitle}`.trim();
+                                                const mainTitle = activeData?.title || "";
+                                                // Prevent duplication: if sub-topic already contains main topic name, don't repeat it
+                                                const fullQuery = cleanedTitle.toLowerCase().includes(mainTitle.toLowerCase())
+                                                    ? cleanedTitle
+                                                    : `${mainTitle} ${cleanedTitle}`.trim();
                                                 handleDeepDive(activePlatformPanel.platform, fullQuery, 'tr');
                                             }}
                                             className="flex items-center justify-between p-3 bg-slate-800 border border-slate-600 hover:border-blue-500 hover:bg-slate-700/80 rounded-lg transition-all group w-full"
@@ -843,7 +834,11 @@ export default function MasterTufanOS() {
                                             onClick={() => {
                                                 if (!activePlatformPanel) return;
                                                 const cleanedTitle = (item.en || item.title).replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim();
-                                                const fullQuery = `${activeData?.title || ""} ${cleanedTitle}`.trim();
+                                                const mainTitle = activeData?.title || "";
+                                                // Prevent duplication
+                                                const fullQuery = cleanedTitle.toLowerCase().includes(mainTitle.toLowerCase())
+                                                    ? cleanedTitle
+                                                    : `${mainTitle} ${cleanedTitle}`.trim();
                                                 handleDeepDive(activePlatformPanel.platform, fullQuery, 'en');
                                             }}
                                             className="flex items-center justify-between p-3 bg-slate-800 border border-slate-600 hover:border-emerald-500 hover:bg-slate-700/80 rounded-lg transition-all group w-full"
