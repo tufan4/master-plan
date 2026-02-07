@@ -89,6 +89,19 @@ export default function MasterTufanOS() {
     const [customDict, setCustomDict] = useState<any[]>([]);
     const [visibleCount, setVisibleCount] = useState<Record<string, number>>({});
 
+    /**
+     * Helper: Normalize Acronyms & Professional Casing
+     */
+    const normalizeTopic = (text: string): string => {
+        const acronyms = ["plc", "kpss", "hmi", "scada", "api", "rest", "sql", "html", "css", "js", "vfd", "pid", "cad", "cam", "cnc", "iot", "ai", "ml", "nlp", "aws", "os", "ram", "cpu", "io", "usb", "tcp", "ip", "udp", "http", "https", "ssl", "tls", "git", "npm", "json", "xml", "pdf", "tyt", "ayt", "dgs", "ales", "yds", "yökdil", "lgs"];
+
+        return text.split(' ').map(word => {
+            const lower = word.toLowerCase().replace(/[.,!?;:]/g, '');
+            if (acronyms.includes(lower)) return word.toUpperCase();
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }).join(' ');
+    };
+
     // Load custom dictionary on mount
     useEffect(() => {
         const saved = localStorage.getItem("customDictionary");
@@ -131,9 +144,10 @@ export default function MasterTufanOS() {
     // HANDLE AI GENERATION
     const handleGenerateCurriculum = async () => {
         if (!aiPrompt.trim()) return;
+        const finalPrompt = normalizeTopic(aiPrompt);
         setIsGenerating(true);
         try {
-            const result = await generateFullCurriculum(aiPrompt);
+            const result = await generateFullCurriculum(finalPrompt);
 
             if (result && (result.categories || result.topics)) {
                 // Determine if it is a flat massive list or categorical
@@ -153,7 +167,7 @@ export default function MasterTufanOS() {
 
                 const mainContainer = {
                     id: `custom-${Date.now()}`,
-                    title: aiPrompt,
+                    title: finalPrompt,
                     isCustom: true,
                     topics: processedTopics
                 };
@@ -583,7 +597,27 @@ export default function MasterTufanOS() {
 
                     <div className="flex-1">
                         <span className={`text-sm ${isCompleted ? 'text-emerald-300 line-through' : 'text-slate-200'}`}>
-                            {item.title}
+                            {/* Auto-Indent Staircase Logic */}
+                            {(() => {
+                                const match = item.title.match(/^(\d+(\.\d+)+)/);
+                                if (match) {
+                                    const parts = match[1].split('.');
+                                    // If it ends in .0, it's a main heading (level 0)
+                                    // Otherwise, indent based on length. e.g. 1.1 = level 1, 1.1.1 = level 2
+                                    const isMain = parts[parts.length - 1] === '0';
+                                    const depth = isMain ? 0 : (parts.length - 1) * 24;
+
+                                    return (
+                                        <span
+                                            style={{ marginLeft: `${depth}px` }}
+                                            className={`inline-block ${isMain ? 'font-black text-blue-400 text-base mb-1' : 'font-medium'}`}
+                                        >
+                                            {item.title}
+                                        </span>
+                                    );
+                                }
+                                return item.title;
+                            })()}
                         </span>
                     </div>
                 </motion.div>
@@ -930,8 +964,11 @@ export default function MasterTufanOS() {
                                 <button onClick={() => setShowNewCurriculumModal(false)} className="absolute right-4 top-4 text-slate-500 hover:text-white transition-colors"><X size={20} /></button>
                                 <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                                     <div className="p-2 bg-blue-600/20 rounded-lg"><Plus size={24} className="text-blue-400" /></div>
-                                    Yeni Müfredat Ekle
+                                    Hangi konuda uzmanlaşmak istersiniz?
                                 </h3>
+                                <p className="text-slate-400 text-sm mb-4 leading-relaxed">
+                                    Size temelden ileri seviyeye 100'lerce teknik atom içeren devasa bir "Master Plan" hazırlamam için konuyu aşağıya yazın.
+                                </p>
                                 <div className="relative group">
                                     <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-30 group-hover:opacity-75 transition duration-200"></div>
                                     <div className="relative flex items-center bg-slate-800 rounded-xl p-1 border border-slate-600">
@@ -940,7 +977,7 @@ export default function MasterTufanOS() {
                                             value={aiPrompt}
                                             onChange={(e) => setAiPrompt(e.target.value)}
                                             onKeyDown={(e) => e.key === 'Enter' && handleGenerateCurriculum()}
-                                            placeholder="Konu başlığı (örn: İleri Java)"
+                                            placeholder="Örn: PLC Programlama, KPSS Tarih, Python..."
                                             className="w-full bg-transparent border-none px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:outline-none"
                                             autoFocus
                                         />

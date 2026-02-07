@@ -38,6 +38,19 @@ export async function generateDiverseKeywords(
 
 
 /**
+ * Helper: Normalize Acronyms & Professional Casing
+ */
+function normalizeTopic(text: string): string {
+    const acronyms = ["plc", "kpss", "hmi", "scada", "api", "rest", "sql", "html", "css", "js", "vfd", "pid", "cad", "cam", "cnc", "iot", "ai", "ml", "nlp", "aws", "os", "ram", "cpu", "io", "usb", "tcp", "ip", "udp", "http", "https", "ssl", "tls", "git", "npm", "json", "xml", "pdf", "tyt", "ayt", "dgs", "ales", "yds", "yökdil", "lgs"];
+
+    return text.split(' ').map(word => {
+        const lower = word.toLowerCase().replace(/[.,!?;:]/g, '');
+        if (acronyms.includes(lower)) return word.toUpperCase();
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    }).join(' ');
+}
+
+/**
  * AI Curriculum Generator (Massive Flat Hybrid)
  */
 export async function generateFullCurriculum(topic: string): Promise<any> {
@@ -45,35 +58,41 @@ export async function generateFullCurriculum(topic: string): Promise<any> {
         throw new Error("API Key eksik.");
     }
 
+    const normalizedTopic = normalizeTopic(topic);
+
     try {
         const prompt = `Act as an Elite Engineering Professor and High-Granularity Knowledge Indexer.
-Create an EXTREMELY MASSIVE, atomized learning path for: "${topic}" in TURKISH.
+Create an EXTREMELY MASSIVE, numbered learning path for: "${normalizedTopic}" in TURKISH.
 
-Your goal is to break this subject down into at least 80-100 distinct, sequential technical learning atoms.
-Every item must be a complete, self-contained search query.
+Your goal is to provide a "Staircase Table of Contents" (Merdiven Yapısı) where every concept is broken into the smallest technical steps.
+
+FORMAT RULES:
+- Use strict numbering: 1.0, 1.1, 1.2, 2.0, 2.1...
+- Every title must be a deep technical search term.
+- DO NOT skip any technical detail.
 
 The output must be a VALID JSON object:
 {
     "id": "gen-${Date.now()}",
-    "title": "${topic}",
+    "title": "${normalizedTopic}",
     "isMassive": true,
     "topics": [
         {
             "id": "t-1",
-            "title": "${topic}: Donanım Bileşenleri ve CPU Tarama Döngüsü (Scan Cycle)",
-            "en": "${topic}: Hardware Components and CPU Scan Cycle",
+            "title": "1.0 [${normalizedTopic}] Giriş: Donanım Mimarisi ve Veri Akış Şeması",
+            "en": "${normalizedTopic} Hardware Architecture and Data Flow Diagram",
             "subtopics": []
         }
     ]
 }
 
 STRICT ARCHITECTURE RULES:
-1. NO CATEGORIES: Return a single flat array in the "topics" field. Do NOT wrap them in categories or modules.
-2. SEQUENTIAL ORDER: Order the topics strictly from absolute basics to extreme advanced mastery.
-3. SEARCH ATOMIZATION: Every "title" MUST be a professional search query. NEVER use generic words like "Giriş", "Nedir", "Basit". 
-4. MASSIVE SCALE: Be as exhaustive as possible. Break down every sub-detail into its own topic. 
-5. CONTEXTUAL: Every title MUST contain "${topic}" or related context so it is self-sufficient for search.
-6. Return ONLY raw JSON. Use max tokens to provide as many entries as possible.`;
+1. NO CATEGORIES: Return a single flat array in the "topics" field.
+2. STAIRCASE LOGIC: Topics must follow a perfect logical order.
+3. SEARCH PRECISION: Titles must return specialized results (PDF/Video) on Google.
+4. MASSIVE VOLUME: Generate as many items as the context window allow (aim for 80-100+).
+5. REPETITION: Every title MUST mention "${normalizedTopic}" or its direct context.
+6. Return ONLY raw JSON.`;
 
         const completion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
