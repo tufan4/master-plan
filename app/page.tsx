@@ -569,7 +569,6 @@ export default function MasterTufanOS() {
                     </button>
 
                     <div className="flex-1">
-                        <span className="text-xs font-mono text-slate-500 mr-2">{item.id}</span>
                         <span className={`text-sm ${isCompleted ? 'text-emerald-300 line-through' : 'text-slate-200'}`}>
                             {item.title}
                         </span>
@@ -741,7 +740,8 @@ export default function MasterTufanOS() {
                                         <button
                                             onClick={() => {
                                                 if (!activePlatformPanel) return;
-                                                handleDeepDive(activePlatformPanel.platform, item.title, 'tr');
+                                                const fullQuery = `${activeData?.title || ""} ${item.title}`.trim();
+                                                handleDeepDive(activePlatformPanel.platform, fullQuery, 'tr');
                                             }}
                                             className="flex items-center justify-between p-3 bg-slate-800 border border-slate-600 hover:border-blue-500 hover:bg-slate-700/80 rounded-lg transition-all group w-full"
                                         >
@@ -761,7 +761,8 @@ export default function MasterTufanOS() {
                                             onClick={() => {
                                                 if (!activePlatformPanel) return;
                                                 // Default to title if en is missing (fallback)
-                                                handleDeepDive(activePlatformPanel.platform, item.en || item.title, 'en');
+                                                const fullQuery = `${activeData?.title || ""} ${item.en || item.title}`.trim();
+                                                handleDeepDive(activePlatformPanel.platform, fullQuery, 'en');
                                             }}
                                             className="flex items-center justify-between p-3 bg-slate-800 border border-slate-600 hover:border-emerald-500 hover:bg-slate-700/80 rounded-lg transition-all group w-full"
                                         >

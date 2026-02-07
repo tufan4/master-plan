@@ -53,9 +53,10 @@ export async function generateFullCurriculum(topic: string): Promise<any> {
 
     try {
         const prompt = `Act as an Elite Engineering Professor and Curriculum Architect.
-Create an extremely detailed, high-level technical learning path for: "${topic}" in TURKISH.
+Limitless Knowledge Curator.
+Create an extremely detailed, high-precision technical learning path for: "${topic}" in TURKISH.
 
-Your goal is to provide a "Master Plan" where every title is a professional search query.
+Your goal is to provide a "Master Plan" where EVERY SINGLE TITLE (including categories) is a professional, specific search query.
 
 The output must be a VALID JSON object:
 {
@@ -63,15 +64,15 @@ The output must be a VALID JSON object:
     "title": "${topic}",
     "categories": [
         {
-            "id": "lvl-1",
-            "title": "TEMEL TEKNİKLER VE MANTIKSAL YAPI",
+            "id": "cat-1",
+            "title": "Hassas Teknik Ana Başlık (Örn: PLC Donanım Mimarisi ve Bellek Yapısı)",
             "topics": [
                 {
                     "id": "t-1",
-                    "title": "PLC Donanım Mimarisi ve CPU İşleyişi",
-                    "en": "PLC Hardware Architecture and CPU Operation",
+                    "title": "Spesifik Teknik Detay (Örn: I/O Görüntü Belleği ve CPU Tarama Döngüsü)",
+                    "en": "Specific Technical Detail (EN)",
                     "subtopics": [
-                        { "id": "st-1", "title": "Giriş Çıkış (I/O) Görüntü Belleği", "en": "I/O Image Memory" }
+                        { "id": "st-1", "title": "Mikro Teknik Detay", "en": "Micro Detail" }
                     ]
                 }
             ]
@@ -81,14 +82,14 @@ The output must be a VALID JSON object:
 
 STRICT RULES:
 1. LANGUAGE: Use professional Turkish engineering terminology ONLY.
-2. DEPTH: You MUST generate at least 3 main levels (Basics, Intermediate, Advanced).
-3. VOLUME: Each level must contain at least 10-15 high-precision technical topics. Total topics (Category -> Topic -> Subtopic) should be around 35-45.
-4. SEARCH OPTIMIZATION: Do NOT use generic words like "Giriş", "Nedir", "Basit". 
-   INSTEAD use: "Ladder Logic Sinyal Akış Diyagramları", "STL Komut Listesi ve Akümülatör Yapısı".
-5. NO PREFIXES: DO NOT include prefixes like "Modül 1:", "Seviye 2:", "Bölüm:", or any numbering. Titles must be 100% pure keywords.
-6. "en" field: Provide the absolute most accurate English engineering equivalent for international searches.
-7. RELEVANCE: Every single topic must be a viable search query that leads to deep technical PDFs or videos.
-8. No markdown, no backticks, ONLY raw JSON. Ensure it is a valid object.`;
+2. DEPTH: You MUST generate at least 3 main Category blocks.
+3. VOLUME: Each category must contain at least 10-15 high-precision technical topics. Total topics should be around 35-45.
+4. SEARCH OPTIMIZATION: NEVER use generic words like "Giriş", "Temel", "Orta", "İleri", "Teknikler", "Nedir", "Basit". 
+   INSTEAD use extremely specific engineering terms: "S7-1200 Donanım Konfigürasyonu", "Modbus TCP/IP Haberleşme Protokolü Detayları".
+5. NO PREFIXES: DO NOT include prefixes like "Modül 1:", "Bölüm:", "1.", or any numbering. 
+6. CONTEXTUAL TITLES: Every title must be self-contained enough to return technical results on Google/YouTube even without the context of the main topic.
+7. "en" field: Provide the absolute most accurate English engineering equivalent.
+8. No markdown, no backticks, ONLY raw JSON.`;
 
         const completion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
