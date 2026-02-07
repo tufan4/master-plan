@@ -673,7 +673,8 @@ export default function MasterTufanOS() {
                                         const newState = showImageGallery === item.id ? null : item.id;
                                         setShowImageGallery(newState);
                                         if (newState) {
-                                            loadImagesFromAPI(item.title, item.id, imageThreshold);
+                                            const cleanedTitle = item.title.replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim();
+                                            loadImagesFromAPI(cleanedTitle, item.id, imageThreshold);
                                         }
                                     }}
                                     className={`p-2 flex flex-col items-center justify-center rounded-xl border border-purple-900/30 transition-all ${showImageGallery === item.id ? 'bg-purple-600 shadow-[0_0_15px_rgba(147,51,234,0.5)]' : 'bg-purple-900/20 hover:bg-purple-900/40 hover:border-purple-500/50'
@@ -691,7 +692,8 @@ export default function MasterTufanOS() {
                                         if (isGenerating) return;
                                         setIsGenerating(true);
                                         try {
-                                            const res = await generateFullCurriculum(item.title);
+                                            const cleanedTitle = item.title.replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim();
+                                            const res = await generateFullCurriculum(cleanedTitle);
                                             if (res && (res.categories || res.topics)) {
                                                 // Function to inject new topics into specific item
                                                 const injectTopics = (list: any[]): any[] => {
@@ -796,7 +798,8 @@ export default function MasterTufanOS() {
                                         <button
                                             onClick={() => {
                                                 if (!activePlatformPanel) return;
-                                                const fullQuery = `${activeData?.title || ""} ${item.title}`.trim();
+                                                const cleanedTitle = item.title.replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim();
+                                                const fullQuery = `${activeData?.title || ""} ${cleanedTitle}`.trim();
                                                 handleDeepDive(activePlatformPanel.platform, fullQuery, 'tr');
                                             }}
                                             className="flex items-center justify-between p-3 bg-slate-800 border border-slate-600 hover:border-blue-500 hover:bg-slate-700/80 rounded-lg transition-all group w-full"
@@ -816,8 +819,8 @@ export default function MasterTufanOS() {
                                         <button
                                             onClick={() => {
                                                 if (!activePlatformPanel) return;
-                                                // Default to title if en is missing (fallback)
-                                                const fullQuery = `${activeData?.title || ""} ${item.en || item.title}`.trim();
+                                                const cleanedTitle = (item.en || item.title).replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim();
+                                                const fullQuery = `${activeData?.title || ""} ${cleanedTitle}`.trim();
                                                 handleDeepDive(activePlatformPanel.platform, fullQuery, 'en');
                                             }}
                                             className="flex items-center justify-between p-3 bg-slate-800 border border-slate-600 hover:border-emerald-500 hover:bg-slate-700/80 rounded-lg transition-all group w-full"
