@@ -54,7 +54,8 @@ export async function GET(req: NextRequest) {
 
         // Iterate through headings
         contentDiv.find('h2, h3').each((i, el) => {
-            const tag = $(el).get(0).tagName;
+            const tag = $(el).get(0)?.tagName.toLowerCase();
+            if (!tag) return;
             const $el = $(el);
 
             // Clean title (remove [edit] links)
