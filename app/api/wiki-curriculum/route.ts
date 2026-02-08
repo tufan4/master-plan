@@ -47,43 +47,69 @@ export async function GET(req: NextRequest) {
         // We need to build a hierarchical tree
 
         const topics: any[] = [];
-        let currentSection: any = null;
+        let currentH2: any = null;
+        let currentH3: any = null;
 
         // Wikipedia Content Div
         const contentDiv = $('#mw-content-text');
 
-        // Iterate through headings
-        contentDiv.find('h2, h3').each((i, el) => {
+        // Iterate through headings (and H4 for deeper structure)
+        contentDiv.find('h2, h3, h4').each((i, el) => {
             const tag = $(el).get(0)?.tagName.toLowerCase();
             if (!tag) return;
             const $el = $(el);
 
-            // Clean title (remove [edit] links)
-            const title = $el.find('.mw-headline').text().trim() || $el.text().trim().replace(/\[.*?\]/g, '');
+            // Clean title (remove [edit] links and section numbers)
+            let title = $el.find('.mw-headline').text().trim() || $el.text().trim().replace(/\[.*?\]/g, '');
+            // Remove typical wiki numbers like "1.2.3 Title"
+            title = title.replace(/^\d+(\.\d+)*\s*/, '');
 
             // Skip irrelevant sections
-            if (['Kaynakça', 'References', 'See also', 'Ayrıca bakınız', 'External links', 'Dış bağlantılar', 'Notes', 'Notlar'].includes(title)) {
+            if (['Kaynakça', 'References', 'See also', 'Ayrıca bakınız', 'External links', 'Dış bağlantılar', 'Notes', 'Notlar', 'Further reading', 'Konuyla ilgili yayınlar'].includes(title)) {
                 return;
             }
 
             if (tag === 'h2') {
                 // New Main Section
-                currentSection = {
+                currentH2 = {
                     id: crypto.randomUUID(),
                     title: title,
                     keywords: [title.toLowerCase(), query.toLowerCase()],
-                    subtopics: []
+                    subtopics: [],
+                    level: 1
                 };
-                topics.push(currentSection);
-            } else if (tag === 'h3' && currentSection) {
-                // Warning: Sometimes H3 appears before H2? Unlikely in Wiki but possible.
-                // Add as subtopic to current H2
-                currentSection.subtopics.push({
+                topics.push(currentH2);
+                currentH3 = null; // Reset H3 context
+            } else if (tag === 'h3') {
+                if (!currentH2) return; // Skip orphan H3
+
+                currentH3 = {
                     id: crypto.randomUUID(),
                     title: title,
                     keywords: [title.toLowerCase()],
-                    subtopics: [] // Wiki rarely goes deeper than H3 meaningful for curriculum
-                });
+                    subtopics: [],
+                    level: 2
+                };
+                currentH2.subtopics.push(currentH3);
+            } else if (tag === 'h4') {
+                // H4 belongs to H3 if exists, else H2
+                if (currentH3) {
+                    currentH3.subtopics.push({
+                        id: crypto.randomUUID(),
+                        title: title,
+                        keywords: [title.toLowerCase()],
+                        subtopics: [],
+                        level: 3
+                    });
+                } else if (currentH2) {
+                    currentH2.subtopics.push({
+                        id: crypto.randomUUID(),
+                        title: title,
+                        keywords: [title.toLowerCase()],
+                        subtopics: [],
+                        level: 2
+                    });
+                }
             }
         });
 
