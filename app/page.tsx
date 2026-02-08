@@ -18,7 +18,7 @@ import {
     Globe, MessageCircle, Sparkles, BookOpen, Info,
     Github, Lightbulb, HelpCircle, Layout, Settings, Plus, Wand2, Trash2, Menu
 } from "lucide-react";
-import { generateFullCurriculum, generateRelatedTopics } from "@/lib/geminiClient";
+import { generateFullCurriculum, generateRelatedTopics, generateSubtopicTree } from "@/lib/geminiClient";
 
 // ==================== PLATFORMS ====================
 const PLATFORMS = [
@@ -58,6 +58,7 @@ export default function MasterTufanOS() {
 
     const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+    const [isDeepening, setIsDeepening] = useState<Record<string, boolean>>({});
     const [activeControlPanel, setActiveControlPanel] = useState<string | null>(null);
     const [activePlatformPanel, setActivePlatformPanel] = useState<{ topicId: string; platform: string } | null>(null);
     const [showNewCurriculumModal, setShowNewCurriculumModal] = useState(false);
@@ -223,6 +224,49 @@ export default function MasterTufanOS() {
         setExpandedItems(newSet);
     };
 
+    const handleDeepenBranch = async (itemId: string, topicTitle: string) => {
+        setIsDeepening(p => ({ ...p, [itemId]: true }));
+        try {
+            const results = await generateSubtopicTree(topicTitle);
+            if (!results || results.length === 0) return;
+
+            // Fix Structure for new results
+            const fixResults = (items: any[], parentLevel: number): any[] => {
+                return items.map(item => ({
+                    id: item.id || `deep-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                    title: item.title,
+                    q_tr: item.q_tr || item.title,
+                    q_en: item.q_en || item.title,
+                    level: parentLevel + 1,
+                    keywords: [item.title.toLowerCase()],
+                    subtopics: item.subtopics && Array.isArray(item.subtopics) ? fixResults(item.subtopics, parentLevel + 1) : []
+                }));
+            };
+
+            const updatedCategories = allCategories.map(cat => {
+                if (cat.id !== activeCategory) return cat;
+                const updateNode = (nodes: any[]): any[] => {
+                    return nodes.map(node => {
+                        if (node.id === itemId) {
+                            return { ...node, subtopics: [...(node.subtopics || []), ...fixResults(results, node.level)] };
+                        }
+                        if (node.subtopics) return { ...node, subtopics: updateNode(node.subtopics) };
+                        return node;
+                    });
+                };
+                return { ...cat, topics: updateNode(cat.topics || []) };
+            });
+
+            setAllCategories(updatedCategories);
+            localStorage.setItem("customCurriculums", JSON.stringify(updatedCategories));
+            setExpandedItems(p => { const s = new Set(p); s.add(itemId); return s; });
+        } catch (e) {
+            console.error("Deepen branch failed", e);
+        } finally {
+            setIsDeepening(p => ({ ...p, [itemId]: false }));
+        }
+    };
+
     const renderRecursive = (item: any, depth: number = 0) => {
         const isExpanded = expandedItems.has(item.id);
         const isCompleted = completedItems.has(item.id);
@@ -244,73 +288,78 @@ export default function MasterTufanOS() {
 
                 <AnimatePresence>
                     {showPanel && (
-                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="ml-6 mt-2 bg-slate-900/60 p-5 rounded-[24px] overflow-hidden border border-slate-700/50 backdrop-blur-sm">
-                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="ml-6 mt-4 space-y-3">
+                            {/* SEARCH ENGINE CARDS */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {PLATFORMS.map(plat => {
                                     const Icon = plat.icon;
-                                    const isActive = activePlatformPanel?.topicId === item.id && activePlatformPanel?.platform === plat.id;
                                     return (
-                                        <button
-                                            key={plat.id}
-                                            onClick={(e) => { e.stopPropagation(); setActivePlatformPanel({ topicId: item.id, platform: plat.id }); }}
-                                            className={`group relative p-4 flex flex-col items-center justify-center rounded-[24px] border-2 transition-all duration-300 ${isActive ? 'bg-blue-600 border-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.5)] scale-105' : 'bg-slate-800/40 border-slate-700/50 hover:border-slate-500 hover:bg-slate-800'}`}
-                                        >
-                                            <Icon size={24} className={isActive ? 'text-white' : `text-slate-400 group-hover:text-white transition-colors`} />
-                                            <span className={`text-[10px] mt-2 font-black uppercase tracking-widest ${isActive ? 'text-blue-100' : 'text-slate-500 group-hover:text-slate-300'}`}>{plat.name}</span>
-                                            {isActive && <motion.div layoutId="plat-active" className="absolute -inset-1 rounded-[24px] border-2 border-blue-400 animate-pulse" />}
-                                        </button>
+                                        <div key={plat.id} className="group flex items-center bg-slate-900/40 hover:bg-slate-900/80 border border-slate-700/50 hover:border-blue-500/30 rounded-2xl p-2 transition-all duration-300">
+                                            {/* Brand & Icon (Left) */}
+                                            <div className="flex items-center gap-3 px-3 min-w-[120px]">
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-slate-800 border border-slate-700`}>
+                                                    <Icon size={20} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
+                                                </div>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-300 hidden sm:block">{plat.name}</span>
+                                            </div>
+
+                                            {/* Action Buttons (Right) */}
+                                            <div className="flex-1 flex gap-2">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleDeepDive(plat.id, item, 'tr'); }}
+                                                    className="flex-1 py-3 bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/20 rounded-xl text-[10px] font-black tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+                                                >
+                                                    🇹🇷 <span className="hidden xs:inline">TR</span>
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleDeepDive(plat.id, item, 'en'); }}
+                                                    className="flex-1 py-3 bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700/50 rounded-xl text-[10px] font-black tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+                                                >
+                                                    🌍 <span className="hidden xs:inline">EN</span>
+                                                </button>
+                                            </div>
+                                        </div>
                                     );
                                 })}
-                                <button onClick={(e) => { e.stopPropagation(); setShowImageGallery(item.id); loadImagesFromAPI(item.title, item.id, 10); }} className="p-4 flex flex-col items-center justify-center rounded-[24px] border-2 border-dashed border-purple-500/30 bg-purple-900/10 hover:bg-purple-900/30 hover:border-purple-500/50 transition-all group">
-                                    <ImageIcon size={24} className="text-purple-400 group-hover:scale-110 transition-transform" />
-                                    <span className="text-[10px] mt-2 font-black uppercase tracking-widest text-slate-500 group-hover:text-purple-300">IMAGES</span>
+                            </div>
+
+                            {/* SPECIAL: BRANCH EXPANSION & GALLERY */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); handleDeepenBranch(item.id, item.title); }}
+                                    disabled={isDeepening[item.id]}
+                                    className="flex items-center justify-center gap-3 py-4 bg-blue-600/10 hover:bg-blue-600/20 border border-dashed border-blue-500/30 hover:border-blue-500/60 rounded-2xl text-blue-400 transition-all group disabled:opacity-50"
+                                >
+                                    <Sparkles size={20} className={isDeepening[item.id] ? "animate-spin" : "group-hover:scale-125 transition-transform"} />
+                                    <span className="text-xs font-black tracking-[0.2em] uppercase">Branşı Derinleştir</span>
+                                </button>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setShowImageGallery(item.id); loadImagesFromAPI(item.title, item.id, 10); }}
+                                    className="flex items-center justify-center gap-3 py-4 bg-purple-900/10 hover:bg-purple-900/30 border border-dashed border-purple-500/30 hover:border-purple-500/60 rounded-2xl text-purple-400 transition-all group"
+                                >
+                                    <ImageIcon size={20} className="group-hover:animate-bounce" />
+                                    <span className="text-xs font-black tracking-[0.2em] uppercase text-slate-500 group-hover:text-purple-300">Görsel Kaynaklar</span>
                                 </button>
                             </div>
 
-                            {activePlatformPanel?.topicId === item.id && (
-                                <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mt-5 p-4 bg-slate-950/80 rounded-[20px] border border-blue-500/30 flex flex-col gap-3">
-                                    <div className="flex justify-between items-center mb-1 px-1">
-                                        <div className="flex items-center gap-2">
-                                            <Sparkles size={14} className="text-blue-400" />
-                                            <span className="text-[10px] font-black text-blue-400 tracking-[0.2em] uppercase">Deep Dive Engine</span>
-                                        </div>
-                                        <button onClick={() => setActivePlatformPanel(null)} className="text-slate-600 hover:text-white"><X size={16} /></button>
+                            {/* IMAGE GALLERY CONTENT */}
+                            {showImageGallery === item.id && (
+                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 bg-slate-950/40 rounded-3xl border border-purple-500/20">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <span className="text-[10px] font-black text-purple-400 tracking-[0.3em] uppercase">Mühendislik Görselleri</span>
+                                        <button onClick={() => setShowImageGallery(null)} className="p-2 hover:bg-slate-800 rounded-lg text-slate-600 hover:text-white transition-colors"><X size={16} /></button>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <button
-                                            onClick={() => handleDeepDive(activePlatformPanel!.platform, item, 'tr')}
-                                            className="group relative overflow-hidden py-6 bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 rounded-2xl text-white shadow-xl shadow-blue-900/40 transition-all flex items-center justify-center gap-4 border border-blue-400/30 active:scale-95"
-                                        >
-                                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_white_0%,_transparent_10%)] opacity-0 group-hover:opacity-10 transition-opacity" />
-                                            <span className="text-2xl">🇹🇷</span>
-                                            <div className="flex flex-col items-start">
-                                                <span className="text-sm font-black tracking-[0.1em] uppercase">TÜRKÇE ARA</span>
-                                                <span className="text-[9px] font-bold text-blue-200/60 uppercase">Yerel Video & Makale</span>
-                                            </div>
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeepDive(activePlatformPanel!.platform, item, 'en')}
-                                            className="group relative overflow-hidden py-6 bg-gradient-to-br from-slate-800 to-slate-950 hover:from-slate-700 hover:to-slate-900 rounded-2xl text-white shadow-xl shadow-black/40 transition-all flex items-center justify-center gap-4 border border-slate-700 active:scale-95"
-                                        >
-                                            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            <span className="text-2xl">🌍</span>
-                                            <div className="flex flex-col items-start">
-                                                <span className="text-sm font-black tracking-[0.1em] uppercase">GLOBAL SEARCH</span>
-                                                <span className="text-[9px] font-bold text-slate-500 uppercase">World-class Resources</span>
-                                            </div>
-                                        </button>
+                                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                                        {galleryImages.map((src, i) => (
+                                            <img
+                                                key={i}
+                                                src={src}
+                                                className="w-full h-24 object-cover rounded-xl cursor-pointer hover:ring-4 ring-purple-500/40 transition-all shadow-xl"
+                                                onClick={() => window.open(src)}
+                                            />
+                                        ))}
                                     </div>
                                 </motion.div>
-                            )}
-
-                            {showImageGallery === item.id && (
-                                <div className="mt-5">
-                                    <div className="flex justify-between items-center mb-3 px-2">
-                                        <span className="text-[10px] font-black text-purple-400 tracking-[0.2em] uppercase">Görsel Kaynaklar</span>
-                                        <button onClick={() => setShowImageGallery(null)} className="text-slate-600 hover:text-white"><X size={16} /></button>
-                                    </div>
-                                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">{galleryImages.map((src, i) => <img key={i} src={src} className="w-full h-28 object-cover rounded-xl cursor-pointer hover:ring-4 ring-purple-500/40 transition-all shadow-lg" onClick={() => window.open(src)} />)}</div>
-                                </div>
                             )}
                         </motion.div>
                     )}
@@ -368,7 +417,7 @@ export default function MasterTufanOS() {
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Kapsam Derinliği</label>
                                     <span className="text-blue-400 font-black text-xl">{topicCount} <span className="text-[10px] text-slate-500">BAŞLIK</span></span>
                                 </div>
-                                <input type="range" min="50" max="300" step="50" value={topicCount} onChange={(e) => setTopicCount(Number(e.target.value))} className="w-full h-3 bg-slate-700 rounded-full appearance-none cursor-pointer accent-blue-500" />
+                                <input type="range" min="50" max="1000" step="50" value={topicCount} onChange={(e) => setTopicCount(Number(e.target.value))} className="w-full h-3 bg-slate-700 rounded-full appearance-none cursor-pointer accent-blue-500" />
                             </div>
                             <button onClick={() => createCurriculum(aiPrompt, topicCount)} disabled={!aiPrompt.trim() || isGenerating} className="w-full py-6 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-black text-lg transition-all shadow-xl shadow-blue-600/30 uppercase tracking-[0.1em]">
                                 {isGenerating ? 'ANALİZ EDİLİYOR...' : 'SİSTEME EKLE'}

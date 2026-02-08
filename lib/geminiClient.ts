@@ -70,12 +70,19 @@ export async function generateFullCurriculum(topic: string, count: number = 50):
         const systemPrompt = `Sen bir uzman öğrenme yolu tasarımcısısın. Görevin, "${normalizedTopic}" konusunu derinlemesine analiz edip, sıfırdan ileri seviyeye kadar yapılandırılmış, akademik ve teknik bir müfredat ağacı oluşturmak.
 
 TEMEL KURALLAR:
-1. Her alt başlık MUTLAKA teknik ve detaylı olmalı.
+1. Her alt başlık MUTLAKA ana konuyla DOĞRUDAN bağlantılı, teknik ve detaylı olmalı.
 2. Genel başlıklar ASLA KULLANMA (❌ "Giriş", "Temel Bilgiler", "Tarihçe", "Avantajlar", "İleri Seviye", "Sonuç").
 3. Her başlık spesifik bir teknik kavramı veya beceriyi temsil etmeli.
-4. Hiyerarşik yapı kur: Ana Konu -> Alt Konu -> Detay Konu (En az 3 derinlik).
-5. Kapsamlı olmalı: TOPLAM EN AZ ${count} adet başlık üretmelisin. Konu bütünlüğünü koruyarak ${count} maddeye ulaş.
+4. Hiyerarşik yapı kur: Ana Konu -> Alt Konu -> Detay Konu -> Mikro Konu (EN AZ 5-7 derinlik seviyesi).
+5. Kapsamlı olmalı: TOPLAM TAM OLARAK ${count} adet benzersiz başlık üretmelisin. Bu sayıya ulaşmak için konuyu en küçük bileşenlerine (atomik seviyeye) kadar parçalamalısın.
 6. HER BAŞLIK İÇİN iki farklı arama anahtarı ("q_tr", "q_en") ekle. Bu alanlar, o başlığı doğrudan aratmak için en temiz ve en teknik kelimeleri içermeli. Sonek (Örn: "ders notları", "belgeleri") ASLA EKLEME.
+7. Önemli: Çıktı çok uzun olacağı için gereksiz boşluk bırakma (minified JSON).
+
+BAŞLIK FORMATI ÖRNEKLERİ:
+✅ DOĞRU: "PLC Ladder Logic Programlama Temelleri"
+✅ DOĞRU: "Siemens S7-1200 Timer ve Counter Fonksiyonları"
+✅ DOĞRU: "Hızlı Sayıcı (HSC) Donanım Konfigürasyonu ve Interrupt Yönetimi"
+❌ YANLIŞ: "PLC Nedir?", "Giriş", "Temel Kavramlar", "Özet", "Sonuç", "Tarihçe"
 
 BAŞLIK FORMATI ÖRNEKLERİ:
 ✅ DOĞRU: "PLC Ladder Logic Programlama Temelleri"
@@ -87,12 +94,20 @@ BAŞLIK FORMATI ÖRNEKLERİ:
   "title": "${normalizedTopic}",
   "topics": [
     {
-      "id": "uuid-1",
-      "title": "Spesifik Alt Başlık 1",
-      "q_tr": "S7-1200 PLC ladder diyagramı dersleri",
-      "q_en": "Siemens S7-1200 ladder logic programming guide",
+      "id": "1",
+      "title": "Üst Seviye Branş",
+      "q_tr": "...",
+      "q_en": "...",
       "subtopics": [
-        { "id": "uuid-1-1", "title": "Teknik Detay 1", "q_tr": "...", "q_en": "...", "subtopics": [] }
+        { 
+          "id": "1-1", 
+          "title": "Alt Branş", 
+          "q_tr": "...", 
+          "q_en": "...", 
+          "subtopics": [
+             { "id": "1-1-1", "title": "Mikro Detay", ... }
+          ] 
+        }
       ]
     }
   ]
@@ -102,11 +117,11 @@ Sadece JSON döndür.`;
         const completion = await groq.chat.completions.create({
             messages: [
                 { role: "system", content: systemPrompt },
-                { role: "user", content: `"${normalizedTopic}" için detaylı müfredat ağacını oluştur.` }
+                { role: "user", content: `"${normalizedTopic}" için TAMAMEN EKSİKSİZ, DEVASA ve ${count} başlıktan oluşan bir ağaç oluştur.` }
             ],
             model: "llama-3.3-70b-versatile",
-            temperature: 0.3,
-            max_tokens: 7000,
+            temperature: 0.2,
+            max_tokens: 8000,
             response_format: { type: "json_object" }
         });
 
@@ -145,6 +160,46 @@ Sadece JSON döndür.`;
     } catch (error) {
         console.error('Curriculum generation failed:', error);
         throw error;
+    }
+}
+
+/**
+ * AI Branch Expander (Deepens a specifically selected sub-topic)
+ */
+export async function generateSubtopicTree(parentTopic: string): Promise<any[]> {
+    if (!process.env.NEXT_PUBLIC_GROQ_API_KEY) return [];
+
+    try {
+        const systemPrompt = `Sen bir uzman mühendissin. Görevin "${parentTopic}" başlığı altına 30-50 adet çok derin ve teknik alt başlık üretmek.
+Rules:
+1. Sadece "${parentTopic}" ile %100 ilgili teknik başlıklar üret.
+2. Derinlik: En az 3 alt seviye hiyerarşi oluştur.
+3. Çıktı JSON formatında (topics array) olmalı.
+4. q_tr ve q_en anahtarlarını unutma.
+
+Format:
+{
+  "topics": [
+    { "title": "X", "q_tr": "...", "q_en": "...", "subtopics": [...] }
+  ]
+}`;
+
+        const completion = await groq.chat.completions.create({
+            messages: [{ role: "user", content: systemPrompt }],
+            model: "llama-3.1-8b-instant", // Faster for sub-expansions
+            temperature: 0.4,
+            max_tokens: 4000,
+            response_format: { type: "json_object" }
+        });
+
+        const raw = completion.choices[0]?.message?.content?.trim();
+        if (!raw) return [];
+
+        const parsed = JSON.parse(cleanJson(raw));
+        return parsed.topics || [];
+    } catch (e) {
+        console.error("Branch expansion failed:", e);
+        return [];
     }
 }
 
