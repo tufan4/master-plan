@@ -75,6 +75,7 @@ TEMEL KURALLAR:
 3. Her başlık spesifik bir teknik kavramı veya beceriyi temsil etmeli.
 4. Hiyerarşik yapı kur: Ana Konu -> Alt Konu -> Detay Konu (En az 3 derinlik).
 5. Kapsamlı olmalı: TOPLAM EN AZ ${count} adet başlık üretmelisin. Konu bütünlüğünü koruyarak ${count} maddeye ulaş.
+6. HER BAŞLIK İÇİN bir "search_query" alanı ekle. Bu alan, o başlığı Google veya YouTube'da en iyi sonuçla aratacak teknik anahtar kelimeleri içermeli (Örn: "PLC Giriş" yerine "PLC S7-1200 hardware architecture explained").
 
 BAŞLIK FORMATI ÖRNEKLERİ:
 ✅ DOĞRU: "PLC Ladder Logic Programlama Temelleri"
@@ -88,8 +89,9 @@ BAŞLIK FORMATI ÖRNEKLERİ:
     {
       "id": "uuid-1",
       "title": "Spesifik Alt Başlık 1",
+      "search_query": "Daha spesifik arama terimi",
       "subtopics": [
-        { "id": "uuid-1-1", "title": "Teknik Detay 1", "subtopics": [] }
+        { "id": "uuid-1-1", "title": "Teknik Detay 1", "search_query": "Teknik detay arama terimi", "subtopics": [] }
       ]
     }
   ]
@@ -102,7 +104,7 @@ Sadece JSON döndür.`;
                 { role: "user", content: `"${normalizedTopic}" için detaylı müfredat ağacını oluştur.` }
             ],
             model: "llama-3.3-70b-versatile",
-            temperature: 0.3, // Scientific creativity
+            temperature: 0.3,
             max_tokens: 7000,
             response_format: { type: "json_object" }
         });
@@ -117,6 +119,7 @@ Sadece JSON döndür.`;
             return items.map((item, idx) => ({
                 id: item.id || `gen-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
                 title: item.title,
+                search_query: item.search_query || item.title,
                 level: parentLevel + 1,
                 keywords: [item.title.toLowerCase()],
                 subtopics: item.subtopics && Array.isArray(item.subtopics) ? fixStructure(item.subtopics, parentLevel + 1) : []
@@ -129,14 +132,13 @@ Sadece JSON döndür.`;
         } else if (Array.isArray(parsed)) {
             topics = fixStructure(parsed, 0);
         } else {
-            // Fallback for weird AI outputs
             topics = [];
         }
 
         return {
             title: parsed.title || normalizedTopic,
             topics: topics
-        }; // Return standardized format
+        };
 
     } catch (error) {
         console.error('Curriculum generation failed:', error);
