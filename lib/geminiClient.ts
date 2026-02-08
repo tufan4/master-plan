@@ -40,7 +40,7 @@ export async function generateDiverseKeywords(
 /**
  * Helper: Normalize Acronyms & Professional Casing
  */
-function normalizeTopic(text: string): string {
+export function normalizeTopic(text: string): string {
     const acronyms = ["plc", "kpss", "hmi", "scada", "api", "rest", "sql", "html", "css", "js", "vfd", "pid", "cad", "cam", "cnc", "iot", "ai", "ml", "nlp", "aws", "os", "ram", "cpu", "io", "usb", "tcp", "ip", "udp", "http", "https", "ssl", "tls", "git", "npm", "json", "xml", "pdf", "tyt", "ayt", "dgs", "ales", "yds", "yökdil", "lgs"];
 
     return text.split(' ').map(word => {
@@ -143,43 +143,32 @@ function fallbackKeywords(topic: string): string[] {
     return [topic];
 }
 
+// Helper to strip Markdown code blocks
+function cleanJson(text: string): string {
+    return text.replace(/```json/g, '').replace(/```/g, '').trim();
+}
+
 /**
- * AI Technical Dictionary Generator
+ * Technical Dictionary Generator (Web Scraper Mode)
+ * Fetches terms from Wikipedia via internal API
  */
-export async function generateDictionary(topic: string, count: number = 20): Promise<any[]> {
-    if (!process.env.NEXT_PUBLIC_GROQ_API_KEY) throw new Error("API Key eksik.");
-
+export async function generateDictionary(topic: string, count: number = 200): Promise<any[]> {
     try {
-        const prompt = `Sen teknik bir sözlük yazarısın.
-Konu: "${topic}"
-Görev: Bu konuyla ilgili en önemli ${count} teknik terimi, Türkçe karşılığını ve 1 cümlelik net tanımını yaz.
+        console.log("Fetching dictionary from Web for:", topic);
+        const res = await fetch(`/api/glossary?topic=${encodeURIComponent(topic)}`);
 
-Çıktı Formatı (JSON Array):
-[
-  { "term": "Term Name", "tr": "Türkçe Adı", "definition": "Kısa teknik açıklama." }
-]
-Sadece JSON dizisi döndür.`;
+        if (!res.ok) {
+            console.warn("Glossary API failed:", res.status);
+            return [];
+        }
 
-        const completion = await groq.chat.completions.create({
-            messages: [{ role: "user", content: prompt }],
-            model: "llama-3.3-70b-versatile",
-            temperature: 0.2,
-            max_tokens: 4000,
-            response_format: { type: "json_object" }
-        });
-
-        const raw = completion.choices[0]?.message?.content?.trim();
-        if (!raw) return [];
-
-        // Handle { dictionary: [...] } or [...]
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) return parsed;
-        if (parsed.terms) return parsed.terms;
-        if (parsed.dictionary) return parsed.dictionary;
+        const data = await res.json();
+        if (data.success && data.terms) {
+            return data.terms.slice(0, count);
+        }
         return [];
-
     } catch (e) {
-        console.error("Dictionary gen failed:", e);
+        console.error("Dictionary scraper failed:", e);
         return [];
     }
 }
@@ -195,7 +184,7 @@ export async function generateRelatedTopics(topic: string): Promise<string[]> {
 Konu: "${topic}"
 Görev: Bu konuyu çalışmak isteyen birine önerilecek 10 adet TAMAMLAYICI veya BENZER teknik eğitim başlığı öner.
 Örnek: "Python" -> ["Django Web Framework", "Veri Bilimi için Pandas", "Makine Öğrenmesi Temelleri", ...]
-Sadece JSON string array döndür.`;
+Sadece JSON string array döndür. Markdown block kullanma.`;
 
         const completion = await groq.chat.completions.create({
             messages: [{ role: "user", content: systemPrompt }],
@@ -208,7 +197,9 @@ Sadece JSON string array döndür.`;
         const raw = completion.choices[0]?.message?.content?.trim();
         if (!raw) return [];
 
-        const parsed = JSON.parse(raw);
+        const clean = cleanJson(raw);
+        const parsed = JSON.parse(clean);
+
         if (Array.isArray(parsed)) return parsed;
         if (parsed.topics) return parsed.topics;
         return [];

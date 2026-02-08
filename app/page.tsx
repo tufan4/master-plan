@@ -1096,6 +1096,11 @@ export default function MasterTufanOS() {
                                                     const related = await generateRelatedTopics(cat.title);
                                                     setGhostTopics(related || []);
                                                     setActiveCategory(cat.id);
+                                                    // Scroll to bottom
+                                                    setTimeout(() => {
+                                                        const bottom = document.getElementById('ghost-topics-section');
+                                                        if (bottom) bottom.scrollIntoView({ behavior: 'smooth' });
+                                                    }, 500);
                                                 }}
                                                 className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${showingGhostFor === cat.id ? 'bg-purple-500 text-white' : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500 hover:text-white'
                                                     }`}
@@ -1283,12 +1288,12 @@ export default function MasterTufanOS() {
                                             <button
                                                 onClick={async () => {
                                                     if (isGenerating) return;
-                                                    const count = Number(prompt("Kaç adet terim üretilsin? (Max 50)", "20")) || 20;
+                                                    const count = Number(prompt("Kaç adet terim üretilsin? (Max 200)", "50")) || 50;
                                                     if (count < 1) return;
 
                                                     setIsGenerating(true);
                                                     try {
-                                                        const terms = await generateDictionary(activeData.title, Math.min(count, 50));
+                                                        const terms = await generateDictionary(activeData.title, count);
                                                         if (terms && terms.length > 0) {
                                                             const updatedList = allCategories.map(cat => {
                                                                 if (cat.id === activeData.id) {
@@ -1303,7 +1308,7 @@ export default function MasterTufanOS() {
                                                             localStorage.setItem("customCurriculums", JSON.stringify(updatedList.filter(c => c.isCustom)));
                                                             alert(`${terms.length} terim sözlüğe eklendi!`);
                                                         } else {
-                                                            alert("Sözlük üretilemedi.");
+                                                            alert("Sözlük üretilemedi (İnternette kaynak bulunamadı).");
                                                         }
                                                     } catch (e) {
                                                         alert("Hata oluştu.");
@@ -1315,7 +1320,7 @@ export default function MasterTufanOS() {
                                                 className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg font-bold text-sm"
                                             >
                                                 {isGenerating ? <div className="animate-spin w-4 h-4 border-2 border-white/50 border-t-white rounded-full" /> : <Sparkles size={16} />}
-                                                {isGenerating ? 'Üretiliyor...' : 'Yapay Zeka ile Sözlük Oluştur'}
+                                                {isGenerating ? 'Taranıyor...' : 'İnternetten Sözlük Getir'}
                                             </button>
                                         )}
                                     </div>
@@ -1514,7 +1519,7 @@ export default function MasterTufanOS() {
 
                             {/* GHOST TOPICS (RELATED SUGGESTIONS) */}
                             {showingGhostFor === activeCategory && ghostTopics.length > 0 && !showDictionary && (
-                                <div className="max-w-4xl mx-auto mt-12 mb-20 border-t border-slate-800 pt-8">
+                                <div id="ghost-topics-section" className="max-w-4xl mx-auto mt-12 mb-20 border-t border-slate-800 pt-8">
                                     <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
                                         <Sparkles size={16} /> Benzer Müfredatlar (Öneri)
                                     </h3>
