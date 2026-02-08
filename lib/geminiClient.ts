@@ -51,7 +51,8 @@ function normalizeTopic(text: string): string {
 }
 
 /**
- * AI Curriculum Generator (Massive Flat Hybrid)
+ * AI Curriculum Generator (Deep Recursive Tree Mode)
+ * Improved Prompt System by User Request (Technical & Detailed)
  */
 export async function generateFullCurriculum(topic: string): Promise<any> {
     if (!process.env.NEXT_PUBLIC_GROQ_API_KEY) {
@@ -61,35 +62,43 @@ export async function generateFullCurriculum(topic: string): Promise<any> {
     const normalizedTopic = normalizeTopic(topic);
 
     try {
-        const prompt = `Act as an Elite Engineering Professor.
-Create a high-granularity technical curriculum for: "${normalizedTopic}" in TURKISH.
+        const systemPrompt = `Sen bir uzman öğrenme yolu tasarımcısısın. Görevin, "${normalizedTopic}" konusunu derinlemesine analiz edip, sıfırdan ileri seviyeye kadar yapılandırılmış, akademik ve teknik bir müfredat ağacı oluşturmak.
 
-STRICT RULES:
-1. TITLES: Max 3-4 words. Extremely concise. (e.g., "PLC Donanım Birimleri")
-2. VOLUME: Generate exactly 40-60 Micro-Keywords.
-3. HIERARCHY: Use "level" (0=Main, 1=Sub, 2=Detail).
-4. REPETITION: Every item must be related to "${normalizedTopic}".
-5. FORMAT: Return ONLY a valid JSON object.
+TEMEL KURALLAR:
+1. Her alt başlık MUTLAKA teknik ve detaylı olmalı.
+2. Genel başlıklar ASLA KULLANMA (❌ "Giriş", "Temel Bilgiler", "Tarihçe", "Avantajlar", "İleri Seviye", "Sonuç").
+3. Her başlık spesifik bir teknik kavramı veya beceriyi temsil etmeli.
+4. Hiyerarşik yapı kur: Ana Konu -> Alt Konu -> Detay Konu (En az 3 derinlik).
+5. Kapsamlı olmalı (En az 30-40 toplam başlık).
 
-JSON STRUCTURE:
+BAŞLIK FORMATI ÖRNEKLERİ:
+✅ DOĞRU: "PLC Ladder Logic Programlama Temelleri"
+✅ DOĞRU: "Siemens S7-1200 Timer ve Counter Fonksiyonları"
+❌ YANLIŞ: "PLC Nedir?", "Giriş", "Temel Kavramlar"
+
+ÇIKTI FORMATI (JSON):
 {
-    "id": "gen-path",
-    "title": "${normalizedTopic}",
-    "isMassive": true,
-    "topics": [
-        { "id": "1", "level": 0, "title": "Giriş ve Temel", "en": "Introduction" },
-        ...
-    ]
-}`;
+  "title": "${normalizedTopic}",
+  "topics": [
+    {
+      "id": "uuid-1",
+      "title": "Spesifik Alt Başlık 1",
+      "subtopics": [
+        { "id": "uuid-1-1", "title": "Teknik Detay 1", "subtopics": [] }
+      ]
+    }
+  ]
+}
+Sadece JSON döndür.`;
 
         const completion = await groq.chat.completions.create({
             messages: [
-                { role: "system", content: "You are a curriculum architect that outputs technical learning paths in valid JSON." },
-                { role: "user", content: prompt }
+                { role: "system", content: systemPrompt },
+                { role: "user", content: `"${normalizedTopic}" için detaylı müfredat ağacını oluştur.` }
             ],
             model: "llama-3.3-70b-versatile",
-            temperature: 0.2,
-            max_tokens: 6000,
+            temperature: 0.3, // Scientific creativity
+            max_tokens: 7000,
             response_format: { type: "json_object" }
         });
 
@@ -98,17 +107,32 @@ JSON STRUCTURE:
 
         const parsed = JSON.parse(rawText);
 
-        if (parsed.topics && Array.isArray(parsed.topics)) {
-            parsed.topics = parsed.topics.map((t: any) => ({
-                ...t,
-                level: t.level ?? 1,
-                subtopics: t.subtopics || []
+        // Recursive ID fixer helper (ensures unique IDs and levels for frontend)
+        const fixStructure = (items: any[], parentLevel: number = 0) => {
+            return items.map((item, idx) => ({
+                id: item.id || `gen-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                title: item.title,
+                level: parentLevel + 1,
+                keywords: [item.title.toLowerCase()],
+                subtopics: item.subtopics && Array.isArray(item.subtopics) ? fixStructure(item.subtopics, parentLevel + 1) : []
             }));
+        };
+
+        let topics = [];
+        if (parsed.topics && Array.isArray(parsed.topics)) {
+            topics = fixStructure(parsed.topics, 0);
+        } else if (Array.isArray(parsed)) {
+            topics = fixStructure(parsed, 0);
         } else {
-            throw new Error("Invalid structure: missing topics array.");
+            // Fallback for weird AI outputs
+            topics = [];
         }
 
-        return parsed;
+        return {
+            title: parsed.title || normalizedTopic,
+            topics: topics
+        }; // Return standardized format
+
     } catch (error) {
         console.error('Curriculum generation failed:', error);
         throw error;
