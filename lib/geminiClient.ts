@@ -8,6 +8,8 @@ const groq = new Groq({
 const MODEL = "llama-3.3-70b-versatile";
 
 export async function generateFullCurriculum(topic: string, targetCount: number = 500) {
+    console.log(`[AI] Starting curriculum generation for: "${topic}" with target count: ${targetCount}`);
+
     try {
         const prompt = `You are a world-class curriculum designer for engineering education.
 
@@ -51,6 +53,8 @@ OUTPUT FORMAT (minified JSON):
 
 Return ONLY valid, minified JSON. No explanations.`;
 
+        console.log('[AI] Sending request to GROQ API...');
+
         const completion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
             model: MODEL,
@@ -58,8 +62,14 @@ Return ONLY valid, minified JSON. No explanations.`;
             max_tokens: 16000,
         });
 
+        console.log('[AI] Received response from GROQ API');
+
         const content = completion.choices[0]?.message?.content?.trim();
-        if (!content) throw new Error("No content generated");
+        if (!content) {
+            throw new Error("AI returned empty response");
+        }
+
+        console.log('[AI] Parsing AI response...');
 
         const cleanedContent = content
             .replace(/```json\n?/g, '')
@@ -69,12 +79,27 @@ Return ONLY valid, minified JSON. No explanations.`;
         const parsed = JSON.parse(cleanedContent);
 
         if (!parsed.topics || !Array.isArray(parsed.topics)) {
-            throw new Error("Invalid curriculum structure");
+            throw new Error("Invalid curriculum structure - missing or invalid topics array");
         }
 
+        console.log(`[AI] Successfully generated curriculum with ${parsed.topics.length} main topics`);
         return parsed;
-    } catch (error) {
-        console.error("Curriculum generation error:", error);
-        throw error;
+
+    } catch (error: any) {
+        console.error('[AI] Generation failed:', error);
+
+        if (error?.message?.includes('API key')) {
+            throw new Error('GROQ API anahtarı geçersiz veya eksik. Lütfen .env.local dosyasını kontrol edin.');
+        }
+
+        if (error?.message?.includes('quota') || error?.message?.includes('rate limit')) {
+            throw new Error('AI API limiti aşıldı. Lütfen birkaç dakika sonra tekrar deneyin.');
+        }
+
+        if (error?.message?.includes('timeout')) {
+            throw new Error('AI isteği zaman aşımına uğradı. Lütfen tekrar deneyin.');
+        }
+
+        throw new Error(`Müfredat oluşturma hatası: ${error.message || 'Bilinmeyen hata'}`);
     }
 }
