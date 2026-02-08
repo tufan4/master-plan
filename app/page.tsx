@@ -19,7 +19,7 @@ import {
     Globe, MessageCircle, Sparkles, BookOpen, Info, Instagram, Linkedin,
     Github, Lightbulb, HelpCircle, Layout, Settings, Download, Leaf, Plus
 } from "lucide-react";
-import { generateDiverseKeywords, generateFullCurriculum } from "@/lib/geminiClient";
+import { generateDiverseKeywords, generateFullCurriculum, generateDictionary, generateRelatedTopics } from "@/lib/geminiClient";
 import { getDeepDiscoveryLink } from "@/lib/deepDiscovery";
 
 // ==================== PLATFORMS ====================
@@ -69,6 +69,7 @@ export default function MasterTufanOS() {
     const [activeCategory, setActiveCategory] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
     const [aiPrompt, setAiPrompt] = useState("");
+    const [topicCount, setTopicCount] = useState(50); // User selectable count
 
     const [globalSearch, setGlobalSearch] = useState("");
     const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
@@ -88,6 +89,8 @@ export default function MasterTufanOS() {
     const [pulsingMatch, setPulsingMatch] = useState<string | null>(null);
     const [customDict, setCustomDict] = useState<any[]>([]);
     const [visibleCount, setVisibleCount] = useState<Record<string, number>>({});
+    const [ghostTopics, setGhostTopics] = useState<string[]>([]);
+    const [showingGhostFor, setShowingGhostFor] = useState<string | null>(null);
 
     /**
      * Helper: Normalize Acronyms & Professional Casing
@@ -158,7 +161,7 @@ export default function MasterTufanOS() {
         const finalPrompt = normalizeTopic(aiPrompt);
         setIsGenerating(true);
         try {
-            const result = await generateFullCurriculum(finalPrompt);
+            const result = await generateFullCurriculum(finalPrompt, topicCount);
 
             if (result && (result.categories || result.topics)) {
                 // Determine if it is a flat massive list or categorical
@@ -964,27 +967,54 @@ export default function MasterTufanOS() {
                             <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-lg w-full shadow-2xl relative overflow-hidden">
                                 <button onClick={() => setShowNewCurriculumModal(false)} className="absolute right-4 top-4 text-slate-500 hover:text-white transition-colors"><X size={20} /></button>
                                 <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                                    <div className="p-2 bg-blue-600/20 rounded-lg"><Plus size={24} className="text-blue-400" /></div>
-                                    Hangi konuda uzmanlaşmak istersiniz?
+                                    <div className="p-2 bg-slate-800 rounded-lg"><Plus size={24} className="text-blue-400" /></div>
+                                    Müfredat Oluşturucu
                                 </h3>
-                                <p className="text-slate-400 text-sm mb-4 leading-relaxed">
-                                    Size temelden ileri seviyeye 100'lerce teknik atom içeren devasa bir "Master Plan" hazırlamam için konuyu aşağıya yazın.
+                                <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+                                    Hangi konuda uzmanlaşmak istersiniz?<br />
+                                    Yapay zeka sizin için sıfırdan ileri seviyeye teknik bir yol haritası çizecek.
                                 </p>
-                                <div className="relative group">
-                                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-30 group-hover:opacity-75 transition duration-200"></div>
-                                    <div className="relative flex items-center bg-slate-800 rounded-xl p-1 border border-slate-600">
+
+                                <div className="space-y-6">
+                                    <div className="relative group">
+                                        <div className="relative flex items-center bg-slate-800 rounded-xl p-1 border border-slate-600 focus-within:border-blue-500 transition-colors">
+                                            <input
+                                                type="text"
+                                                value={aiPrompt}
+                                                onChange={(e) => setAiPrompt(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleGenerateCurriculum()}
+                                                placeholder="Örn: S7-1200 PLC, İleri seviye Python, Veri Bilimi..."
+                                                className="w-full bg-transparent border-none px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:outline-none"
+                                                autoFocus
+                                            />
+                                            <button onClick={handleGenerateCurriculum} disabled={!aiPrompt.trim() || isGenerating} className="p-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white ml-2 transition-all">
+                                                {isGenerating ? <div className="animate-spin border-2 border-white/30 border-t-white rounded-full w-5 h-5" /> : <ChevronRight size={20} />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* TOPIC COUNT SLIDER */}
+                                    <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Kapsam Derinliği</label>
+                                            <span className="text-sm font-bold text-blue-400 bg-blue-900/30 px-2 py-1 rounded">
+                                                {topicCount} Başlık
+                                            </span>
+                                        </div>
                                         <input
-                                            type="text"
-                                            value={aiPrompt}
-                                            onChange={(e) => setAiPrompt(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleGenerateCurriculum()}
-                                            placeholder="Örn: PLC Programlama, KPSS Tarih, Python..."
-                                            className="w-full bg-transparent border-none px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:outline-none"
-                                            autoFocus
+                                            type="range"
+                                            min="50"
+                                            max="500"
+                                            step="50"
+                                            value={topicCount}
+                                            onChange={(e) => setTopicCount(Number(e.target.value))}
+                                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
                                         />
-                                        <button onClick={handleGenerateCurriculum} disabled={!aiPrompt.trim() || isGenerating} className="p-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-white ml-2 transition-all">
-                                            {isGenerating ? <div className="animate-spin border-2 border-white/30 border-t-white rounded-full w-5 h-5" /> : <ChevronRight size={20} />}
-                                        </button>
+                                        <div className="flex justify-between mt-2 text-[10px] text-slate-500 font-mono">
+                                            <span>Temel (50)</span>
+                                            <span>Detaylı (250)</span>
+                                            <span>Ansiklopedi (500)</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1014,7 +1044,7 @@ export default function MasterTufanOS() {
                                 className="cursor-pointer group mb-4"
                                 onClick={resetApp}
                             >
-                                <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 hover:to-yellow-400 transition-all font-[family-name:var(--font-syncopate)] tracking-[0.15em] uppercase drop-shadow-sm">
+                                <h1 className="text-3xl font-black text-slate-200 tracking-[0.2em] font-[family-name:var(--font-syncopate)] uppercase hover:text-white transition-colors">
                                     Master Tufan
                                 </h1>
                             </div>
@@ -1026,9 +1056,9 @@ export default function MasterTufanOS() {
                         <div className="p-4 space-y-2 flex-1">
                             <button
                                 onClick={() => setShowNewCurriculumModal(true)}
-                                className="w-full flex items-center justify-center gap-2 p-3 mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl shadow-lg transition-all font-bold group border border-blue-400/20 hover:border-blue-400/50"
+                                className="w-full flex items-center justify-center gap-2 p-3 mb-4 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-500 rounded-lg transition-all font-medium group"
                             >
-                                <Plus size={18} className="group-hover:scale-110 transition-transform" />
+                                <Plus size={18} className="text-slate-400 group-hover:text-white transition-colors" />
                                 <span className="text-sm">Müfredat Ekle</span>
                             </button>
 
@@ -1039,33 +1069,57 @@ export default function MasterTufanOS() {
                                             setActiveCategory(cat.id);
                                             setShowDictionary(false);
                                         }}
-                                        className={`w-full text-left px-4 py-3 rounded-xl transition-all ${activeCategory === cat.id && !showDictionary
-                                            ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg'
-                                            : 'bg-slate-700/30 hover:bg-slate-700/50 text-slate-300'
+                                        className={`w-full text-left px-4 py-2 rounded-lg transition-all border-l-2 ${activeCategory === cat.id && !showDictionary
+                                            ? 'bg-slate-800 text-white border-white'
+                                            : 'bg-transparent text-slate-400 hover:text-slate-200 border-transparent hover:bg-slate-800/50'
                                             }`}
                                     >
                                         <span className="text-sm font-medium truncate block pr-6">
-                                            {cat.id.startsWith('custom') ? '✨ ' : ''}
+                                            {cat.id.startsWith('custom') ? '🔹 ' : ''}
                                             {cat.title}
                                         </span>
                                     </button>
 
                                     {/* DELETE BUTTON FOR CUSTOM CATEGORIES */}
                                     {cat.isCustom && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                const newList = allCategories.filter(c => c.id !== cat.id);
-                                                setAllCategories(newList);
-                                                const customOnly = newList.filter((c: any) => c.isCustom);
-                                                localStorage.setItem("customCurriculums", JSON.stringify(customOnly));
-                                                if (activeCategory === cat.id) setActiveCategory(newList[0]?.id || "");
-                                            }}
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 px-2 py-1 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded text-[10px] font-bold transition-all"
-                                            title="Sil"
-                                        >
-                                            SİL
-                                        </button>
+                                        <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex gap-1">
+                                            {/* GHOST / RELATED TOPICS BUTTON */}
+                                            <button
+                                                onClick={async (e) => {
+                                                    e.stopPropagation();
+                                                    if (showingGhostFor === cat.id) {
+                                                        setShowingGhostFor(null);
+                                                        setGhostTopics([]);
+                                                        return;
+                                                    }
+                                                    setShowingGhostFor(cat.id);
+                                                    const related = await generateRelatedTopics(cat.title);
+                                                    setGhostTopics(related || []);
+                                                    setActiveCategory(cat.id);
+                                                }}
+                                                className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${showingGhostFor === cat.id ? 'bg-purple-500 text-white' : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500 hover:text-white'
+                                                    }`}
+                                                title="Benzer Konuları Göster"
+                                            >
+                                                BENZER
+                                            </button>
+
+                                            {/* DELETE BUTTON */}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    const newList = allCategories.filter(c => c.id !== cat.id);
+                                                    setAllCategories(newList);
+                                                    const customOnly = newList.filter((c: any) => c.isCustom);
+                                                    localStorage.setItem("customCurriculums", JSON.stringify(customOnly));
+                                                    if (activeCategory === cat.id) setActiveCategory(newList[0]?.id || "");
+                                                }}
+                                                className="px-2 py-1 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded text-[10px] font-bold transition-all"
+                                                title="Sil"
+                                            >
+                                                SİL
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             ))}
@@ -1076,12 +1130,12 @@ export default function MasterTufanOS() {
                                     setShowDictionary(true);
                                     setActiveCategory('');
                                 }}
-                                className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-2 ${showDictionary
-                                    ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg'
-                                    : 'bg-slate-700/30 hover:bg-slate-700/50 text-slate-300'
+                                className={`w-full text-left px-4 py-2 rounded-lg transition-all flex items-center gap-2 border-l-2 ${showDictionary
+                                    ? 'bg-slate-800 text-white border-white'
+                                    : 'bg-transparent text-slate-400 hover:text-slate-200 border-transparent hover:bg-slate-800/50'
                                     }`}
                             >
-                                <BookOpen size={18} />
+                                <BookOpen size={16} />
                                 <span className="text-sm font-medium">Sözlük ({CURRICULUM.dictionary.length})</span>
                             </button>
                         </div>
@@ -1154,55 +1208,61 @@ export default function MasterTufanOS() {
                     {/* MAIN */}
                     <main className="flex-1 flex flex-col overflow-hidden">
                         {/* GLOBAL SEARCH TERMINAL - FIXED TOP */}
-                        <div className="bg-gradient-to-r from-slate-800 via-slate-800/95 to-slate-800 backdrop-blur-sm border-b border-amber-500/20 p-3 md:p-4 shadow-lg">
-                            <div className="flex items-center gap-2 md:gap-3">
-                                <Sparkles className="text-amber-400 animate-pulse" size={24} />
-                                <div className="flex-1 relative">
+                        <div className="bg-slate-900 border-b border-slate-800 p-4">
+                            <div className="flex items-center gap-4 max-w-5xl mx-auto">
+                                <div className="flex-1 relative group">
                                     <input
                                         type="text"
-                                        placeholder="🔍 MASTER SEARCH..."
-                                        className="w-full px-4 py-3 pl-10 md:pl-12 rounded-xl bg-slate-900/70 border-2 border-slate-700 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all text-sm md:text-base"
+                                        placeholder="Ara..."
+                                        className="w-full px-4 py-3 pl-10 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-slate-500 transition-all font-medium"
                                         value={globalSearch}
                                         onChange={(e) => setGlobalSearch(e.target.value)}
                                     />
-                                    <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-amber-400" size={18} />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-slate-300 transition-colors" size={18} />
                                 </div>
-                                <div className="hidden md:flex flex-col items-end gap-1 px-4">
+                                <div className="hidden md:flex flex-col items-end gap-1 px-2 border-l border-slate-800 pl-6">
                                     <button
                                         onClick={() => setRunTutorial(true)}
-                                        className="group relative w-12 h-12 flex items-center justify-center bg-slate-800/50 rounded-lg hover:bg-slate-700/50 border border-slate-600 transition-all shadow-[0_0_15px_rgba(251,191,36,0.1)] hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] animate-pulse"
-                                        title="Start Tutorial"
+                                        className="text-slate-600 hover:text-slate-400 transition-colors"
+                                        title="Help"
                                     >
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-amber-400 group-hover:scale-110 transition-transform">
-                                            <path d="M4 6H20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                                            <path d="M12 6V20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                                            <path d="M12 6L6 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.7" />
-                                            <path d="M12 6L18 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.7" />
-                                        </svg>
+                                        <HelpCircle size={20} />
                                     </button>
-                                    <p className="text-3xl font-black text-emerald-400">{Math.round(progress)}%</p>
-                                    <p className="text-xs text-slate-500 font-mono">{completedItems.size} / {TOTAL}</p>
                                 </div>
                             </div>
                         </div>
 
 
 
-                        <header className="border-b border-slate-800 bg-slate-900/50 p-6">
-                            <h2 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                                {showDictionary ? "📖 Mühendislik Sözlüğü" : activeData?.title}
+                        <header className="border-b border-slate-800 bg-slate-900 px-8 py-6 relative">
+                            <h2 className="text-2xl font-semibold mb-2 text-slate-100 tracking-tight flex items-center gap-3">
+                                {showDictionary
+                                    ? (activeData ? `📘 ${activeData.title} Sözlüğü` : "Mühendislik Sözlüğü")
+                                    : activeData?.title}
                             </h2>
+
+                            {/* TOPIC DICTIONARY TOGGLE IN HEADER */}
+                            {activeData && (
+                                <button
+                                    onClick={() => setShowDictionary(!showDictionary)}
+                                    className={`absolute right-8 top-6 px-4 py-2 rounded-lg text-sm font-bold transition-all border ${showDictionary
+                                        ? 'bg-blue-600 text-white border-blue-500 hover:bg-blue-500'
+                                        : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white hover:border-slate-500'
+                                        }`}
+                                >
+                                    {showDictionary ? 'Müfredata Dön' : '📘 Terimler Sözlüğü'}
+                                </button>
+                            )}
+
                             {!showDictionary && (
-                                <div className="h-3 bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                                <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
                                     <motion.div
-                                        className="h-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500"
+                                        className="h-full bg-slate-500"
                                         animate={{
-                                            width: `${progress}%`,
-                                            backgroundPosition: ['0%', '200%']
+                                            width: `${progress}%`
                                         }}
                                         transition={{
-                                            width: { duration: 0.5 },
-                                            backgroundPosition: { duration: 3, repeat: Infinity }
+                                            width: { duration: 0.5 }
                                         }}
                                     />
                                 </div>
@@ -1211,63 +1271,96 @@ export default function MasterTufanOS() {
 
                         <div className="flex-1 overflow-y-auto p-6">
                             {showDictionary ? (
-                                /* DICTIONARY VIEW */
+                                /* DICTIONARY VIEW (GLOBAL OR TOPIC SPECIFIC) */
                                 <div className="space-y-6">
-                                    <div className="flex justify-between items-center">
-                                        <h3 className="text-xl font-bold text-purple-400">Teknik Terimler</h3>
-                                        <button
-                                            onClick={() => {
-                                                const term = prompt("Terim:");
-                                                const tr = prompt("Türkçe Karşılığı:");
-                                                const def = prompt("Tanımı (Opsiyonel):");
-                                                if (term && tr) {
-                                                    const newEntry = { term, tr, definition: def || "", category: "Kullanıcı" };
-                                                    const current = JSON.parse(localStorage.getItem("customDictionary") || "[]");
-                                                    const updated = [...current, newEntry];
-                                                    localStorage.setItem("customDictionary", JSON.stringify(updated));
-                                                    // Trigger re-render by updating state
-                                                    setCustomDict(updated);
-                                                }
-                                            }}
-                                            className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg"
-                                        >
-                                            <Plus size={16} />
-                                            Yeni Terim Ekle
-                                        </button>
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="text-xl font-bold text-slate-300">
+                                            {activeData ? `${activeData.title} Terimleri` : "Tüm Teknik Terimler"}
+                                        </h3>
+
+                                        {/* AI DICTIONARY GENERATOR FOR CUSTOM TOPICS */}
+                                        {activeData && activeData.isCustom && (
+                                            <button
+                                                onClick={async () => {
+                                                    if (isGenerating) return;
+                                                    const count = Number(prompt("Kaç adet terim üretilsin? (Max 50)", "20")) || 20;
+                                                    if (count < 1) return;
+
+                                                    setIsGenerating(true);
+                                                    try {
+                                                        const terms = await generateDictionary(activeData.title, Math.min(count, 50));
+                                                        if (terms && terms.length > 0) {
+                                                            const updatedList = allCategories.map(cat => {
+                                                                if (cat.id === activeData.id) {
+                                                                    return {
+                                                                        ...cat,
+                                                                        dictionary: [...(cat.dictionary || []), ...terms]
+                                                                    };
+                                                                }
+                                                                return cat;
+                                                            });
+                                                            setAllCategories(updatedList);
+                                                            localStorage.setItem("customCurriculums", JSON.stringify(updatedList.filter(c => c.isCustom)));
+                                                            alert(`${terms.length} terim sözlüğe eklendi!`);
+                                                        } else {
+                                                            alert("Sözlük üretilemedi.");
+                                                        }
+                                                    } catch (e) {
+                                                        alert("Hata oluştu.");
+                                                    } finally {
+                                                        setIsGenerating(false);
+                                                    }
+                                                }}
+                                                disabled={isGenerating}
+                                                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg font-bold text-sm"
+                                            >
+                                                {isGenerating ? <div className="animate-spin w-4 h-4 border-2 border-white/50 border-t-white rounded-full" /> : <Sparkles size={16} />}
+                                                {isGenerating ? 'Üretiliyor...' : 'Yapay Zeka ile Sözlük Oluştur'}
+                                            </button>
+                                        )}
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {[...CURRICULUM.dictionary, ...customDict]
-                                            .sort((a: any, b: any) => a.term.localeCompare(b.term))
-                                            .filter((entry: any) => {
-                                                if (!globalSearch.trim()) return true;
-                                                const searchLower = globalSearch.toLowerCase();
-                                                return (
-                                                    entry.term.toLowerCase().includes(searchLower) ||
-                                                    entry.tr.toLowerCase().includes(searchLower) ||
-                                                    (entry.category && entry.category.toLowerCase().includes(searchLower))
-                                                );
-                                            })
-                                            .map((entry: any, idx: number) => (
-                                                <motion.div
-                                                    key={idx}
-                                                    initial={{ opacity: 0, y: 20 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: idx * 0.01 }}
-                                                    className="bg-slate-800/50 border border-purple-500/20 rounded-xl p-4 hover:bg-slate-800/70 hover:border-purple-500/40 transition-all group"
-                                                >
-                                                    <div className="flex items-start justify-between mb-2">
-                                                        <h3 className="text-lg font-bold text-purple-300">{entry.term}</h3>
-                                                        <span className="text-[10px] px-2 py-1 bg-purple-900/30 rounded-full text-purple-400 font-bold uppercase">
-                                                            {entry.category || "GENEL"}
-                                                        </span>
-                                                    </div>
-                                                    <p className="text-sm text-amber-500 mb-2 font-medium">🇹🇷 {entry.tr}</p>
-                                                    {entry.definition && (
-                                                        <p className="text-xs text-slate-400 italic leading-relaxed">{entry.definition}</p>
-                                                    )}
-                                                </motion.div>
-                                            ))}
+                                        {(() => {
+                                            // Source: Global Dictionary OR Custom Local Dict + Active Topic Dict
+                                            const source = activeData
+                                                ? (activeData.dictionary || [])
+                                                : [...CURRICULUM.dictionary, ...customDict];
+
+                                            return source
+                                                .sort((a: any, b: any) => a.term.localeCompare(b.term))
+                                                .filter((entry: any) => {
+                                                    if (!globalSearch.trim()) return true;
+                                                    const searchLower = globalSearch.toLowerCase();
+                                                    return (
+                                                        entry.term.toLowerCase().includes(searchLower) ||
+                                                        entry.tr.toLowerCase().includes(searchLower)
+                                                    );
+                                                })
+                                                .map((entry: any, idx: number) => (
+                                                    <motion.div
+                                                        key={idx}
+                                                        initial={{ opacity: 0, y: 20 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ delay: idx * 0.01 }}
+                                                        className="bg-slate-800/50 border border-slate-700 hover:border-blue-500/50 rounded-xl p-4 hover:bg-slate-800 transition-all group"
+                                                    >
+                                                        <div className="flex items-start justify-between mb-2">
+                                                            <h3 className="text-lg font-bold text-slate-200 group-hover:text-blue-400 transition-colors">{entry.term}</h3>
+                                                        </div>
+                                                        <p className="text-sm text-blue-400 mb-2 font-medium">🇹🇷 {entry.tr}</p>
+                                                        {entry.definition && (
+                                                            <p className="text-xs text-slate-400 italic leading-relaxed border-t border-slate-700/50 pt-2">{entry.definition}</p>
+                                                        )}
+                                                    </motion.div>
+                                                ));
+                                        })()}
+
+                                        {(!activeData || (activeData.dictionary?.length || 0) === 0) && (
+                                            <div className="col-span-full text-center py-10 text-slate-500 italic">
+                                                {activeData ? "Henüz terim eklenmemiş. Yapay zeka ile oluşturun!" : "Sözlük boş."}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ) : globalSearch ? (
@@ -1416,6 +1509,33 @@ export default function MasterTufanOS() {
                                             </button>
                                         </div>
                                     )}
+                                </div>
+                            )}
+
+                            {/* GHOST TOPICS (RELATED SUGGESTIONS) */}
+                            {showingGhostFor === activeCategory && ghostTopics.length > 0 && !showDictionary && (
+                                <div className="max-w-4xl mx-auto mt-12 mb-20 border-t border-slate-800 pt-8">
+                                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                        <Sparkles size={16} /> Benzer Müfredatlar (Öneri)
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {ghostTopics.map((topic, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => {
+                                                    setAiPrompt(topic);
+                                                    setTopicCount(50);
+                                                    setShowNewCurriculumModal(true);
+                                                }}
+                                                className="group relative p-4 rounded-xl border border-slate-800 bg-slate-900/50 hover:bg-slate-800 transition-all text-left opacity-60 hover:opacity-100 hover:scale-[1.02]"
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <span className="font-bold text-slate-300 group-hover:text-blue-400">{topic}</span>
+                                                    <Plus size={16} className="text-slate-600 group-hover:text-white" />
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </div>

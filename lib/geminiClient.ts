@@ -54,7 +54,7 @@ function normalizeTopic(text: string): string {
  * AI Curriculum Generator (Deep Recursive Tree Mode)
  * Improved Prompt System by User Request (Technical & Detailed)
  */
-export async function generateFullCurriculum(topic: string): Promise<any> {
+export async function generateFullCurriculum(topic: string, count: number = 50): Promise<any> {
     if (!process.env.NEXT_PUBLIC_GROQ_API_KEY) {
         throw new Error("API Key eksik.");
     }
@@ -69,7 +69,7 @@ TEMEL KURALLAR:
 2. Genel başlıklar ASLA KULLANMA (❌ "Giriş", "Temel Bilgiler", "Tarihçe", "Avantajlar", "İleri Seviye", "Sonuç").
 3. Her başlık spesifik bir teknik kavramı veya beceriyi temsil etmeli.
 4. Hiyerarşik yapı kur: Ana Konu -> Alt Konu -> Detay Konu (En az 3 derinlik).
-5. Kapsamlı olmalı (En az 30-40 toplam başlık).
+5. Kapsamlı olmalı: TOPLAM EN AZ ${count} adet başlık üretmelisin. Konu bütünlüğünü koruyarak ${count} maddeye ulaş.
 
 BAŞLIK FORMATI ÖRNEKLERİ:
 ✅ DOĞRU: "PLC Ladder Logic Programlama Temelleri"
@@ -141,4 +141,80 @@ Sadece JSON döndür.`;
 
 function fallbackKeywords(topic: string): string[] {
     return [topic];
+}
+
+/**
+ * AI Technical Dictionary Generator
+ */
+export async function generateDictionary(topic: string, count: number = 20): Promise<any[]> {
+    if (!process.env.NEXT_PUBLIC_GROQ_API_KEY) throw new Error("API Key eksik.");
+
+    try {
+        const prompt = `Sen teknik bir sözlük yazarısın.
+Konu: "${topic}"
+Görev: Bu konuyla ilgili en önemli ${count} teknik terimi, Türkçe karşılığını ve 1 cümlelik net tanımını yaz.
+
+Çıktı Formatı (JSON Array):
+[
+  { "term": "Term Name", "tr": "Türkçe Adı", "definition": "Kısa teknik açıklama." }
+]
+Sadece JSON dizisi döndür.`;
+
+        const completion = await groq.chat.completions.create({
+            messages: [{ role: "user", content: prompt }],
+            model: "llama-3.3-70b-versatile",
+            temperature: 0.2,
+            max_tokens: 4000,
+            response_format: { type: "json_object" }
+        });
+
+        const raw = completion.choices[0]?.message?.content?.trim();
+        if (!raw) return [];
+
+        // Handle { dictionary: [...] } or [...]
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+        if (parsed.terms) return parsed.terms;
+        if (parsed.dictionary) return parsed.dictionary;
+        return [];
+
+    } catch (e) {
+        console.error("Dictionary gen failed:", e);
+        return [];
+    }
+}
+
+/**
+ * AI Related Topics Generator (Ghost Mode)
+ */
+export async function generateRelatedTopics(topic: string): Promise<string[]> {
+    if (!process.env.NEXT_PUBLIC_GROQ_API_KEY) return [];
+
+    try {
+        const systemPrompt = `Sen bir müfredat danışmanısın.
+Konu: "${topic}"
+Görev: Bu konuyu çalışmak isteyen birine önerilecek 10 adet TAMAMLAYICI veya BENZER teknik eğitim başlığı öner.
+Örnek: "Python" -> ["Django Web Framework", "Veri Bilimi için Pandas", "Makine Öğrenmesi Temelleri", ...]
+Sadece JSON string array döndür.`;
+
+        const completion = await groq.chat.completions.create({
+            messages: [{ role: "user", content: systemPrompt }],
+            model: "llama-3.3-70b-versatile",
+            temperature: 0.4,
+            max_tokens: 1000,
+            response_format: { type: "json_object" }
+        });
+
+        const raw = completion.choices[0]?.message?.content?.trim();
+        if (!raw) return [];
+
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+        if (parsed.topics) return parsed.topics;
+        return [];
+
+    } catch (e) {
+        console.error("Related topics failed:", e);
+        return [];
+    }
 }

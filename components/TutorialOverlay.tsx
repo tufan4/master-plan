@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, Layout, BookOpen, ArrowRight, CheckCircle2, Youtube, FileText, Globe, Zap, Image as ImageIcon } from "lucide-react";
+import { X, Search, Layout, BookOpen, ArrowRight, CheckCircle2, Youtube, FileText, Globe, Zap, Sparkles, Image as ImageIcon } from "lucide-react";
 
 interface TutorialProps {
     onComplete?: () => void;
@@ -33,64 +33,34 @@ export default function TutorialOverlay({ onComplete, forceRun }: TutorialProps)
 
     const steps = [
         {
-            title: "Master Tufan OS v4.1'e Hoşgeldin",
-            desc: "Sistem tamamen yenilendi. Artık bir 'Arama Motoru' değil, bir 'Keşif Motoru'. Hazır mısın?",
-            icon: <Zap size={50} className="text-yellow-400" />
+            title: "Master Tufan OS v5.0",
+            desc: "Sistem güncellendi. Artık iki güçlü motora sahip: 'Tokenless Wiki Engine' ve 'Expert AI Core'.",
+            icon: <Zap size={50} className="text-slate-200" />
         },
         {
-            title: "Derinlemesine Keşif (Deep Discovery)",
-            desc: "Artık arama sayfalarıyla zaman kaybetme yok! Bazı platformlarda (YouTube, PDF, Reddit) seni direkt içeriğin içine ışınlıyoruz.",
-            icon: <Search size={50} className="text-blue-400" />
+            title: "Müfredat Motorları",
+            desc: "İster Ücretsiz (Wikipedia) ister Yapay Zeka (Expert) modunu kullanarak teknik müfredatlar oluştur. 50'den 500 başlığa kadar derinlik seçebilirsin.",
+            icon: <Layout size={50} className="text-blue-400" />
         },
         {
-            title: "25 Süper Platform",
-            desc: "Mühendislik için özenle seçilmiş 25 kaynak. ArXiv'den StackOverflow'a, MIT OCW'den Hackster'a kadar her şey elinin altında.",
-            icon: <Globe size={50} className="text-emerald-400" />
+            title: "Akıllı Sözlük",
+            desc: "Her müfredatın kendine ait bir sözlüğü var. Çalıştığın konudaki teknik terimleri tek tıkla yapay zekaya döküm ettir.",
+            icon: <BookOpen size={50} className="text-slate-400" />
         },
         {
-            title: "Akıllı Anahtar (AI 2.0)",
-            desc: "Bir konuya tıkladığında AI sadece tekrar etmez; 'PID Tuning', 'State-Space' gibi teknik alt dalları senin için bulur.",
-            icon: <Layout size={50} className="text-purple-400" />
+            title: "Benzer Konu Önerileri (Ghost Mode)",
+            desc: "Bir konuyu bitirdiğinde 'BENZER' butonuna bas. Sistem sana sıradaki adım için 10 yeni müfredat önersin.",
+            icon: <Sparkles size={50} className="text-purple-400" />
         },
         {
-            title: "YouTube: Rastgele Video",
-            desc: "YouTube ikonuna tıklayıp bir anahtar kelime seçersen, arama listesi yerine KONUYLA İLGİLİ RASTGELE BİR VİDEO direkt başlar.",
-            icon: <Youtube size={50} className="text-red-500" />
+            title: "Derinlemesine Keşif (Deep Link)",
+            desc: "Platform seç (YouTube, PDF, GitHub). Seni arama sonuçlarına değil, direkt içeriğin kaynağına (Playlist, Makale, Repo) götürürüz.",
+            icon: <Search size={50} className="text-slate-300" />
         },
         {
-            title: "Akademik PDF & Makale",
-            desc: "IEEE veya PDF (Google) seçersen, sistem seni direkt olarak o konudaki akademik makalenin PDF'ine götürmeye çalışır.",
-            icon: <FileText size={50} className="text-green-400" />
-        },
-        {
-            title: "Reddit & Wiki: Şanslı Keşif",
-            desc: "Sıkıcı listeler yok. Reddit'te rastgele bir tartışmanın ortasına veya Wikipedia'da detaylı bir makaleye dalış yap.",
-            icon: <BookOpen size={50} className="text-orange-400" />
-        },
-        {
-            title: "Görsel Galeri (Engineering Diagrams)",
-            desc: "Her konunun yanındaki 'Görsel' butonuna basarak o konuyla ilgili teknik şemaları ve diyagramları anında inceleyebilirsin.",
-            icon: <ImageIcon size={50} className="text-pink-400" />
-        },
-        {
-            title: "GitHub Repo Avcısı",
-            desc: "GitHub modunda arama yaparsan, proje listesi yerine direkt olarak popüler ve açık kaynaklı bir Repo'nun kodlarına gidersin.",
-            icon: <Layout size={50} className="text-slate-400" />
-        },
-        {
-            title: "Hızlı Geçiş & Minimalizm",
-            desc: "Sol menüdeki kategoriler arasında hızla gezin. Sistem tamamen klavye dostu ve mobil uyumlu hale getirildi.",
-            icon: <Zap size={50} className="text-amber-400" />
-        },
-        {
-            title: "İlerleme Takibi",
-            desc: "Bitirdiğin konuları işaretle. İlerleme çubuğun dolsun. Hangi konularda eksiksin, sistem sana göstersin.",
-            icon: <CheckCircle2 size={50} className="text-cyan-400" />
-        },
-        {
-            title: "Keşfe Başla!",
-            desc: "Artık hazırsın. Sağ üstteki yanıp sönen 'T' logosuna tıklayarak bu eğitimi tekrar izleyebilirsin. İyi çalışmalar Master Tufan.",
-            icon: <Zap size={60} className="text-white animate-pulse" />
+            title: "Başlamaya Hazırsın",
+            desc: "Sol menüden müfredatlarını yönet, ilerlemeni takip et. İyi çalışmalar Master Tufan.",
+            icon: <CheckCircle2 size={60} className="text-white animate-pulse" />
         }
     ];
 

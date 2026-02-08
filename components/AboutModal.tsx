@@ -64,49 +64,30 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
                                 </div>
                             </div>
 
-                            {/* Section: Mission & Vision */}
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
-                                    <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Vizyon
-                                    </h4>
-                                    <p className="text-slate-400 text-xs leading-relaxed">
-                                        Mühendislik eğitimini dijital bir beyne dönüştürerek, karmaşık bilgi yığınlarını sistematik ve erişilebilir bir yapıya kavuşturmak.
-                                    </p>
-                                </div>
-                                <div className="bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
-                                    <h4 className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Misyon
-                                    </h4>
-                                    <p className="text-slate-400 text-xs leading-relaxed">
-                                        Öğrencilerin ve mühendislerin, ihtiyaç duydukları teknik bilgiye "nokta atışı" (Direct Deep Link) teknolojisi ile en hızlı şekilde ulaşmalarını sağlamak.
-                                    </p>
-                                </div>
-                            </div>
-
                             {/* Section: System Usage Guide */}
                             <div>
-                                <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                                    <Info size={16} className="text-purple-400" />
-                                    Nasıl Kullanılır?
+                                <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
+                                    <Info size={16} className="text-slate-400" />
+                                    Sistem Kullanım Kılavuzu
                                 </h3>
-                                <div className="space-y-3">
-                                    <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                                        <span className="text-xs font-bold text-amber-400 block mb-1">1. Müfredat Oluşturucu (AI Core)</span>
-                                        <p className="text-xs text-slate-400">
-                                            Ana sayfadaki veya sol menüdeki "Müfredat Ekle" butonu ile istediğiniz herhangi bir konuda (örn: "PLC Programlama", "Kuantum Fiziği") saniyeler içinde kapsamlı bir öğrenme haritası oluşturabilirsiniz.
+                                <div className="space-y-4">
+                                    <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                                        <span className="text-xs font-bold text-blue-400 block mb-1">1. İki Farklı Motor (Wiki & AI)</span>
+                                        <p className="text-xs text-slate-400 leading-relaxed">
+                                            <b>İnternetten Getir:</b> Wikipedia'yı tarar, "Ana Madde" bağlarını takip eder ve 4 katmanlı derin bir ağaç oluşturur. Ücretsizdir.<br />
+                                            <b>Yapay Zeka:</b> Expert Modu ile çalışır. 50 ile 500 başlık arasında seçim yapabilirsiniz. "Giriş" gibi basit başlıkları atlar.
                                         </p>
                                     </div>
-                                    <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                                        <span className="text-xs font-bold text-cyan-400 block mb-1">2. Akıllı platformlar (Smart Deep Link)</span>
-                                        <p className="text-xs text-slate-400">
-                                            Bir konuya tıkladığınızda açılan panelden platform seçin. Sistem, PDF'ler için 'filetype:pdf', YouTube için 'Playlist/Shorts' gibi özel filtrelerle nokta atışı kaynak bulur.
+                                    <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                                        <span className="text-xs font-bold text-purple-400 block mb-1">2. Sözlük & Benzer Konular</span>
+                                        <p className="text-xs text-slate-400 leading-relaxed">
+                                            Her müfredatın sağ üstünde "Sözlük" butonu vardır. Eğer boşsa "Oluştur" diyerek o konuya özel 20-50 terimlik sözlük yaratabilirsiniz. Ayrıca sol menüdeki "BENZER" butonu ile sıradaki rotanızı belirleyebilirsiniz.
                                         </p>
                                     </div>
-                                    <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                                        <span className="text-xs font-bold text-pink-400 block mb-1">3. Dinamik Yapı</span>
-                                        <p className="text-xs text-slate-400">
-                                            Sol menü kirlilik yaratmaz. Oluşturduğunuz müfredatlar ana başlıklar altında toplanır. İstediğinizi tek tıkla silebilir, tamamladıklarınızı işaretleyerek ilerlemenizi takip edebilirsiniz.
+                                    <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                                        <span className="text-xs font-bold text-emerald-400 block mb-1">3. Veri Kalıcılığı</span>
+                                        <p className="text-xs text-slate-400 leading-relaxed">
+                                            Oluşturduğunuz tüm müfredatlar ve sözlükler tarayıcınızda (LocalStorage) saklanır. Sayfayı yenileseniz bile kaybolmaz.
                                         </p>
                                     </div>
                                 </div>
