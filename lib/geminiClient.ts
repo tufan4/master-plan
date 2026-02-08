@@ -75,12 +75,13 @@ TEMEL KURALLAR:
 3. Her başlık spesifik bir teknik kavramı veya beceriyi temsil etmeli.
 4. Hiyerarşik yapı kur: Ana Konu -> Alt Konu -> Detay Konu (En az 3 derinlik).
 5. Kapsamlı olmalı: TOPLAM EN AZ ${count} adet başlık üretmelisin. Konu bütünlüğünü koruyarak ${count} maddeye ulaş.
-6. HER BAŞLIK İÇİN bir "search_query" alanı ekle. Bu alan, o başlığı Google veya YouTube'da en iyi sonuçla aratacak teknik anahtar kelimeleri içermeli (Örn: "PLC Giriş" yerine "PLC S7-1200 hardware architecture explained").
+6. HER BAŞLIK İÇİN iki farklı arama alanı ekle:
+   - "q_tr": O başlığı Türkçe kaynaklarda (ders notları, eğitim videoları) aratacak teknik kelimeler.
+   - "q_en": O başlığı küresel kaynaklarda (documentation, official papers) aratacak profesyonel İngilizce kelimeler.
 
 BAŞLIK FORMATI ÖRNEKLERİ:
 ✅ DOĞRU: "PLC Ladder Logic Programlama Temelleri"
 ✅ DOĞRU: "Siemens S7-1200 Timer ve Counter Fonksiyonları"
-❌ YANLIŞ: "PLC Nedir?", "Giriş", "Temel Kavramlar"
 
 ÇIKTI FORMATI (JSON):
 {
@@ -89,9 +90,10 @@ BAŞLIK FORMATI ÖRNEKLERİ:
     {
       "id": "uuid-1",
       "title": "Spesifik Alt Başlık 1",
-      "search_query": "Daha spesifik arama terimi",
+      "q_tr": "S7-1200 PLC ladder diyagramı dersleri",
+      "q_en": "Siemens S7-1200 ladder logic programming guide",
       "subtopics": [
-        { "id": "uuid-1-1", "title": "Teknik Detay 1", "search_query": "Teknik detay arama terimi", "subtopics": [] }
+        { "id": "uuid-1-1", "title": "Teknik Detay 1", "q_tr": "...", "q_en": "...", "subtopics": [] }
       ]
     }
   ]
@@ -119,7 +121,8 @@ Sadece JSON döndür.`;
             return items.map((item, idx) => ({
                 id: item.id || `gen-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
                 title: item.title,
-                search_query: item.search_query || item.title,
+                q_tr: item.q_tr || item.title,
+                q_en: item.q_en || item.title,
                 level: parentLevel + 1,
                 keywords: [item.title.toLowerCase()],
                 subtopics: item.subtopics && Array.isArray(item.subtopics) ? fixStructure(item.subtopics, parentLevel + 1) : []

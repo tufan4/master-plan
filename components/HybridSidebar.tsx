@@ -3,7 +3,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    Menu, X, ChevronRight, Info, Plus, Trash2, Sparkles, Wand2
+    Menu, X, ChevronRight, Info, Plus, Trash2, Sparkles, Wand2, Folder, FolderOpen
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -75,7 +75,7 @@ export default function HybridSidebar({
                 initial={false}
                 animate={{ width: isExpanded ? 280 : 60, x: 0 }}
                 transition={{ type: "spring", stiffness: 350, damping: 35 }}
-                className="fixed top-0 left-0 h-full bg-slate-900/95 backdrop-blur-xl border-r border-slate-800 z-50 flex flex-col lg:hidden overflow-hidden shadow-[10px_0_30px_rgba(0,0,0,0.5)]"
+                className="fixed top-0 left-0 h-full bg-slate-900/95 backdrop-blur-xl border-r border-slate-800 z-50 flex flex-col overflow-hidden shadow-[10px_0_30px_rgba(0,0,0,0.5)]"
             >
                 {/* HEADER / TOGGLE (STRICT CONTROL) */}
                 <div
@@ -141,16 +141,16 @@ export default function HybridSidebar({
                                             ${isActive ? 'bg-blue-600/20' : 'hover:bg-slate-800/50'}
                                         `}
                                         >
-                                            {/* Icon / First Letter */}
+                                            {/* Icon / Folder */}
                                             <div className="w-[60px] flex justify-center shrink-0">
-                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border transition-all ${isActive ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/30' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
-                                                    {cat.title ? cat.title.substring(0, 2).toUpperCase() : '??'}
+                                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isActive ? 'bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)] border border-blue-400' : 'bg-slate-800/50 text-slate-600 border border-slate-700/50 hover:border-slate-600 hover:text-slate-400'}`}>
+                                                    {isActive ? <FolderOpen size={20} /> : <Folder size={20} />}
                                                 </div>
                                             </div>
 
                                             {/* Label */}
                                             <motion.span
-                                                className={`whitespace-nowrap text-sm flex-1 text-left ${isActive ? 'text-blue-300 font-bold' : 'text-slate-400'}`}
+                                                className={`whitespace-nowrap text-[11px] tracking-tight flex-1 text-left ${isActive ? 'text-white font-black uppercase' : 'text-slate-500 font-bold group-hover:text-slate-300'}`}
                                                 animate={{ opacity: isExpanded ? 1 : 0, x: isExpanded ? 0 : -10 }}
                                             >
                                                 {cat.title}

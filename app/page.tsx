@@ -10,6 +10,7 @@ const AboutModal = dynamic(() => import("@/components/AboutModal"), { ssr: false
 import {
     syncCompletedTopics, fetchCompletedTopics, cacheImage, getCachedImages
 } from "@/lib/supabaseClient";
+import CURRICULUM from "@/data/master-curriculum.json";
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -75,28 +76,32 @@ export default function MasterTufanOS() {
     const [ghostTopics, setGhostTopics] = useState<Record<string, string[]>>({});
     const [loadingGhost, setLoadingGhost] = useState<Record<string, boolean>>({});
 
-    // LOAD SAVED STATE
+    // LOAD SAVED STATE & STATIC DATA
     useEffect(() => {
-        const savedCurriculums = localStorage.getItem("customCurriculums");
-        if (savedCurriculums) {
-            try {
-                const parsed = JSON.parse(savedCurriculums);
-                if (parsed.length > 0) {
-                    setAllCategories(parsed);
-                    setActiveCategory(parsed[0].id);
-                }
-            } catch (e) { console.error("Load failed", e); }
+        // Priority 1: Static curriculum from JSON
+        const staticList = CURRICULUM.categories || [];
+
+        // Priority 2: Custom curriculums from localStorage
+        let customList = [];
+        const savedCustom = localStorage.getItem("customCurriculums");
+        if (savedCustom) {
+            try { customList = JSON.parse(savedCustom); } catch (e) { console.error("Custom load failed", e); }
         }
 
-        const savedGhosts = localStorage.getItem("ghostTopics");
-        if (savedGhosts) {
-            try { setGhostTopics(JSON.parse(savedGhosts)); } catch (e) { }
+        const merged = [...staticList, ...customList];
+        setAllCategories(merged);
+
+        // Auto-select first category if nothing selected
+        if (merged.length > 0 && !activeCategory) {
+            setActiveCategory(merged[0].id);
         }
+
+        // Other loads
+        const savedGhosts = localStorage.getItem("ghostTopics");
+        if (savedGhosts) { try { setGhostTopics(JSON.parse(savedGhosts)); } catch (e) { } }
 
         const savedCompleted = localStorage.getItem("completedTopics");
-        if (savedCompleted) {
-            try { setCompletedItems(new Set(JSON.parse(savedCompleted))); } catch (e) { }
-        }
+        if (savedCompleted) { try { setCompletedItems(new Set(JSON.parse(savedCompleted))); } catch (e) { } }
     }, []);
 
     // BUILD PARENT MAP FOR SEARCH
@@ -126,10 +131,7 @@ export default function MasterTufanOS() {
         const normalized = normalizeTopic(topic);
         setIsGenerating(true);
         try {
-            console.log("Generating curriculum for:", normalized);
             const result = await generateFullCurriculum(normalized, count);
-            console.log("Generation result:", result);
-
             if (result && result.topics && result.topics.length > 0) {
                 const mainContainer = {
                     id: `custom-${Date.now()}`,
@@ -140,40 +142,69 @@ export default function MasterTufanOS() {
 
                 const updatedList = [...allCategories, mainContainer];
                 setAllCategories(updatedList);
-                localStorage.setItem("customCurriculums", JSON.stringify(updatedList.filter(c => c.isCustom)));
+
+                // Save ONLY custom ones to localStorage
+                const customOnly = updatedList.filter(c => c.isCustom);
+                localStorage.setItem("customCurriculums", JSON.stringify(customOnly));
 
                 setActiveCategory(mainContainer.id);
                 setAiPrompt("");
                 setShowNewCurriculumModal(false);
-                setVisibleCount(prev => ({ ...prev, [mainContainer.id]: 20 }));
+                setVisibleCount(prev => ({ ...prev, [mainContainer.id]: 30 }));
             } else {
-                alert("AI geçerli bir müfredat üretemedi. Lütfen daha spesifik bir konu deneyin.");
+                alert("AI müfredat üretemedi.");
             }
         } catch (error) {
-            console.error("Critical Generation Error:", error);
-            alert("Müfredat oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");
+            console.error(error);
+            alert("Hata oluştu.");
         } finally {
             setIsGenerating(false);
         }
     };
 
     const deleteCurriculum = (id: string) => {
+        const cat = allCategories.find(c => c.id === id);
+        if (!cat) return;
+        if (!cat.isCustom) {
+            alert("Varsayılan müfredatlar silinemez.");
+            return;
+        }
         if (!confirm("Bu müfredatı silmek istediğinize emin misiniz?")) return;
-        const newList = allCategories.filter(cat => cat.id !== id);
+
+        const newList = allCategories.filter(c => c.id !== id);
         setAllCategories(newList);
-        localStorage.setItem("customCurriculums", JSON.stringify(newList.filter(c => c.isCustom)));
+
+        const customOnly = newList.filter(c => c.isCustom);
+        localStorage.setItem("customCurriculums", JSON.stringify(customOnly));
+
         if (activeCategory === id) setActiveCategory(newList.length > 0 ? newList[0].id : "");
     };
 
-    const handleDeepDive = (platformId: string, topic: any, lang: 'tr' | 'en') => {
-        const qBase = topic.search_query || topic.title;
+    const handleDeepDive = (platformId: string, item: any, lang: 'tr' | 'en') => {
+        const isEn = lang === 'en';
+
+        // 1. Get Base Query: Priority q_en/q_tr (AI) > en/title (Static)
+        let qBase = "";
+        if (isEn) {
+            qBase = item.q_en || item.en || item.title;
+        } else {
+            qBase = item.q_tr || item.title;
+        }
+
         let finalQuery = qBase;
 
-        // Context Addons (Alt Kilit Anahtarlar)
-        if (platformId === "youtube") finalQuery += " full course tutorial";
-        if (platformId === "google") finalQuery += " technical documentation filetype:pdf";
-        if (platformId === "reddit") finalQuery += " discussion review";
-        if (platformId === "github") finalQuery += " source code example";
+        // 2. Add Language-Specific Context (Alt Kilit Anahtarlar)
+        if (isEn) {
+            if (platformId === "youtube") finalQuery += " full course tutorial";
+            if (platformId === "google") finalQuery += " technical documentation filetype:pdf";
+            if (platformId === "github") finalQuery += " source code example";
+        } else {
+            // Turkish context
+            if (platformId === "youtube") finalQuery += " eğitim seti dersleri";
+            if (platformId === "google") finalQuery += " ders notları filetype:pdf";
+            if (platformId === "reddit") finalQuery += " forum tartışma";
+            if (platformId === "github") finalQuery += " türkçe kaynak kod";
+        }
 
         const encoded = encodeURIComponent(finalQuery);
         const searchUrlMap: Record<string, string> = {
@@ -215,7 +246,6 @@ export default function MasterTufanOS() {
         newSet.has(id) ? newSet.delete(id) : newSet.add(id);
         setCompletedItems(newSet);
         localStorage.setItem("completedTopics", JSON.stringify([...newSet]));
-        syncCompletedTopics([...newSet]).catch(() => { });
     };
 
     const toggleExpand = (id: string) => {
@@ -236,50 +266,53 @@ export default function MasterTufanOS() {
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1, boxShadow: isPulsing ? ['0 0 0px cyan', '0 0 20px cyan', '0 0 0px cyan'] : 'none' }}
-                    className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${isPulsing ? 'bg-cyan-900/30 ring-2 ring-cyan-400' : isCompleted ? 'bg-emerald-900/20 border-l-2 border-emerald-500' : 'bg-slate-800/30 hover:bg-slate-700/30'}`}
+                    className={`flex items-center gap-2 p-3 rounded-2xl cursor-pointer transition-all ${isPulsing ? 'bg-blue-900/30 ring-2 ring-blue-400' : isCompleted ? 'bg-emerald-900/20 border-l-4 border-emerald-500' : 'bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50'}`}
                     onClick={() => setActiveControlPanel(showPanel ? null : item.id)}
                 >
-                    {hasChildren && <button onClick={(e) => { e.stopPropagation(); toggleExpand(item.id); }}>{isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</button>}
-                    <button onClick={(e) => { e.stopPropagation(); toggleComplete(item.id); }} className={isCompleted ? "text-emerald-400" : "text-slate-500"}>{isCompleted ? <CheckCircle2 size={18} /> : <Circle size={18} />}</button>
-                    <span className={`text-sm flex-1 ${isCompleted ? 'text-emerald-300 line-through' : 'text-slate-200'}`}>{item.title}</span>
+                    {hasChildren && <button onClick={(e) => { e.stopPropagation(); toggleExpand(item.id); }}>{isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}</button>}
+                    <button onClick={(e) => { e.stopPropagation(); toggleComplete(item.id); }} className={isCompleted ? "text-emerald-400" : "text-slate-500"}>{isCompleted ? <CheckCircle2 size={20} /> : <Circle size={20} />}</button>
+                    <span className={`text-sm font-medium flex-1 ${isCompleted ? 'text-emerald-300 line-through opacity-50' : 'text-slate-100'}`}>{item.title}</span>
                 </motion.div>
 
                 <AnimatePresence>
                     {showPanel && (
-                        <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="ml-4 mt-2 bg-slate-800/50 p-4 rounded-lg overflow-hidden border border-slate-700/50">
-                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="ml-6 mt-2 bg-slate-900/60 p-5 rounded-[24px] overflow-hidden border border-slate-700/50 backdrop-blur-sm">
+                            <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
                                 {PLATFORMS.map(plat => {
                                     const Icon = plat.icon;
                                     return (
-                                        <button key={plat.id} onClick={(e) => { e.stopPropagation(); setActivePlatformPanel({ topicId: item.id, platform: plat.id }); }} className={`p-2 flex flex-col items-center rounded border transition-all ${activePlatformPanel?.topicId === item.id && activePlatformPanel?.platform === plat.id ? 'bg-blue-600/30 border-blue-400' : 'bg-slate-700/30 border-slate-600 hover:border-slate-500'}`}>
-                                            <Icon size={16} className={activePlatformPanel?.platform === plat.id ? 'text-blue-400' : `text-${plat.color}-400`} />
-                                            <span className="text-[9px] mt-1 uppercase text-slate-400">{plat.name}</span>
+                                        <button key={plat.id} onClick={(e) => { e.stopPropagation(); setActivePlatformPanel({ topicId: item.id, platform: plat.id }); }} className={`p-3 flex flex-col items-center rounded-2xl border transition-all ${activePlatformPanel?.topicId === item.id && activePlatformPanel?.platform === plat.id ? 'bg-blue-600/40 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'bg-slate-800/60 border-slate-700 hover:border-slate-500'}`}>
+                                            <Icon size={18} className={activePlatformPanel?.platform === plat.id ? 'text-white' : `text-${plat.color}-400`} />
+                                            <span className="text-[10px] mt-1.5 font-black uppercase text-slate-500 tracking-tighter">{plat.name}</span>
                                         </button>
                                     );
                                 })}
-                                <button onClick={(e) => { e.stopPropagation(); setShowImageGallery(item.id); loadImagesFromAPI(item.title, item.id, 10); }} className="p-2 flex flex-col items-center rounded border border-purple-500/30 bg-purple-900/20 hover:bg-purple-900/40"><ImageIcon size={16} className="text-purple-400" /><span className="text-[9px] mt-1">IMAGES</span></button>
+                                <button onClick={(e) => { e.stopPropagation(); setShowImageGallery(item.id); loadImagesFromAPI(item.title, item.id, 10); }} className="p-3 flex flex-col items-center rounded-2xl border border-purple-500/30 bg-purple-900/20 hover:bg-purple-900/40"><ImageIcon size={18} className="text-purple-400" /><span className="text-[10px] mt-1.5 font-black uppercase text-slate-500 tracking-tighter">IMAGES</span></button>
                             </div>
 
                             {activePlatformPanel?.topicId === item.id && (
-                                <div className="mt-3 p-3 bg-slate-900/80 rounded-xl border border-blue-500/20 flex flex-col gap-2">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className="text-[10px] font-black text-blue-400 tracking-widest uppercase">Derin Arama / Deep Dive</span>
-                                        <button onClick={() => setActivePlatformPanel(null)} className="text-slate-500 hover:text-white"><X size={14} /></button>
+                                <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mt-5 p-4 bg-slate-950/80 rounded-[20px] border border-blue-500/30 flex flex-col gap-3">
+                                    <div className="flex justify-between items-center mb-1 px-1">
+                                        <div className="flex items-center gap-2">
+                                            <Sparkles size={14} className="text-blue-400" />
+                                            <span className="text-[10px] font-black text-blue-400 tracking-[0.2em] uppercase">Deep Dive Engine</span>
+                                        </div>
+                                        <button onClick={() => setActivePlatformPanel(null)} className="text-slate-600 hover:text-white"><X size={16} /></button>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => handleDeepDive(activePlatformPanel!.platform, item, 'tr')} className="flex-1 p-3 bg-slate-800 hover:bg-blue-600/20 border border-slate-700 rounded-lg text-xs font-bold transition-all">🇹🇷 TÜRKÇE</button>
-                                        <button onClick={() => handleDeepDive(activePlatformPanel!.platform, item, 'en')} className="flex-1 p-3 bg-slate-800 hover:bg-blue-600/20 border border-slate-700 rounded-lg text-xs font-bold transition-all">🇬🇧 ENGLISH</button>
+                                    <div className="flex gap-3">
+                                        <button onClick={() => handleDeepDive(activePlatformPanel!.platform, item, 'tr')} className="flex-1 py-4 bg-slate-800 hover:bg-blue-600/30 border border-slate-700 hover:border-blue-500/50 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2">🇹🇷 TÜRKÇE ARA</button>
+                                        <button onClick={() => handleDeepDive(activePlatformPanel!.platform, item, 'en')} className="flex-1 py-4 bg-slate-800 hover:bg-blue-600/30 border border-slate-700 hover:border-blue-500/50 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2">🇬🇧 GLOBAL SEARCH</button>
                                     </div>
-                                </div>
+                                </motion.div>
                             )}
 
                             {showImageGallery === item.id && (
-                                <div className="mt-3">
-                                    <div className="flex justify-between items-center mb-2 px-1">
-                                        <span className="text-[10px] font-black text-purple-400 tracking-widest uppercase">Görsel Kütüphanesi</span>
-                                        <button onClick={() => setShowImageGallery(null)} className="text-slate-500 hover:text-white"><X size={14} /></button>
+                                <div className="mt-5">
+                                    <div className="flex justify-between items-center mb-3 px-2">
+                                        <span className="text-[10px] font-black text-purple-400 tracking-[0.2em] uppercase">Görsel Kaynaklar</span>
+                                        <button onClick={() => setShowImageGallery(null)} className="text-slate-600 hover:text-white"><X size={16} /></button>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-2">{galleryImages.map((src, i) => <img key={i} src={src} className="w-full h-24 object-cover rounded-lg cursor-pointer hover:ring-2 ring-purple-500 transition-all" onClick={() => window.open(src)} />)}</div>
+                                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">{galleryImages.map((src, i) => <img key={i} src={src} className="w-full h-28 object-cover rounded-xl cursor-pointer hover:ring-4 ring-purple-500/40 transition-all shadow-lg" onClick={() => window.open(src)} />)}</div>
                                 </div>
                             )}
                         </motion.div>
@@ -288,7 +321,7 @@ export default function MasterTufanOS() {
 
                 <AnimatePresence>
                     {hasChildren && isExpanded && (
-                        <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                             {item.subtopics.map((child: any) => renderRecursive(child, depth + 1))}
                         </motion.div>
                     )}
@@ -303,50 +336,41 @@ export default function MasterTufanOS() {
     return (
         <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
             {!hasCurriculum && (
-                <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 p-4">
-                    <div className="max-w-4xl w-full text-center space-y-16">
+                <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-slate-950 p-6 overflow-hidden">
+                    <div className="max-w-4xl w-full text-center space-y-20 relative z-10">
                         <div className="relative inline-block">
                             <motion.h1
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
                                 className="text-7xl md:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 font-[family-name:var(--font-syncopate)] tracking-[0.2em] uppercase"
                             >
                                 MASTER TUFAN
                             </motion.h1>
-                            <motion.div
-                                className="absolute -inset-4 bg-amber-500/10 blur-3xl -z-10 rounded-full"
-                                animate={{ opacity: [0.3, 0.6, 0.3] }}
-                                transition={{ duration: 4, repeat: Infinity }}
-                            />
+                            <motion.div className="absolute -inset-10 bg-amber-500/10 blur-[100px] -z-10 rounded-full" animate={{ opacity: [0.2, 0.4, 0.2] }} transition={{ duration: 4, repeat: Infinity }} />
                         </div>
 
                         <TypewriterSlogan />
 
                         <div className="relative group max-w-2xl mx-auto w-full">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-100 transition duration-1000"></div>
-                            <div className="relative flex items-center bg-slate-900 rounded-2xl p-2 border border-slate-700/50">
-                                <Sparkles className="ml-4 text-amber-400" size={32} />
+                            <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-[32px] blur-xl opacity-20 group-hover:opacity-60 transition duration-1000"></div>
+                            <div className="relative flex items-center bg-slate-900/80 backdrop-blur-xl rounded-[28px] p-3 border border-slate-700/50 shadow-2xl">
+                                <Sparkles className="ml-5 text-amber-400 animate-pulse" size={32} />
                                 <input
                                     type="text"
                                     value={aiPrompt}
                                     onChange={(e) => setAiPrompt(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && createCurriculum(aiPrompt, topicCount)}
-                                    placeholder="Ne öğrenmek istersin? (Örn: PLC Programlama, Veri Bilimi...)"
-                                    className="w-full bg-transparent border-none px-6 py-6 text-2xl text-slate-100 focus:outline-none placeholder:text-slate-600"
+                                    placeholder="Neyi Uzmanca Öğrenmek İstersin?"
+                                    className="w-full bg-transparent border-none px-6 py-6 text-2xl font-bold text-slate-100 focus:outline-none placeholder:text-slate-600"
                                     autoFocus
                                 />
                                 <button
                                     onClick={() => createCurriculum(aiPrompt, topicCount)}
                                     disabled={!aiPrompt.trim() || isGenerating}
-                                    className="p-5 bg-blue-600 hover:bg-blue-500 rounded-xl text-white transition-all shadow-xl disabled:opacity-50"
+                                    className="p-6 bg-blue-600 hover:bg-blue-500 rounded-[20px] text-white transition-all shadow-2xl disabled:opacity-50 group-active:scale-95"
                                 >
                                     {isGenerating ? <div className="animate-spin border-4 border-white/20 border-t-white rounded-full w-8 h-8" /> : <ChevronRight size={32} />}
                                 </button>
-                            </div>
-                            <div className="mt-6 flex justify-center gap-4 text-slate-500 text-sm font-bold">
-                                <span>DERİNLİK / DEPTH:</span>
-                                <input type="range" min="50" max="300" step="50" value={topicCount} onChange={(e) => setTopicCount(Number(e.target.value))} className="w-32 accent-blue-500" />
-                                <span className="text-blue-400">{topicCount} MADDE</span>
                             </div>
                         </div>
                     </div>
@@ -359,20 +383,28 @@ export default function MasterTufanOS() {
                     <AboutModal isOpen={showAboutModal} onClose={() => setShowAboutModal(false)} />
 
                     {showNewCurriculumModal && (
-                        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-                            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-slate-900 border border-slate-700 rounded-3xl p-8 max-w-xl w-full shadow-2xl relative">
-                                <button onClick={() => setShowNewCurriculumModal(false)} className="absolute right-6 top-6 text-slate-500 hover:text-white"><X size={24} /></button>
-                                <h3 className="text-2xl font-black text-white mb-8 tracking-tight uppercase flex items-center gap-3">
-                                    <Plus className="text-blue-400" /> Müfredat Oluşturucu
+                        <div className="fixed inset-0 z-[110] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6">
+                            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-slate-900 border border-slate-700 rounded-[40px] p-10 max-w-xl w-full shadow-2xl relative border-t-blue-500/50">
+                                <button onClick={() => setShowNewCurriculumModal(false)} className="absolute right-8 top-8 text-slate-500 hover:text-white transition-colors"><X size={28} /></button>
+                                <h3 className="text-3xl font-black text-white mb-10 tracking-tight uppercase flex items-center gap-4">
+                                    <Plus className="text-blue-400" size={32} /> YOL HARİTASI ÜRET
                                 </h3>
-                                <input type="text" value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} placeholder="Konu başlığı..." className="w-full bg-slate-800 rounded-2xl p-5 text-xl text-white mb-6 border border-slate-700 focus:border-blue-500 transition-all outline-none" />
-                                <div className="bg-slate-800/50 p-6 rounded-2xl mb-8 border border-slate-700/50">
-                                    <div className="flex justify-between mb-3"><label className="text-xs font-black text-slate-500 uppercase tracking-widest">Kapsam / Derinlik</label><span className="text-blue-400 font-bold">{topicCount} Başlık</span></div>
-                                    <input type="range" min="50" max="300" step="50" value={topicCount} onChange={(e) => setTopicCount(Number(e.target.value))} className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                                <div className="space-y-8">
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Öğrenme Hedefi</label>
+                                        <input type="text" value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} placeholder="Örn: Docker & Kubernetes, Modern Fizik..." className="w-full bg-slate-800/80 rounded-2xl p-6 text-xl font-bold text-white border border-slate-700 focus:border-blue-500 transition-all outline-none shadow-inner" />
+                                    </div>
+                                    <div className="bg-slate-800/40 p-8 rounded-3xl border border-slate-700/50">
+                                        <div className="flex justify-between items-end mb-4">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Kapsam Derinliği</label>
+                                            <span className="text-blue-400 font-black text-xl">{topicCount} <span className="text-[10px] text-slate-500">BAŞLIK</span></span>
+                                        </div>
+                                        <input type="range" min="50" max="300" step="50" value={topicCount} onChange={(e) => setTopicCount(Number(e.target.value))} className="w-full h-3 bg-slate-700 rounded-full appearance-none cursor-pointer accent-blue-500" />
+                                    </div>
+                                    <button onClick={() => createCurriculum(aiPrompt, topicCount)} disabled={!aiPrompt.trim() || isGenerating} className="w-full py-6 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-black text-lg transition-all shadow-xl shadow-blue-600/30 uppercase tracking-[0.1em]">
+                                        {isGenerating ? 'ANALİZ EDİLİYOR...' : 'SİSTEME EKLE'}
+                                    </button>
                                 </div>
-                                <button onClick={() => createCurriculum(aiPrompt, topicCount)} disabled={!aiPrompt.trim() || isGenerating} className="w-full py-5 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-black text-lg transition-all shadow-xl shadow-blue-600/20">
-                                    {isGenerating ? 'YAPAY ZEKA ÇALIŞIYOR...' : 'YENİ MÜFREDAT OLUŞTUR'}
-                                </button>
                             </motion.div>
                         </div>
                     )}
@@ -383,64 +415,105 @@ export default function MasterTufanOS() {
                         ghostTopics={ghostTopics} onGenerateGhost={(id, title) => {
                             setLoadingGhost(p => ({ ...p, [id]: true }));
                             generateRelatedTopics(title).then(results => {
-                                const newGhosts = { ...ghostTopics, [id]: results };
-                                setGhostTopics(newGhosts);
-                                localStorage.setItem("ghostTopics", JSON.stringify(newGhosts));
+                                if (results) {
+                                    const newGhosts = { ...ghostTopics, [id]: results };
+                                    setGhostTopics(newGhosts);
+                                    localStorage.setItem("ghostTopics", JSON.stringify(newGhosts));
+                                }
                             }).finally(() => setLoadingGhost(p => ({ ...p, [id]: false })));
                         }}
                         onCreateGhost={(topic) => createCurriculum(topic, 100)} loadingGhost={loadingGhost}
                     />
 
-                    <main className="flex-1 flex flex-col overflow-hidden bg-slate-900/40 relative">
-                        <header className="h-20 border-b border-slate-800 bg-slate-900/50 backdrop-blur-md px-6 flex items-center gap-6 z-10">
+                    {/* Desktop Sidebar Spacer */}
+                    <div className="hidden lg:block w-[60px] shrink-0" />
+
+                    <main className="flex-1 flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(30,41,59,0.3),transparent)] relative">
+                        {/* Header */}
+                        <header className="h-24 border-b border-white/5 bg-slate-950/40 backdrop-blur-2xl px-8 flex items-center gap-8 z-10">
                             <div className="relative flex-1 group">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors" size={20} />
+                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors" size={24} />
                                 <input
                                     type="text"
-                                    placeholder="Müfredat içinde ara..."
-                                    className="w-full pl-12 pr-6 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-slate-100 focus:outline-none focus:border-blue-500/50 transition-all font-medium"
+                                    placeholder="Sistem içinde ara..."
+                                    className="w-full pl-14 pr-8 py-4 bg-slate-900/60 border border-slate-800 rounded-2xl text-white focus:outline-none focus:border-blue-500/50 transition-all font-bold placeholder:text-slate-700 shadow-inner"
                                     value={globalSearch}
                                     onChange={(e) => setGlobalSearch(e.target.value)}
                                 />
                             </div>
-                            <button onClick={() => setRunTutorial(true)} className="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-400 hover:text-white transition-all"><HelpCircle size={24} /></button>
+                            <button onClick={() => setRunTutorial(true)} className="p-4 bg-slate-800/80 hover:bg-slate-700 rounded-2xl text-slate-500 hover:text-white transition-all border border-slate-700/50"><HelpCircle size={28} /></button>
                         </header>
 
-                        <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar">
+                        {/* Content Scroll Area */}
+                        <div className="flex-1 overflow-y-auto p-8 md:p-16 custom-scrollbar">
                             {globalSearch ? (
-                                <div className="max-w-5xl mx-auto space-y-12">
-                                    <div className="flex items-center gap-3 text-blue-400 border-b border-blue-500/10 pb-4"><Search size={24} /><h2 className="text-xl font-black tracking-tight uppercase">ARAMA SONUÇLARI: "{globalSearch}"</h2></div>
-                                    {allCategories.map(cat => {
-                                        const matches = (node: any): boolean => node.title.toLowerCase().includes(globalSearch.toLowerCase()) || (node.keywords && node.keywords.some((k: string) => k.toLowerCase().includes(globalSearch.toLowerCase()))) || (node.subtopics && node.subtopics.some(matches));
-                                        const filteredTopics = cat.topics?.filter(matches);
-                                        if (!filteredTopics || filteredTopics.length === 0) return null;
-                                        return (
-                                            <div key={cat.id} className="bg-slate-800/20 rounded-3xl p-6 border border-slate-800/50">
-                                                <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.3em] mb-6">{cat.title} KAYNAKLARI</h3>
-                                                {filteredTopics.map((t: any) => renderRecursive(t))}
-                                            </div>
-                                        );
-                                    })}
+                                <div className="max-w-5xl mx-auto space-y-16">
+                                    <div className="flex items-center gap-4 text-blue-400 border-b border-blue-500/10 pb-6">
+                                        <Search size={32} />
+                                        <h2 className="text-2xl font-black tracking-tight uppercase">Sistemdeki Eşleşmeler: "{globalSearch}"</h2>
+                                    </div>
+                                    <div className="space-y-12">
+                                        {allCategories.map(cat => {
+                                            const matches = (node: any): boolean => node.title.toLowerCase().includes(globalSearch.toLowerCase()) || (node.keywords && node.keywords.some((k: string) => k.toLowerCase().includes(globalSearch.toLowerCase()))) || (node.subtopics && node.subtopics.some(matches));
+                                            const filteredTopics = cat.topics?.filter(matches);
+                                            if (!filteredTopics || filteredTopics.length === 0) return null;
+                                            return (
+                                                <div key={cat.id} className="bg-slate-900/40 rounded-[32px] p-8 border border-white/5 shadow-2xl">
+                                                    <div className="flex items-center gap-3 mb-8">
+                                                        <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
+                                                        <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.3em]">{cat.title} Klasörü</h3>
+                                                    </div>
+                                                    <div className="space-y-4">
+                                                        {filteredTopics.map((t: any) => renderRecursive(t))}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="max-w-5xl mx-auto">
-                                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-                                        <div>
-                                            <p className="text-blue-500 font-black text-xs tracking-[0.4em] uppercase mb-2">Aktif Müfredat</p>
-                                            <h2 className="text-5xl md:text-6xl font-black text-white tracking-tighter leading-none">{activeData?.title}</h2>
+                                    {/* Dashboard Header */}
+                                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-20 animate-in fade-in slide-in-from-bottom-5 duration-700">
+                                        <div className="space-y-4">
+                                            <div className="flex items-center gap-3">
+                                                <span className="px-3 py-1 bg-blue-600/20 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-blue-500/20">Master Veri Seti v1.4</span>
+                                                <span className="w-1.5 h-1.5 bg-slate-700 rounded-full"></span>
+                                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{activeData?.isCustom ? 'Özel Müfredat' : 'Sistem Klasörü'}</span>
+                                            </div>
+                                            <h2 className="text-6xl md:text-7xl font-black text-white tracking-tighter leading-[0.9]">{activeData?.title}</h2>
                                         </div>
-                                        <div className="flex items-center gap-4 bg-slate-800/40 p-2 rounded-2xl border border-slate-700/30">
-                                            <div className="px-4 py-2 bg-slate-900 rounded-xl border border-slate-700"><span className="text-blue-400 font-bold">{activeData?.topics?.length || 0}</span> <span className="text-slate-500 text-xs font-black uppercase ml-1">Konu</span></div>
-                                            <div className="px-4 py-2 bg-emerald-900/20 rounded-xl border border-emerald-500/20"><span className="text-emerald-400 font-bold">{completedItems.size}</span> <span className="text-slate-500 text-xs font-black uppercase ml-1">Tamamlandı</span></div>
+
+                                        <div className="flex items-center gap-6 bg-slate-800/20 p-3 rounded-[32px] border border-white/5 backdrop-blur-xl">
+                                            <div className="px-6 py-4 bg-slate-900/80 rounded-[24px] border border-slate-700 shadow-xl">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Toplam Konu</span>
+                                                </div>
+                                                <span className="text-3xl font-black text-white leading-none">{activeData?.topics?.length || 0}</span>
+                                            </div>
+                                            <div className="px-6 py-4 bg-emerald-900/10 rounded-[24px] border border-emerald-500/20 shadow-xl">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Tamamlandı</span>
+                                                </div>
+                                                <span className="text-3xl font-black text-emerald-400 leading-none">{completedItems.size}</span>
+                                            </div>
                                         </div>
                                     </div>
 
+                                    {/* Recursive Topic Tree */}
                                     <div className="space-y-4">
                                         {activeData?.topics?.slice(0, visibleCount[activeCategory] || 30).map((t: any) => renderRecursive(t))}
                                     </div>
 
                                     {activeData?.topics && activeData.topics.length > (visibleCount[activeCategory] || 30) && (
-                                        <button onClick={() => setVisibleCount(p => ({ ...p, [activeCategory]: (p[activeCategory] || 30) + 30 }))} className="w-full mt-12 py-6 bg-slate-800/50 hover:bg-slate-800 border-2 border-dashed border-slate-700 hover:border-blue-500/50 text-slate-400 hover:text-blue-400 font-black uppercase tracking-widest rounded-3xl transition-all">DAHA FAZLA KONU YÜKLE <ChevronDown size={20} className="ml-2 inline" /></button>
+                                        <button
+                                            onClick={() => setVisibleCount(p => ({ ...p, [activeCategory]: (p[activeCategory] || 30) + 30 }))}
+                                            className="w-full mt-16 py-8 bg-slate-800/30 hover:bg-slate-800 border-2 border-dashed border-slate-700 hover:border-blue-500/50 text-slate-500 hover:text-blue-400 font-black uppercase tracking-[0.2em] rounded-[32px] transition-all flex items-center justify-center gap-4"
+                                        >
+                                            DAHA FAZLA VERİ YÜKLE <ChevronDown size={24} className="animate-bounce" />
+                                        </button>
                                     )}
                                 </div>
                             )}
