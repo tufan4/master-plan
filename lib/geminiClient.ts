@@ -75,13 +75,12 @@ TEMEL KURALLAR:
 3. Her başlık spesifik bir teknik kavramı veya beceriyi temsil etmeli.
 4. Hiyerarşik yapı kur: Ana Konu -> Alt Konu -> Detay Konu (En az 3 derinlik).
 5. Kapsamlı olmalı: TOPLAM EN AZ ${count} adet başlık üretmelisin. Konu bütünlüğünü koruyarak ${count} maddeye ulaş.
-6. HER BAŞLIK İÇİN iki farklı arama alanı ekle:
-   - "q_tr": O başlığı Türkçe kaynaklarda (ders notları, eğitim videoları) aratacak teknik kelimeler.
-   - "q_en": O başlığı küresel kaynaklarda (documentation, official papers) aratacak profesyonel İngilizce kelimeler.
+6. HER BAŞLIK İÇİN iki farklı arama anahtarı ("q_tr", "q_en") ekle. Bu alanlar, o başlığı doğrudan aratmak için en temiz ve en teknik kelimeleri içermeli. Sonek (Örn: "ders notları", "belgeleri") ASLA EKLEME.
 
 BAŞLIK FORMATI ÖRNEKLERİ:
 ✅ DOĞRU: "PLC Ladder Logic Programlama Temelleri"
 ✅ DOĞRU: "Siemens S7-1200 Timer ve Counter Fonksiyonları"
+❌ YANLIŞ: "PLC Nedir?", "Giriş", "Temel Kavramlar", "Özet", "Sonuç", "Tarihçe"
 
 ÇIKTI FORMATI (JSON):
 {
@@ -160,17 +159,20 @@ export async function generateRelatedTopics(topic: string): Promise<string[]> {
     if (!process.env.NEXT_PUBLIC_GROQ_API_KEY) return [];
 
     try {
-        const systemPrompt = `Sen bir müfredat danışmanısın.
+        const systemPrompt = `Sen bir uzman mühendislik ve müfredat danışmanısın.
 Konu: "${topic}"
-Görev: Bu konuyu çalışmak isteyen birine önerilecek 10 adet TAMAMLAYICI veya BENZER teknik eğitim başlığı öner.
-Örnek: "Python" -> ["Django Web Framework", "Veri Bilimi için Pandas", "Makine Öğrenmesi Temelleri", ...]
-Sadece JSON string array döndür. Markdown block kullanma.`;
+Görev: Bu konuyu çalışmak isteyen birine önerilecek 20 adet TAMAMLAYICI veya İLERİ SEVİYE teknik eğitim başlığı öner.
+Kurallar:
+1. Başlıklar profesyonel ve teknik olmalı.
+2. "Python" -> ["Django Rest Framework Architecture", "Asynchronous Programming with Asyncio", "Pandas for Large Datasets", ...] gibi nokta atışı olmalı.
+3. Birbirinden farklı alt dalları kapsamalı.
+Sadece JSON string array döndür.`;
 
         const completion = await groq.chat.completions.create({
             messages: [{ role: "user", content: systemPrompt }],
             model: "llama-3.3-70b-versatile",
-            temperature: 0.4,
-            max_tokens: 1000,
+            temperature: 0.5,
+            max_tokens: 1500,
             response_format: { type: "json_object" }
         });
 

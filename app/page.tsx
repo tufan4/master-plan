@@ -10,7 +10,6 @@ const AboutModal = dynamic(() => import("@/components/AboutModal"), { ssr: false
 import {
     syncCompletedTopics, fetchCompletedTopics, cacheImage, getCachedImages
 } from "@/lib/supabaseClient";
-import CURRICULUM from "@/data/master-curriculum.json";
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -78,22 +77,18 @@ export default function MasterTufanOS() {
 
     // LOAD SAVED STATE & STATIC DATA
     useEffect(() => {
-        // Priority 1: Static curriculum from JSON
-        const staticList = CURRICULUM.categories || [];
-
-        // Priority 2: Custom curriculums from localStorage
+        // Only load custom curriculums from localStorage
         let customList = [];
         const savedCustom = localStorage.getItem("customCurriculums");
         if (savedCustom) {
             try { customList = JSON.parse(savedCustom); } catch (e) { console.error("Custom load failed", e); }
         }
 
-        const merged = [...staticList, ...customList];
-        setAllCategories(merged);
+        setAllCategories(customList);
 
         // Auto-select first category if nothing selected
-        if (merged.length > 0 && !activeCategory) {
-            setActiveCategory(merged[0].id);
+        if (customList.length > 0 && !activeCategory) {
+            setActiveCategory(customList[0].id);
         }
 
         // Other loads
@@ -192,19 +187,6 @@ export default function MasterTufanOS() {
         }
 
         let finalQuery = qBase;
-
-        // 2. Add Language-Specific Context (Alt Kilit Anahtarlar)
-        if (isEn) {
-            if (platformId === "youtube") finalQuery += " full course tutorial";
-            if (platformId === "google") finalQuery += " technical documentation filetype:pdf";
-            if (platformId === "github") finalQuery += " source code example";
-        } else {
-            // Turkish context
-            if (platformId === "youtube") finalQuery += " eğitim seti dersleri";
-            if (platformId === "google") finalQuery += " ders notları filetype:pdf";
-            if (platformId === "reddit") finalQuery += " forum tartışma";
-            if (platformId === "github") finalQuery += " türkçe kaynak kod";
-        }
 
         const encoded = encodeURIComponent(finalQuery);
         const searchUrlMap: Record<string, string> = {
@@ -331,6 +313,22 @@ export default function MasterTufanOS() {
     };
 
     const activeData = useMemo(() => allCategories.find((c: any) => c.id === activeCategory), [allCategories, activeCategory]);
+
+    const activeStats = useMemo(() => {
+        let total = 0;
+        let completed = 0;
+        const traverse = (items: any[]) => {
+            items.forEach(item => {
+                total++;
+                if (completedItems.has(item.id)) completed++;
+                if (item.subtopics) traverse(item.subtopics);
+            });
+        };
+        if (activeData?.topics) traverse(activeData.topics);
+        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+        return { total, completed, percent };
+    }, [activeData, completedItems]);
+
     const hasCurriculum = allCategories.length > 0;
 
     return (
@@ -490,14 +488,14 @@ export default function MasterTufanOS() {
                                                     <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
                                                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Toplam Konu</span>
                                                 </div>
-                                                <span className="text-3xl font-black text-white leading-none">{activeData?.topics?.length || 0}</span>
+                                                <span className="text-3xl font-black text-white leading-none">{activeStats.total}</span>
                                             </div>
                                             <div className="px-6 py-4 bg-emerald-900/10 rounded-[24px] border border-emerald-500/20 shadow-xl">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
-                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Tamamlandı</span>
+                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">İlerleme</span>
                                                 </div>
-                                                <span className="text-3xl font-black text-emerald-400 leading-none">{completedItems.size}</span>
+                                                <span className="text-3xl font-black text-emerald-400 leading-none">%{activeStats.percent}</span>
                                             </div>
                                         </div>
                                     </div>

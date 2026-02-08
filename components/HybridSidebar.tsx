@@ -3,7 +3,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    Menu, X, ChevronRight, Info, Plus, Trash2, Sparkles, Wand2, Folder, FolderOpen
+    Menu, X, ChevronRight, Info, Plus, Trash2, Sparkles, Wand2, Layout, LayoutPanelLeft
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -141,10 +141,10 @@ export default function HybridSidebar({
                                             ${isActive ? 'bg-blue-600/20' : 'hover:bg-slate-800/50'}
                                         `}
                                         >
-                                            {/* Icon / Folder */}
+                                            {/* Icon / Path */}
                                             <div className="w-[60px] flex justify-center shrink-0">
                                                 <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isActive ? 'bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)] border border-blue-400' : 'bg-slate-800/50 text-slate-600 border border-slate-700/50 hover:border-slate-600 hover:text-slate-400'}`}>
-                                                    {isActive ? <FolderOpen size={20} /> : <Folder size={20} />}
+                                                    {isActive ? <Sparkles size={18} /> : <LayoutPanelLeft size={18} />}
                                                 </div>
                                             </div>
 
