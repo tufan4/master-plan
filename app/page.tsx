@@ -16,7 +16,7 @@ import {
     Search, ChevronDown, ChevronRight, CheckCircle2, Circle,
     Youtube, FileText, Book, X, Image as ImageIcon,
     Globe, MessageCircle, Sparkles, BookOpen, Info,
-    Github, Lightbulb, HelpCircle, Layout, Settings, Plus, Wand2, Trash2
+    Github, Lightbulb, HelpCircle, Layout, Settings, Plus, Wand2, Trash2, Menu
 } from "lucide-react";
 import { generateFullCurriculum, generateRelatedTopics } from "@/lib/geminiClient";
 
@@ -74,6 +74,7 @@ export default function MasterTufanOS() {
 
     const [ghostTopics, setGhostTopics] = useState<Record<string, string[]>>({});
     const [loadingGhost, setLoadingGhost] = useState<Record<string, boolean>>({});
+    const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
     // LOAD SAVED STATE & STATIC DATA
     useEffect(() => {
@@ -421,6 +422,7 @@ export default function MasterTufanOS() {
                             }).finally(() => setLoadingGhost(p => ({ ...p, [id]: false })));
                         }}
                         onCreateGhost={(topic) => createCurriculum(topic, 100)} loadingGhost={loadingGhost}
+                        isExpanded={sidebarExpanded} setIsExpanded={setSidebarExpanded}
                     />
 
                     {/* Desktop Sidebar Spacer */}
@@ -428,7 +430,13 @@ export default function MasterTufanOS() {
 
                     <main className="flex-1 flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(30,41,59,0.3),transparent)] relative">
                         {/* Header */}
-                        <header className="h-24 border-b border-white/5 bg-slate-950/40 backdrop-blur-2xl px-8 flex items-center gap-8 z-10">
+                        <header className="h-20 md:h-24 border-b border-white/5 bg-slate-950/40 backdrop-blur-2xl px-4 md:px-8 flex items-center gap-4 md:gap-8 z-10 shrink-0">
+                            <button
+                                onClick={() => setSidebarExpanded(true)}
+                                className="lg:hidden p-3 bg-slate-800/80 rounded-xl text-amber-400 hover:bg-slate-700 transition-all border border-slate-700/50"
+                            >
+                                <Menu size={24} />
+                            </button>
                             <div className="relative flex-1 group">
                                 <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors" size={24} />
                                 <input

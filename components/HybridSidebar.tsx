@@ -18,6 +18,8 @@ interface HybridSidebarProps {
     onGenerateGhost: (catId: string, title: string) => void;
     onCreateGhost: (topic: string) => void;
     loadingGhost: Record<string, boolean>;
+    isExpanded: boolean;
+    setIsExpanded: (val: boolean) => void;
 }
 
 export default function HybridSidebar({
@@ -30,9 +32,18 @@ export default function HybridSidebar({
     ghostTopics,
     onGenerateGhost,
     onCreateGhost,
-    loadingGhost
+    loadingGhost,
+    isExpanded,
+    setIsExpanded
 }: HybridSidebarProps) {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     // Close sidebar when clicking outside
     useEffect(() => {
@@ -73,7 +84,10 @@ export default function HybridSidebar({
             <motion.aside
                 id="hybrid-sidebar"
                 initial={false}
-                animate={{ width: isExpanded ? 280 : 60, x: 0 }}
+                animate={{
+                    width: isMobile ? 280 : (isExpanded ? 280 : 60),
+                    x: isMobile ? (isExpanded ? 0 : -280) : 0
+                }}
                 transition={{ type: "spring", stiffness: 350, damping: 35 }}
                 className="fixed top-0 left-0 h-full bg-slate-900/95 backdrop-blur-xl border-r border-slate-800 z-50 flex flex-col overflow-hidden shadow-[10px_0_30px_rgba(0,0,0,0.5)]"
             >
