@@ -108,7 +108,7 @@ Sadece JSON döndür.`;
         const parsed = JSON.parse(rawText);
 
         // Recursive ID fixer helper (ensures unique IDs and levels for frontend)
-        const fixStructure = (items: any[], parentLevel: number = 0) => {
+        const fixStructure = (items: any[], parentLevel: number = 0): any[] => {
             return items.map((item, idx) => ({
                 id: item.id || `gen-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
                 title: item.title,
