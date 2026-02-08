@@ -1270,6 +1270,133 @@ export default function MasterTufanOS() {
                                             ))}
                                     </div>
                                 </div>
+                            ) : globalSearch ? (
+                                /* SEARCH RESULTS VIEW */
+                                <div className="space-y-8 max-w-4xl mx-auto">
+                                    <div className="flex items-center gap-2 mb-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-2xl">
+                                        <Search className="text-blue-400" size={20} />
+                                        <span className="text-blue-100 font-bold uppercase tracking-widest text-sm">Arama Sonuçları (Kütüphane + Özel)</span>
+                                    </div>
+
+                                    {(() => {
+                                        const searchTerms = globalSearch.toLowerCase().trim();
+                                        let anyMatch = false;
+
+                                        const content = [...CURRICULUM.categories, ...allCategories].map((cat: any) => {
+                                            const hasMatch = (items: any[]): boolean => {
+                                                if (!items) return false;
+                                                return items.some(item => {
+                                                    const mTitle = item.title.toLowerCase().includes(searchTerms);
+                                                    const mKey = item.keywords && item.keywords.some((k: string) => k.toLowerCase().includes(searchTerms));
+                                                    if (mTitle || mKey) return true;
+                                                    if (item.subtopics) return hasMatch(item.subtopics);
+                                                    return false;
+                                                });
+                                            };
+
+                                            if (hasMatch(cat.topics || [])) {
+                                                anyMatch = true;
+                                                return (
+                                                    <div key={cat.id} className="mb-10">
+                                                        <div className="flex items-center gap-2 mb-4 p-3 bg-slate-800/80 border-l-4 border-amber-500 rounded-r-xl">
+                                                            <Layout size={18} className="text-amber-500" />
+                                                            <h2 className="text-lg font-black text-slate-100 uppercase tracking-wider">{cat.title}</h2>
+                                                        </div>
+                                                        {cat.topics?.map((topic: any) => {
+                                                            const topicMatch = (t: any): boolean => {
+                                                                if (t.title.toLowerCase().includes(searchTerms)) return true;
+                                                                if (t.keywords && t.keywords.some((k: string) => k.toLowerCase().includes(searchTerms))) return true;
+                                                                if (t.subtopics) return t.subtopics.some((st: any) => topicMatch(st));
+                                                                return false;
+                                                            };
+                                                            if (topicMatch(topic)) return renderRecursive(topic);
+                                                            return null;
+                                                        })}
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        });
+
+                                        return (
+                                            <>
+                                                {content}
+                                                {!anyMatch && (
+                                                    <div className="text-center py-20 bg-slate-800/20 rounded-3xl border-2 border-dashed border-slate-700">
+                                                        <HelpCircle size={48} className="mx-auto text-slate-600 mb-4" />
+                                                        <h3 className="text-xl font-bold text-slate-300 mb-2">Sonuç Bulunamadı</h3>
+                                                        <p className="text-slate-500 mb-8">"{globalSearch}" için kütüphanede bir eşleşme yok.</p>
+
+                                                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (isGenerating) return;
+                                                                    const confirmWiki = confirm(`"${globalSearch}" için Wikipedia üzerinden müfredat oluşturulsun mu?\n(Bu işlem AI kredisi harcamaz)`);
+                                                                    if (!confirmWiki) return;
+
+                                                                    setIsGenerating(true);
+                                                                    try {
+                                                                        const res = await fetch(`/api/wiki-curriculum?query=${encodeURIComponent(globalSearch)}`);
+                                                                        const data = await res.json();
+
+                                                                        if (!data.success || !data.curriculum || data.curriculum.length === 0) {
+                                                                            alert("Wikipedia'da yeterli bilgi bulunamadı. Lütfen AI ile oluşturmayı deneyin.");
+                                                                            return;
+                                                                        }
+
+                                                                        // Create new category from Wiki Data
+                                                                        const newCategory = {
+                                                                            id: `wiki-${Date.now()}`,
+                                                                            title: `📚 ${data.title} (Wiki)`,
+                                                                            isCustom: true,
+                                                                            topics: data.curriculum.map((section: any) => ({
+                                                                                ...section,
+                                                                                level: 1,
+                                                                                subtopics: section.subtopics?.map((sub: any) => ({
+                                                                                    ...sub,
+                                                                                    level: 2
+                                                                                }))
+                                                                            }))
+                                                                        };
+
+                                                                        const updated = [newCategory, ...allCategories];
+                                                                        setAllCategories(updated);
+                                                                        localStorage.setItem("customCurriculums", JSON.stringify(updated.filter(c => c.isCustom)));
+                                                                        setGlobalSearch(""); // Clear search to see the new category
+                                                                        alert(`"${data.title}" başarıyla kütüphanenize eklendi!`);
+
+                                                                    } catch (err) {
+                                                                        console.error(err);
+                                                                        alert("Wikipedia bağlantısında bir sorun oluştu.");
+                                                                    } finally {
+                                                                        setIsGenerating(false);
+                                                                    }
+                                                                }}
+                                                                disabled={isGenerating}
+                                                                className="px-6 py-3 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl font-bold transition-all shadow-lg flex items-center gap-2"
+                                                            >
+                                                                <Globe size={18} />
+                                                                {isGenerating ? 'Araştırılıyor...' : 'İnternetten Getir (Ücretsiz)'}
+                                                            </button>
+
+                                                            <button
+                                                                onClick={() => {
+                                                                    setAiPrompt(globalSearch);
+                                                                    setShowNewCurriculumModal(true);
+                                                                }}
+                                                                disabled={isGenerating}
+                                                                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-all shadow-lg flex items-center gap-2"
+                                                            >
+                                                                <Sparkles size={18} />
+                                                                Yapay Zeka ile Oluştur
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
+                                </div>
                             ) : (
                                 /* TOPICS VIEW */
                                 <div className="max-w-4xl mx-auto space-y-4">
