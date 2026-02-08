@@ -17,13 +17,12 @@ import {
     Search, ChevronDown, ChevronRight, CheckCircle2, Circle,
     Youtube, FileText, Book, X, Image as ImageIcon,
     Globe, MessageCircle, Sparkles, BookOpen, Info, Instagram, Linkedin,
-    Github, Lightbulb, HelpCircle, Layout, Settings, Download, Leaf, Plus
+    Github, Lightbulb, HelpCircle, Layout, Settings, Download, Leaf, Plus, Wand2, Trash2
 } from "lucide-react";
-import { generateDiverseKeywords, generateFullCurriculum, generateDictionary, generateRelatedTopics } from "@/lib/geminiClient";
+import { generateDiverseKeywords, generateFullCurriculum, generateRelatedTopics } from "@/lib/geminiClient";
 import { getDeepDiscoveryLink } from "@/lib/deepDiscovery";
 
 // ==================== PLATFORMS ====================
-// ==================== PLATFORMS (25 ACADEMIC & ENGINEERING SITES) ====================
 const PLATFORMS = [
     // --- CORE ---
     { id: "youtube", name: "YouTube", icon: Youtube, color: "red" },
@@ -64,7 +63,7 @@ const PLATFORMS = [
 ];
 
 export default function MasterTufanOS() {
-    // DYNAMIC CURRICULUM STATE (Starts Empty per Request)
+    // DYNAMIC CURRICULUM STATE
     const [allCategories, setAllCategories] = useState<any[]>([]);
     const [activeCategory, setActiveCategory] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
@@ -75,9 +74,8 @@ export default function MasterTufanOS() {
     const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
     const [activeControlPanel, setActiveControlPanel] = useState<string | null>(null);
-    const [showDictionary, setShowDictionary] = useState(false);
     const [activePlatformPanel, setActivePlatformPanel] = useState<{ topicId: string; platform: string } | null>(null);
-    const [showNewCurriculumModal, setShowNewCurriculumModal] = useState(false); // New State
+    const [showNewCurriculumModal, setShowNewCurriculumModal] = useState(false);
 
     const [language, setLanguage] = useState<'tr' | 'en'>('en');
     const [showImageGallery, setShowImageGallery] = useState<string | null>(null);
@@ -87,10 +85,11 @@ export default function MasterTufanOS() {
     const [loadingImages, setLoadingImages] = useState(false);
     const [parentMap, setParentMap] = useState<Map<string, string>>(new Map());
     const [pulsingMatch, setPulsingMatch] = useState<string | null>(null);
-    const [customDict, setCustomDict] = useState<any[]>([]);
     const [visibleCount, setVisibleCount] = useState<Record<string, number>>({});
-    const [ghostTopics, setGhostTopics] = useState<string[]>([]);
-    const [showingGhostFor, setShowingGhostFor] = useState<string | null>(null);
+
+    // GHOST CURRICULUM STATE (New Feature)
+    const [ghostTopics, setGhostTopics] = useState<Record<string, string[]>>({});
+    const [loadingGhost, setLoadingGhost] = useState<Record<string, boolean>>({});
 
     /**
      * Helper: Normalize Acronyms & Professional Casing
@@ -105,16 +104,13 @@ export default function MasterTufanOS() {
         }).join(' ');
     };
 
-    // Load custom dictionary on mount
+    // Load Ghost Topics from storage
     useEffect(() => {
-        const saved = localStorage.getItem("customDictionary");
-        if (saved) setCustomDict(JSON.parse(saved));
+        const saved = localStorage.getItem("ghostTopics");
+        if (saved) setGhostTopics(JSON.parse(saved));
     }, []);
 
-
-
-
-    // Initial Parent Map Calculation (Updated to depend on allCategories)
+    // Initial Parent Map Calculation
     useEffect(() => {
         const map = new Map<string, string>();
         const traverse = (items: any[], parentId: string | null) => {
@@ -127,7 +123,7 @@ export default function MasterTufanOS() {
         setParentMap(map);
     }, [allCategories]);
 
-    // LOAD CUSTOM CURRICULUMS FROM LOCAL STORAGE (ONLY)
+    // LOAD CUSTOM CURRICULUMS
     useEffect(() => {
         const loadCustom = () => {
             try {
@@ -145,26 +141,31 @@ export default function MasterTufanOS() {
     }, []);
 
     const deleteCurriculum = (id: string) => {
+        if (!confirm("Bu müfredatı silmek istediğinize emin misiniz?")) return;
         const updatedList = allCategories.filter(cat => cat.id !== id);
         setAllCategories(updatedList);
-        localStorage.setItem("customCurriculums", JSON.stringify(updatedList));
+        localStorage.setItem("customCurriculums", JSON.stringify(updatedList.filter(c => c.isCustom)));
 
-        // If the deleted one was active, switch to another
+        // Remove ghost topics for this category
+        const newGhosts = { ...ghostTopics };
+        delete newGhosts[id];
+        setGhostTopics(newGhosts);
+        localStorage.setItem("ghostTopics", JSON.stringify(newGhosts));
+
         if (activeCategory === id) {
             if (updatedList.length > 0) setActiveCategory(updatedList[0].id);
             else setActiveCategory("");
         }
     };
 
-    const handleGenerateCurriculum = async () => {
-        if (!aiPrompt.trim()) return;
-        const finalPrompt = normalizeTopic(aiPrompt);
+    const createCurriculum = async (topic: string, count: number = 50) => {
+        if (!topic.trim()) return;
+        const finalPrompt = normalizeTopic(topic);
         setIsGenerating(true);
         try {
-            const result = await generateFullCurriculum(finalPrompt, topicCount);
+            const result = await generateFullCurriculum(finalPrompt, count);
 
             if (result && (result.categories || result.topics)) {
-                // Determine if it is a flat massive list or categorical
                 let processedTopics = [];
                 if (result.isMassive || result.topics) {
                     processedTopics = result.topics.map((t: any) => ({
@@ -188,12 +189,10 @@ export default function MasterTufanOS() {
 
                 const updatedList = [...allCategories, mainContainer];
                 setAllCategories(updatedList);
-                localStorage.setItem("customCurriculums", JSON.stringify(updatedList));
+                localStorage.setItem("customCurriculums", JSON.stringify(updatedList.filter(c => c.isCustom)));
 
                 setActiveCategory(mainContainer.id);
-                // Initialize visible count
                 setVisibleCount(prev => ({ ...prev, [mainContainer.id]: 20 }));
-
                 setAiPrompt("");
                 setShowNewCurriculumModal(false);
             } else {
@@ -207,151 +206,110 @@ export default function MasterTufanOS() {
         }
     };
 
+    const handleGenerateCurriculum = () => createCurriculum(aiPrompt, topicCount);
 
+    const handleGenerateGhost = async (catId: string, title: string) => {
+        setLoadingGhost(prev => ({ ...prev, [catId]: true }));
+        try {
+            const related = await generateRelatedTopics(title);
+            if (related && related.length > 0) {
+                const newGhosts = { ...ghostTopics, [catId]: related };
+                setGhostTopics(newGhosts);
+                localStorage.setItem("ghostTopics", JSON.stringify(newGhosts));
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoadingGhost(prev => ({ ...prev, [catId]: false }));
+        }
+    };
 
+    const handleCreateGhost = (topic: string) => {
+        // Remove from ghost list potentially? Or keep? Keeping is safer.
+        createCurriculum(topic, 50); // Default 50 depth for ghost topics
+    };
 
     const [generatedKeywords, setGeneratedKeywords] = useState<Record<string, string[]>>({});
     const [showAboutModal, setShowAboutModal] = useState(false);
     const [runTutorial, setRunTutorial] = useState(false);
-    const [searchPlaylist, setSearchPlaylist] = useState(false); // New state for playlist toggle
-    const [searchShorts, setSearchShorts] = useState(false); // New state for shorts toggle
+    const [searchPlaylist, setSearchPlaylist] = useState(false);
+    const [searchShorts, setSearchShorts] = useState(false);
 
-
-
-    // DATA RECOVERY: Supabase → localStorage → Default
+    // DATA RECOVERY
     useEffect(() => {
         const loadData = async () => {
             try {
-                // Try Supabase first
                 const supabaseData = await fetchCompletedTopics();
                 if (supabaseData && supabaseData.length > 0) {
                     setCompletedItems(new Set(supabaseData));
                     return;
                 }
-            } catch (error) {
-                console.log("Supabase unavailable, trying localStorage");
-            }
-
-            // Fallback to localStorage
+            } catch (error) { console.log("Supabase unavailable"); }
             try {
                 const localData = localStorage.getItem("completedTopics");
-                if (localData) {
-                    setCompletedItems(new Set(JSON.parse(localData)));
-                }
-            } catch (error) {
-                console.error("Data recovery failed:", error);
-            }
+                if (localData) setCompletedItems(new Set(JSON.parse(localData)));
+            } catch (error) { }
         };
         loadData();
     }, []);
 
-
-
-    // ==================== HELPER: LEVENSHTEIN DISTANCE ====================
     const levenshtein = (a: string, b: string): number => {
         const matrix = [];
         for (let i = 0; i <= b.length; i++) matrix[i] = [i];
         for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-
         for (let i = 1; i <= b.length; i++) {
             for (let j = 1; j <= a.length; j++) {
                 if (b.charAt(i - 1) === a.charAt(j - 1)) {
                     matrix[i][j] = matrix[i - 1][j - 1];
                 } else {
-                    matrix[i][j] = Math.min(
-                        matrix[i - 1][j - 1] + 1,
-                        matrix[i][j - 1] + 1,
-                        matrix[i - 1][j] + 1
-                    );
+                    matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
                 }
             }
         }
         return matrix[b.length][a.length];
     };
 
-    // ==================== UNIFIED SEARCH LOGIC (FUZZY) ====================
+    // SEARCH LOGIC
     useEffect(() => {
         if (globalSearch.trim()) {
             const searchLower = globalSearch.toLowerCase();
-            const searchTerms = searchLower.split(' ').filter(t => t.length > 1); // Allow shorter words (2 chars)
+            const searchTerms = searchLower.split(' ').filter(t => t.length > 1);
             const expandAll = new Set<string>();
-
-            // Fuzzy Match Config
-            const MAX_DISTANCE = 2;
-
-            const isFuzzyMatch = (text: string) => {
-                if (!text) return false;
-                const lower = text.toLowerCase();
-                const words = lower.split(/[\s-]+/); // Split by space or dash
-
-                // Check if ALL search terms match SOMETHING in the text
-                return searchTerms.every(term =>
-                    words.some(w => {
-                        // Exact match or substring
-                        if (w.includes(term)) return true;
-                        // Fuzzy match (only if term is long enough)
-                        if (term.length > 3 && levenshtein(w, term) <= MAX_DISTANCE) return true;
-                        return false;
-                    })
-                );
-            };
-
-            // Dynamic Search with Progressive Filtering
             const matchedIds: string[] = [];
 
             const searchCurriculum = (items: any[]) => {
                 items.forEach(item => {
-                    const term = globalSearch.toLowerCase();
-                    const match = item.title.toLowerCase().includes(term) || (item.keywords && item.keywords.some((k: any) => k.toLowerCase().includes(term)));
-
+                    const match = item.title.toLowerCase().includes(searchLower) || (item.keywords && item.keywords.some((k: any) => k.toLowerCase().includes(searchLower)));
                     if (match) {
                         matchedIds.push(item.id);
                         expandAll.add(item.id);
-                        // Smart Parent Expansion using parentMap
                         let curr = parentMap.get(item.id);
                         while (curr) { expandAll.add(curr); curr = parentMap.get(curr); }
                     }
                     if (item.subtopics) searchCurriculum(item.subtopics);
                 });
             };
+            allCategories.forEach(cat => { if (cat.topics) searchCurriculum(cat.topics); }); // Include all categories in search
 
-            CURRICULUM.categories.forEach(cat => {
-                if (cat.topics) searchCurriculum(cat.topics);
-            });
-
-            // If only ONE result, trigger neon pulsing
-            if (matchedIds.length === 1) {
-                setPulsingMatch(matchedIds[0]);
-            } else {
-                setPulsingMatch(null);
-            }
-
+            if (matchedIds.length === 1) setPulsingMatch(matchedIds[0]);
+            else setPulsingMatch(null);
             setExpandedItems(expandAll);
         } else {
             setExpandedItems(new Set());
             setPulsingMatch(null);
         }
-    }, [globalSearch, parentMap]);
-
-
-
-
+    }, [globalSearch, parentMap, allCategories]); // Added allCategories dependency
 
     const getTotalCount = () => {
         let count = 0;
         const traverse = (items: any[]) => {
             items.forEach(item => {
-                if (item.subtopics && item.subtopics.length > 0) {
-                    traverse(item.subtopics);
-                } else {
-                    count++;
-                }
+                if (item.subtopics && item.subtopics.length > 0) traverse(item.subtopics);
+                else count++;
             });
         };
-
         const activeData = allCategories.find((c: any) => c.id === activeCategory);
         if (activeData && activeData.topics) traverse(activeData.topics);
-
         return count;
     };
 
@@ -362,18 +320,8 @@ export default function MasterTufanOS() {
         const newSet = new Set(completedItems);
         newSet.has(id) ? newSet.delete(id) : newSet.add(id);
         setCompletedItems(newSet);
-
-        // Save to localStorage immediately
-        if (typeof window !== 'undefined') {
-            localStorage.setItem("completedTopics", JSON.stringify([...newSet]));
-        }
-
-        // Try Supabase sync in background
-        try {
-            await syncCompletedTopics([...newSet]);
-        } catch (error) {
-            console.log("Supabase sync failed, data saved locally");
-        }
+        if (typeof window !== 'undefined') localStorage.setItem("completedTopics", JSON.stringify([...newSet]));
+        try { await syncCompletedTopics([...newSet]); } catch (error) { }
     };
 
     const toggleExpand = (id: string) => {
@@ -390,52 +338,19 @@ export default function MasterTufanOS() {
         setShowImageGallery(null);
     };
 
-
-
-
-
-    // ==================== DEEP DIVE HANDLER (Level 2 Scraping) ====================
     const handleDeepDive = async (platformId: string, query: string, lang: 'tr' | 'en') => {
         const platform = PLATFORMS.find(p => p.id === platformId);
         if (!platform) return;
-
-        // 1. Open Tab Immediately (Bypass Blockers)
         const newTab = window.open('', '_blank');
         if (newTab) {
             const color = platform.color || 'blue';
-            newTab.document.write(`
-                <style>
-                    body{background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;margin:0} 
-                    .loader{border:4px solid #334155;border-top:4px solid ${color === 'red' ? '#ef4444' : color === 'green' ? '#22c55e' : color === 'orange' ? '#f97316' : '#3b82f6'};border-radius:50%;width:50px;height:50px;animation:spin 0.8s linear infinite;margin-bottom:1.5rem} 
-                    @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}} 
-                    .title{font-size:1.5rem;font-weight:bold;margin-bottom:0.5rem;text-align:center} 
-                    .sub{font-size:0.9rem;opacity:0.6;text-transform:uppercase;letter-spacing:1px}
-                    .status{font-size:0.8rem;margin-top:10px;color:#94a3b8;font-style:italic}
-                </style>
-                <div class="loader"></div>
-                <div class="title">${query}</div>
-                <div class="sub">${platform.name} Erişim Birimi...</div>
-                <div class="status" id="status">Bilgi Kaynağına Bağlanıyor...</div>
-            `);
+            newTab.document.write(`<style>body{background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:sans-serif}.loader{border:4px solid #334155;border-top:4px solid ${color};border-radius:50%;width:50px;height:50px;animation:spin 0.8s linear infinite}@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style><div class="loader"></div><div style="margin-top:20px;font-weight:bold">${query}</div>`);
         }
-
         try {
-            // 2. Attempt Level 1 API Deep Link (Reddit/Wiki/YouTube/etc.)
-            if (newTab && newTab.document.getElementById('status')) newTab.document.getElementById('status')!.innerText = "Bilgi Bankası Sorgulanıyor...";
-
             const apiLink = await getDeepDiscoveryLink(platformId, query, lang);
+            if (apiLink && apiLink.success && newTab) { newTab.location.href = apiLink.url; return; }
 
-            if (apiLink && apiLink.success) {
-                if (newTab) newTab.location.href = apiLink.url;
-                return;
-            }
-
-            // 3. Fallback to Direct Search (No Random Scraping)
-            if (newTab && newTab.document.getElementById('status')) newTab.document.getElementById('status')!.innerText = "Redirecting to Search Results...";
-
-            let url: string;
-
-            // SMART QUERY CONSTRUCTION (DIRECT SITE SEARCH)
+            // Fallback
             const searchUrlMap: Record<string, string> = {
                 'youtube': `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}${searchShorts ? '&sp=EgIQCQ%253D%253D' : searchPlaylist ? '&sp=EgIQAw%253D%253D' : ''}`,
                 'google': `https://www.google.com/search?q=${encodeURIComponent(query + ' filetype:pdf')}`,
@@ -465,98 +380,28 @@ export default function MasterTufanOS() {
                 'semantic': `https://www.semanticscholar.org/search?q=${encodeURIComponent(query)}`
             };
 
-            url = searchUrlMap[platformId] || `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+            let url = searchUrlMap[platformId] || `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+            if (newTab) newTab.location.href = url;
 
-            const fallbackUrl = url;
-
-            // Direct Redirect
-            setTimeout(() => {
-                if (newTab) newTab.location.href = fallbackUrl;
-            }, 300);
-
-        } catch (e) {
-            console.warn("Deep scan failed");
-            // Absolute final fallback to google if everything explodes
-            if (newTab) newTab.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-        }
-    };
-    const generateKeywordsWithAI = async (topic: string, topicId: string, threshold: number, baseKeywords: string[] = []): Promise<string[]> => {
-        // Force threshold to be low since we only need 2 items (TR + EN)
-        threshold = 1;
-        setGeneratingKeywords(true);
-
-        // Check memory cache first
-        if (generatedKeywords[topicId] && generatedKeywords[topicId].length >= threshold) {
-            setGeneratingKeywords(false);
-            return generatedKeywords[topicId].slice(0, 2);
-        }
-
-        // Check localStorage cache
-        const cached = getCachedKeywords(topicId);
-        if (cached && cached.length >= threshold) {
-            setGeneratedKeywords(prev => ({ ...prev, [topicId]: cached }));
-            setGeneratingKeywords(false);
-            return cached.slice(0, 2);
-        }
-
-        try {
-            const result = await generateDiverseKeywords(topic, language);
-
-            // Combine: [Original Title (TR), Translated Title (EN)]
-            const combined = [topic, ...result];
-
-            // Cache keywords in both memory and localStorage
-            setGeneratedKeywords(prev => ({ ...prev, [topicId]: combined }));
-            cacheKeywords(topicId, combined);
-
-            setGeneratingKeywords(false);
-            return combined;
-        } catch (error) {
-            console.error('Keyword generation error:', error);
-            setGeneratingKeywords(false);
-            return [topic];
-        }
+        } catch (e) { if (newTab) newTab.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`; }
     };
 
-    // Unsplash API direct image injection
     const loadImagesFromAPI = async (topic: string, topicId: string, count: number) => {
         setLoadingImages(true);
-
-        // Check cache first
         const cached = getCachedImages(topicId);
-        if (cached && cached.length >= count) {
-            setGalleryImages(cached.slice(0, count));
-            setLoadingImages(false);
-            return;
-        }
-
+        if (cached && cached.length >= count) { setGalleryImages(cached.slice(0, count)); setLoadingImages(false); return; }
         try {
             const accessKey = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
-            if (!accessKey) {
-                throw new Error("Unsplash API key not found");
-            }
-
-            const response = await fetch(
-                `https://api.unsplash.com/search/photos?query=${encodeURIComponent(topic + ' engineering technical')}&per_page=${count}&content_filter=high&client_id=${accessKey}`
-            );
-
-            if (!response.ok) throw new Error('Unsplash API error');
-
+            if (!accessKey) throw new Error("Key missing");
+            const response = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(topic + ' engineering technical')}&per_page=${count}&client_id=${accessKey}`);
             const data = await response.json();
             const images = data.results.map((img: any) => img.urls.regular);
-
-            // Cache images
             cacheImage(topicId, images);
-
             setGalleryImages(images);
-            setLoadingImages(false);
         } catch (error) {
-            console.error('Image loading error:', error);
-            // Fallback to placeholders
-            const placeholders = Array.from({ length: count }, (_, i) =>
-                `https://via.placeholder.com/400x300/1e293b/94a3b8?text=${encodeURIComponent(topic)}+${i + 1}`
-            );
-        }
+            const placeholders = Array.from({ length: count }, (_, i) => `https://via.placeholder.com/400x300/1e293b/94a3b8?text=${encodeURIComponent(topic)}+${i + 1}`);
+            setGalleryImages(placeholders);
+        } finally { setLoadingImages(false); }
     };
 
     const renderRecursive = (item: any, depth: number = 0) => {
@@ -564,344 +409,52 @@ export default function MasterTufanOS() {
         const isCompleted = completedItems.has(item.id);
         const hasChildren = item.subtopics && item.subtopics.length > 0;
         const showPanel = activeControlPanel === item.id;
-        const isPulsing = pulsingMatch === item.id ||
-            (globalSearch.trim().length > 1 &&
-                item.title.toLowerCase().includes(globalSearch.toLowerCase().trim()));
+        const isPulsing = pulsingMatch === item.id || (globalSearch.trim().length > 1 && item.title.toLowerCase().includes(globalSearch.toLowerCase().trim()));
 
         return (
             <div key={item.id} style={{ marginLeft: `${depth * 16}px` }} className="mb-1">
                 <motion.div
                     initial={{ opacity: 0 }}
-                    animate={{
-                        opacity: 1,
-                        boxShadow: isPulsing ? ['0 0 0px rgba(6, 182, 212, 0)', '0 0 20px rgba(6, 182, 212, 0.8)', '0 0 0px rgba(6, 182, 212, 0)'] : 'none'
-                    }}
-                    transition={isPulsing ? { duration: 1.5, repeat: Infinity, ease: 'easeInOut' } : {}}
-                    className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${isPulsing ? 'bg-cyan-900/30 border-2 border-cyan-400 ring-2 ring-cyan-400/50' :
-                        isCompleted ? 'bg-emerald-900/20 border-l-2 border-emerald-500' :
-                            'bg-slate-800/30 hover:bg-slate-700/30'
-                        }`}
-                    onClick={() => {
-                        setActiveControlPanel(showPanel ? null : item.id);
-                    }}
+                    animate={{ opacity: 1, boxShadow: isPulsing ? ['0 0 0px cyan', '0 0 20px cyan', '0 0 0px cyan'] : 'none' }}
+                    className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${isPulsing ? 'bg-cyan-900/30 ring-2 ring-cyan-400' : isCompleted ? 'bg-emerald-900/20 border-l-2 border-emerald-500' : 'bg-slate-800/30 hover:bg-slate-700/30'}`}
+                    onClick={() => setActiveControlPanel(showPanel ? null : item.id)}
                 >
-                    {hasChildren && (
-                        <button onClick={(e) => { e.stopPropagation(); toggleExpand(item.id); }}>
-                            {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                        </button>
-                    )}
-
-                    <button
-                        onClick={(e) => { e.stopPropagation(); toggleComplete(item.id); }}
-                        className={isCompleted ? "text-emerald-400" : "text-slate-500"}
-                    >
-                        {isCompleted ? <CheckCircle2 size={18} /> : <Circle size={18} />}
-                    </button>
-
-                    <div className="flex-1">
-                        <span className={`text-sm ${isCompleted ? 'text-emerald-300 line-through' : 'text-slate-200'}`}>
-                            {/* Auto-Indent Staircase Logic */}
-                            {(() => {
-                                // 1. Clean title for display (Strip any leading numbers if they exist)
-                                const cleanTitle = item.title.replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim();
-
-                                // 2. Check for level field or try to guess from numbering (fallback)
-                                let level = item.level !== undefined ? item.level : 0;
-                                const match = item.title.match(/^(\d+(\.\d+)*)/);
-
-                                if (item.level === undefined && match) {
-                                    const parts = match[1].split('.');
-                                    const isMain = parts[parts.length - 1] === '0';
-                                    level = isMain ? 0 : (parts.length - 1);
-                                }
-
-                                const depthCount = level;
-                                const isMain = level === 0;
-                                const indentMultiplier = typeof window !== 'undefined' && window.innerWidth < 480 ? 12 : 20;
-                                const depth = level * indentMultiplier;
-
-                                return (
-                                    <span
-                                        className={`inline-block ${isMain ? 'font-black text-blue-400 text-sm sm:text-base mb-1' : 'font-medium text-xs sm:text-sm'}`}
-                                        style={{ marginLeft: `${depth}px` }}
-                                    >
-                                        {cleanTitle}
-                                    </span>
-                                );
-                            })()}
-                        </span>
-                    </div>
+                    {hasChildren && <button onClick={(e) => { e.stopPropagation(); toggleExpand(item.id); }}>{isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</button>}
+                    <button onClick={(e) => { e.stopPropagation(); toggleComplete(item.id); }} className={isCompleted ? "text-emerald-400" : "text-slate-500"}>{isCompleted ? <CheckCircle2 size={18} /> : <Circle size={18} />}</button>
+                    <span className={`text-sm flex-1 ${isCompleted ? 'text-emerald-300 line-through' : 'text-slate-200'}`}>{item.title}</span>
                 </motion.div>
 
-                {/* CONTROL PANEL */}
                 <AnimatePresence>
                     {showPanel && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="ml-0 sm:ml-8 mt-2 bg-slate-800/50 rounded-lg p-2 sm:p-4 border border-slate-700/50"
-                        >
-                            {/* AI SMART KEY BUTTON */}
-
-
-                            <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-2 mb-4">
-                                {PLATFORMS.filter(p =>
-                                    !activePlatformPanel ||
-                                    activePlatformPanel.topicId !== item.id ||
-                                    activePlatformPanel.platform === p.id
-                                ).map(plat => {
-                                    const Icon = plat.icon;
-                                    const isActive = activePlatformPanel?.topicId === item.id && activePlatformPanel?.platform === plat.id;
-                                    return (
-                                        <button
-                                            key={plat.id}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                // Toggle behavior: Close if already active, otherwise open
-                                                if (isActive) {
-                                                    setActivePlatformPanel(null);
-                                                } else {
-                                                    setActivePlatformPanel({ topicId: item.id, platform: plat.id });
-                                                    // No need to call generateKeywordsWithAI anymore as we use static titles
-                                                }
-                                            }}
-                                            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all border ${isActive
-                                                ? 'bg-blue-600/20 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]'
-                                                : 'bg-slate-800/50 border-slate-700 hover:bg-slate-700 hover:border-slate-600'
-                                                }`}
-                                        >
-                                            <Icon size={20} className={`mb-1 transition-colors ${isActive ? 'text-blue-400' : `text-${plat.color}-400`}`} />
-                                            <span className={`text-[9px] font-medium tracking-wide uppercase ${isActive ? 'text-blue-100' : 'text-slate-400'}`}>
-                                                {plat.name}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        const newState = showImageGallery === item.id ? null : item.id;
-                                        setShowImageGallery(newState);
-                                        if (newState) {
-                                            const cleanedTitle = item.title.replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim();
-                                            loadImagesFromAPI(cleanedTitle, item.id, imageThreshold);
-                                        }
-                                    }}
-                                    className={`p-2 flex flex-col items-center justify-center rounded-xl border border-purple-900/30 transition-all ${showImageGallery === item.id ? 'bg-purple-600 shadow-[0_0_15px_rgba(147,51,234,0.5)]' : 'bg-purple-900/20 hover:bg-purple-900/40 hover:border-purple-500/50'
-                                        }`}
-                                    title="Görselleştir"
-                                >
-                                    <ImageIcon size={20} className="text-purple-400 mb-1" />
-                                    <span className={`text-[9px] font-medium tracking-wide uppercase ${showImageGallery === item.id ? 'text-purple-100' : 'text-slate-400'}`}>GÖRSEL</span>
-                                </button>
-
-                                {/* EXPAND BUTTON */}
-                                <button
-                                    onClick={async (e) => {
-                                        e.stopPropagation();
-                                        if (isGenerating) return;
-                                        setIsGenerating(true);
-                                        try {
-                                            const cleanedTitle = item.title.replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim();
-                                            const res = await generateFullCurriculum(cleanedTitle);
-                                            if (res && (res.categories || res.topics)) {
-                                                // Function to inject new topics into specific item
-                                                const injectTopics = (list: any[]): any[] => {
-                                                    return list.map(node => {
-                                                        if (node.id === item.id) {
-                                                            let newTopics = [];
-                                                            if (res.topics) newTopics = res.topics;
-                                                            else if (res.categories) newTopics = res.categories.flatMap((c: any) => c.topics || []);
-
-                                                            const parentLevel = node.level || 0;
-                                                            // Ensure unique IDs and offset levels for new subtopics
-                                                            const uniqueSubtopics = newTopics.map((nt: any) => ({
-                                                                ...nt,
-                                                                id: `t-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-                                                                level: (nt.level !== undefined ? nt.level : 1) + parentLevel + 1
-                                                            }));
-
-                                                            return {
-                                                                ...node,
-                                                                subtopics: [...(node.subtopics || []), ...uniqueSubtopics]
-                                                            };
-                                                        }
-                                                        if (node.subtopics) return { ...node, subtopics: injectTopics(node.subtopics) };
-                                                        return node;
-                                                    });
-                                                };
-
-                                                const updated = allCategories.map(cat => ({
-                                                    ...cat,
-                                                    topics: cat.topics ? injectTopics(cat.topics) : cat.topics
-                                                }));
-
-                                                setAllCategories(updated);
-                                                localStorage.setItem("customCurriculums", JSON.stringify(updated.filter(c => c.isCustom)));
-                                                setExpandedItems(prev => new Set([...Array.from(prev), item.id]));
-                                            }
-                                        } catch (err) {
-                                            alert("Genişletme başarısız oldu.");
-                                        } finally {
-                                            setIsGenerating(false);
-                                        }
-                                    }}
-                                    className="p-2 flex flex-col items-center justify-center rounded-xl border border-amber-900/30 bg-amber-900/20 hover:bg-amber-900/40 hover:border-amber-500/50 transition-all"
-                                    title="Genişlet"
-                                >
-                                    <Sparkles size={20} className="text-amber-400 mb-1" />
-                                    <span className="text-[9px] font-medium tracking-wide uppercase text-slate-400">GENİŞLET</span>
-                                </button>
+                        <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="ml-4 mt-2 bg-slate-800/50 p-4 rounded-lg overflow-hidden">
+                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                                {PLATFORMS.map(plat => (
+                                    <button key={plat.id} onClick={(e) => { e.stopPropagation(); setActivePlatformPanel({ topicId: item.id, platform: plat.id }); }} className={`p-2 flex flex-col items-center rounded border ${activePlatformPanel?.topicId === item.id && activePlatformPanel?.platform === plat.id ? 'bg-blue-600/20 border-blue-500' : 'bg-slate-700/50 border-slate-600'}`}>
+                                        <plat.icon size={16} className={activePlatformPanel?.platform === plat.id ? 'text-blue-400' : `text-${plat.color}-400`} />
+                                        <span className="text-[9px] mt-1">{plat.name}</span>
+                                    </button>
+                                ))}
+                                <button onClick={(e) => { e.stopPropagation(); setShowImageGallery(item.id); loadImagesFromAPI(item.title, item.id, 10); }} className="p-2 flex flex-col items-center rounded border border-purple-500/30 bg-purple-900/20"><ImageIcon size={16} className="text-purple-400" /><span className="text-[9px] mt-1">IMG</span></button>
                             </div>
 
-                            {/* PLATFORM PANEL WITH KEYWORDS */}
+                            {/* PLATFORM ACTIONS */}
                             {activePlatformPanel?.topicId === item.id && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="mb-3 p-3 bg-slate-700/30 rounded-lg border border-blue-500/20"
-                                >
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
-                                        <span className="text-xs text-blue-400 font-bold uppercase tracking-wider">Arama Dili Seçimi / Search Language</span>
-                                        <div className="flex flex-wrap items-center gap-2 justify-end">
-                                            {/* YOUTUBE PLAYLIST TOGGLE */}
-                                            {activePlatformPanel?.platform === 'youtube' && (
-                                                <label className="flex items-center gap-2 cursor-pointer bg-slate-800/50 px-2 py-1 rounded border border-slate-600 hover:border-red-500 transition-colors">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="w-3 h-3 accent-red-500"
-                                                        checked={searchPlaylist}
-                                                        onChange={(e) => {
-                                                            setSearchPlaylist(e.target.checked);
-                                                            if (e.target.checked) setSearchShorts(false);
-                                                        }}
-                                                    />
-                                                    <span className="text-[10px] sm:text-xs font-bold text-red-400 flex items-center gap-1">
-                                                        <Youtube size={12} />
-                                                        Oynatma Listesi
-                                                    </span>
-                                                </label>
-                                            )}
-                                            {activePlatformPanel?.platform === 'youtube' && (
-                                                <label className="flex items-center gap-2 cursor-pointer bg-slate-800/50 px-2 py-1 rounded border border-slate-600 hover:border-red-500 transition-colors">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="w-3 h-3 accent-red-500"
-                                                        checked={searchShorts}
-                                                        onChange={(e) => {
-                                                            setSearchShorts(e.target.checked);
-                                                            if (e.target.checked) setSearchPlaylist(false);
-                                                        }}
-                                                    />
-                                                    <span className="text-[10px] sm:text-xs font-bold text-red-400 flex items-center gap-1">
-                                                        <Youtube size={12} />
-                                                        Shorts
-                                                    </span>
-                                                </label>
-                                            )}
-                                            <button onClick={() => setActivePlatformPanel(null)} className="hover:bg-slate-600 rounded p-1">
-                                                <X size={14} className="text-slate-400" />
-                                            </button>
-                                        </div>
+                                <div className="mt-3 p-2 bg-slate-900/50 rounded flex flex-col gap-2">
+                                    <div className="flex gap-2 justify-between items-center text-xs text-blue-400 font-bold">
+                                        <span>DİL / LANGUAGE</span>
+                                        <button onClick={() => setActivePlatformPanel(null)}><X size={14} /></button>
                                     </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2 bg-slate-800/30 rounded">
-                                        {/* TURKISH BUTTON */}
-                                        <button
-                                            onClick={() => {
-                                                if (!activePlatformPanel) return;
-                                                const cleanedTitle = item.title.replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim();
-                                                const mainTitle = activeData?.title || "";
-                                                // Prevent duplication: if sub-topic already contains main topic name, don't repeat it
-                                                const fullQuery = cleanedTitle.toLowerCase().includes(mainTitle.toLowerCase())
-                                                    ? cleanedTitle
-                                                    : `${mainTitle} ${cleanedTitle}`.trim();
-                                                handleDeepDive(activePlatformPanel.platform, fullQuery, 'tr');
-                                            }}
-                                            className="flex items-center justify-between p-3 bg-slate-800 border border-slate-600 hover:border-blue-500 hover:bg-slate-700/80 rounded-lg transition-all group w-full"
-                                        >
-                                            <div className="flex flex-col items-start overflow-hidden">
-                                                <span className="text-[10px] font-bold uppercase mb-0.5 text-blue-400">
-                                                    TÜRKÇE
-                                                </span>
-                                                <span className="text-sm font-medium text-slate-200 group-hover:text-white truncate w-full text-left">
-                                                    {item.title.replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim()}
-                                                </span>
-                                            </div>
-                                            <ChevronRight size={16} className="text-slate-500 group-hover:text-white shrink-0 ml-2" />
-                                        </button>
-
-                                        {/* ENGLISH BUTTON */}
-                                        <button
-                                            onClick={() => {
-                                                if (!activePlatformPanel) return;
-                                                const cleanedTitle = (item.en || item.title).replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim();
-                                                const mainTitle = activeData?.title || "";
-                                                // Prevent duplication
-                                                const fullQuery = cleanedTitle.toLowerCase().includes(mainTitle.toLowerCase())
-                                                    ? cleanedTitle
-                                                    : `${mainTitle} ${cleanedTitle}`.trim();
-                                                handleDeepDive(activePlatformPanel.platform, fullQuery, 'en');
-                                            }}
-                                            className="flex items-center justify-between p-3 bg-slate-800 border border-slate-600 hover:border-emerald-500 hover:bg-slate-700/80 rounded-lg transition-all group w-full"
-                                        >
-                                            <div className="flex flex-col items-start overflow-hidden">
-                                                <span className="text-[10px] font-bold uppercase mb-0.5 text-emerald-400">
-                                                    ENGLISH (GLOBAL)
-                                                </span>
-                                                <span className="text-sm font-medium text-slate-200 group-hover:text-white truncate w-full text-left">
-                                                    {(item.en || item.title).replace(/^(\d+(\.\d+)*)\s*(?:\[.*?\]\s*)?/, '').trim()}
-                                                </span>
-                                            </div>
-                                            <ChevronRight size={16} className="text-slate-500 group-hover:text-white shrink-0 ml-2" />
-                                        </button>
-                                    </div>
-                                </motion.div>
+                                    <button onClick={() => handleDeepDive(activePlatformPanel!.platform, item.title, 'tr')} className="w-full text-left p-2 bg-slate-800 hover:bg-slate-700 rounded text-sm text-white">🇹🇷 Türkçe Ara</button>
+                                    <button onClick={() => handleDeepDive(activePlatformPanel!.platform, item.en || item.title, 'en')} className="w-full text-left p-2 bg-slate-800 hover:bg-slate-700 rounded text-sm text-white">🇬🇧 English Search</button>
+                                </div>
                             )}
 
                             {/* IMAGE GALLERY */}
                             {showImageGallery === item.id && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="mt-3 p-3 bg-slate-700/30 rounded-lg border border-purple-500/20"
-                                >
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs text-purple-400 font-bold uppercase tracking-wider">Engineering Diagrams ({imageThreshold})</span>
-                                        <button onClick={() => setShowImageGallery(null)} className="hover:bg-slate-600 rounded p-1">
-                                            <X size={14} className="text-slate-400" />
-                                        </button>
-                                    </div>
-                                    <input
-                                        type="range"
-                                        min="1"
-                                        max="25"
-                                        value={imageThreshold}
-                                        onChange={(e) => {
-                                            const val = Number(e.target.value);
-                                            setImageThreshold(val);
-                                            loadImagesFromAPI(item.title, item.id, val);
-                                        }}
-                                        className="w-full mb-3 accent-purple-500"
-                                    />
-                                    {loadingImages ? (
-                                        <div className="text-center text-purple-400 text-sm font-medium animate-pulse">🖼️ Loading images...</div>
-                                    ) : (
-                                        <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto p-1">
-                                            {galleryImages.slice(0, imageThreshold).map((imgUrl, i) => (
-                                                <motion.img
-                                                    key={i}
-                                                    src={imgUrl}
-                                                    alt={`${item.title} ${i + 1}`}
-                                                    className="w-full aspect-video object-cover rounded-lg cursor-pointer shadow-lg hover:ring-2 hover:ring-purple-500 transition-all"
-                                                    whileHover={{ scale: 1.05 }}
-                                                    onClick={() => window.open(imgUrl, '_blank')}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </motion.div>
+                                <div className="mt-3">
+                                    <div className="flex justify-between text-purple-400 text-xs font-bold mb-2"><span>GALLERY</span><button onClick={() => setShowImageGallery(null)}><X size={14} /></button></div>
+                                    <div className="grid grid-cols-3 gap-2">{galleryImages.map((src, i) => <img key={i} src={src} className="w-full h-20 object-cover rounded cursor-pointer" onClick={() => window.open(src)} />)}</div>
+                                </div>
                             )}
                         </motion.div>
                     )}
@@ -909,11 +462,7 @@ export default function MasterTufanOS() {
 
                 <AnimatePresence>
                     {hasChildren && isExpanded && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                        >
+                        <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
                             {item.subtopics.map((child: any) => renderRecursive(child, depth + 1))}
                         </motion.div>
                     )}
@@ -930,24 +479,13 @@ export default function MasterTufanOS() {
             {!hasCurriculum && (
                 <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 p-4">
                     <div className="max-w-3xl w-full text-center space-y-12">
-                        <h1 className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 font-[family-name:var(--font-syncopate)] tracking-[0.1em] uppercase">MASTER TUFAN</h1>
                         <TypewriterSlogan />
-                        <div className="relative group max-w-2xl mx-auto w-full">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-80 transition duration-1000 group-hover:duration-200"></div>
-                            <div className="relative flex items-center bg-slate-900 rounded-2xl p-2 border border-slate-700/50 hover:border-blue-500/50 transition-colors">
+                        <div className="relative group max-w-2xl mx-auto w-full mt-10">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-80 transition duration-1000"></div>
+                            <div className="relative flex items-center bg-slate-900 rounded-2xl p-2 border border-slate-700/50">
                                 <Sparkles className="ml-3 text-amber-400 animate-pulse" size={28} />
-                                <input
-                                    type="text"
-                                    value={aiPrompt}
-                                    onChange={(e) => setAiPrompt(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleGenerateCurriculum()}
-                                    placeholder="Neyi öğrenmek istersin?"
-                                    className="w-full bg-transparent border-none px-4 py-5 text-xl text-slate-100 placeholder:text-slate-600 focus:outline-none"
-                                    autoFocus
-                                />
-                                <button onClick={handleGenerateCurriculum} disabled={!aiPrompt.trim() || isGenerating} className="p-4 bg-blue-600 hover:bg-blue-500 rounded-xl text-white transition-all shadow-lg">
-                                    {isGenerating ? <div className="animate-spin border-2 border-white/30 border-t-white rounded-full w-6 h-6" /> : <ChevronRight size={28} />}
-                                </button>
+                                <input type="text" value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleGenerateCurriculum()} placeholder="Ne öğrenmek istersin?" className="w-full bg-transparent border-none px-4 py-5 text-xl text-slate-100 focus:outline-none" autoFocus />
+                                <button onClick={handleGenerateCurriculum} disabled={!aiPrompt.trim() || isGenerating} className="p-4 bg-blue-600 hover:bg-blue-500 rounded-xl text-white transition-all shadow-lg">{isGenerating ? <div className="animate-spin border-2 border-white/30 border-t-white rounded-full w-6 h-6" /> : <ChevronRight size={28} />}</button>
                             </div>
                         </div>
                     </div>
@@ -956,603 +494,133 @@ export default function MasterTufanOS() {
 
             {hasCurriculum && (
                 <>
-
-                    {/* MODALS */}
                     <TutorialOverlay forceRun={runTutorial} onComplete={() => setRunTutorial(false)} />
                     <AboutModal isOpen={showAboutModal} onClose={() => setShowAboutModal(false)} />
 
-                    {/* NEW CURRICULUM MODAL */}
                     {showNewCurriculumModal && (
                         <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-lg w-full shadow-2xl relative overflow-hidden">
-                                <button onClick={() => setShowNewCurriculumModal(false)} className="absolute right-4 top-4 text-slate-500 hover:text-white transition-colors"><X size={20} /></button>
-                                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                                    <div className="p-2 bg-slate-800 rounded-lg"><Plus size={24} className="text-blue-400" /></div>
-                                    Müfredat Oluşturucu
-                                </h3>
-                                <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-                                    Hangi konuda uzmanlaşmak istersiniz?<br />
-                                    Yapay zeka sizin için sıfırdan ileri seviyeye teknik bir yol haritası çizecek.
-                                </p>
+                            <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-lg w-full shadow-2xl relative">
+                                <button onClick={() => setShowNewCurriculumModal(false)} className="absolute right-4 top-4 text-slate-500 hover:text-white"><X size={20} /></button>
+                                <h3 className="text-xl font-bold text-white mb-6">Müfredat Oluşturucu</h3>
+                                <input type="text" value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleGenerateCurriculum()} placeholder="Konu başlığı..." className="w-full bg-slate-800 rounded-xl p-4 text-white mb-4 border border-slate-700 focus:border-blue-500 outline-none" />
 
-                                <div className="space-y-6">
-                                    <div className="relative group">
-                                        <div className="relative flex items-center bg-slate-800 rounded-xl p-1 border border-slate-600 focus-within:border-blue-500 transition-colors">
-                                            <input
-                                                type="text"
-                                                value={aiPrompt}
-                                                onChange={(e) => setAiPrompt(e.target.value)}
-                                                onKeyDown={(e) => e.key === 'Enter' && handleGenerateCurriculum()}
-                                                placeholder="Örn: S7-1200 PLC, İleri seviye Python, Veri Bilimi..."
-                                                className="w-full bg-transparent border-none px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:outline-none"
-                                                autoFocus
-                                            />
-                                            <button onClick={handleGenerateCurriculum} disabled={!aiPrompt.trim() || isGenerating} className="p-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white ml-2 transition-all">
-                                                {isGenerating ? <div className="animate-spin border-2 border-white/30 border-t-white rounded-full w-5 h-5" /> : <ChevronRight size={20} />}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* TOPIC COUNT SLIDER */}
-                                    <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-                                        <div className="flex justify-between items-center mb-3">
-                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Kapsam Derinliği</label>
-                                            <span className="text-sm font-bold text-blue-400 bg-blue-900/30 px-2 py-1 rounded">
-                                                {topicCount} Başlık
-                                            </span>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            min="50"
-                                            max="500"
-                                            step="50"
-                                            value={topicCount}
-                                            onChange={(e) => setTopicCount(Number(e.target.value))}
-                                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                                        />
-                                        <div className="flex justify-between mt-2 text-[10px] text-slate-500 font-mono">
-                                            <span>Temel (50)</span>
-                                            <span>Detaylı (250)</span>
-                                            <span>Ansiklopedi (500)</span>
-                                        </div>
-                                    </div>
+                                <div className="bg-slate-800 p-4 rounded-xl mb-6">
+                                    <label className="text-xs font-bold text-slate-400 uppercase">Derinlik: {topicCount}</label>
+                                    <input type="range" min="50" max="300" step="50" value={topicCount} onChange={(e) => setTopicCount(Number(e.target.value))} className="w-full mt-2 accent-blue-500" />
                                 </div>
+                                <button onClick={handleGenerateCurriculum} disabled={!aiPrompt.trim() || isGenerating} className="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-bold">{isGenerating ? 'Üretiliyor...' : 'Oluştur'}</button>
                             </div>
                         </div>
                     )}
 
-                    {/* HYBRID SIDEBAR (REPLACES MOBILE MENU) */}
                     <HybridSidebar
-                        categories={allCategories}
-                        activeCategory={activeCategory}
-                        setActiveCategory={setActiveCategory}
-                        setShowDictionary={setShowDictionary}
-                        showDictionary={showDictionary}
-                        dictionaryCount={CURRICULUM.dictionary.length}
-                        openAbout={() => setShowAboutModal(true)}
-                        setShowNewCurriculumModal={setShowNewCurriculumModal}
-                        deleteCategory={deleteCurriculum}
+                        categories={allCategories} activeCategory={activeCategory} setActiveCategory={setActiveCategory}
+                        openAbout={() => setShowAboutModal(true)} setShowNewCurriculumModal={setShowNewCurriculumModal} deleteCategory={deleteCurriculum}
+                        ghostTopics={ghostTopics} onGenerateGhost={handleGenerateGhost} onCreateGhost={handleCreateGhost} loadingGhost={loadingGhost}
                     />
-                    {/* Main content padding adjustment for mobile sidebar space */}
                     <div className="lg:hidden w-[60px] shrink-0 bg-slate-900" />
 
-                    {/* SIDEBAR */}
                     <aside className="hidden lg:flex w-72 bg-slate-800/50 backdrop-blur-sm border-r border-slate-700/50 flex-col overflow-y-auto custom-scrollbar">
-                        <div className="p-6 border-b border-slate-700/50">
-                            {/* MASTER TUFAN HEADER */}
-                            <div
-                                className="cursor-pointer group mb-4"
-                                onClick={resetApp}
-                            >
-                                <h1 className="text-3xl font-black text-slate-200 tracking-[0.2em] font-[family-name:var(--font-syncopate)] uppercase hover:text-white transition-colors">
-                                    Master Tufan
-                                </h1>
-                            </div>
-                            <div className="mt-2">
-                                <TypewriterSlogan />
-                            </div>
+                        <div className="p-6 border-b border-slate-700/50 mb-4 cursor-pointer" onClick={resetApp}>
+                            <h1 className="text-2xl font-black text-slate-200 tracking-[0.2em] font-[family-name:var(--font-syncopate)] uppercase hover:text-white">MASTER TUFAN</h1>
+                            <TypewriterSlogan />
                         </div>
 
-                        <div className="p-4 space-y-2 flex-1">
-                            <button
-                                onClick={() => setShowNewCurriculumModal(true)}
-                                className="w-full flex items-center justify-center gap-2 p-3 mb-4 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-500 rounded-lg transition-all font-medium group"
-                            >
-                                <Plus size={18} className="text-slate-400 group-hover:text-white transition-colors" />
-                                <span className="text-sm">Müfredat Ekle</span>
-                            </button>
+                        <div className="px-4 space-y-4 flex-1">
+                            <button onClick={() => setShowNewCurriculumModal(true)} className="w-full flex items-center justify-center gap-2 p-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-500 rounded-lg transition-all font-medium"><Plus size={18} /><span>Müfredat Ekle</span></button>
 
                             {allCategories.map((cat: any) => (
-                                <div key={cat.id} className="relative group">
-                                    <button
-                                        onClick={() => {
-                                            setActiveCategory(cat.id);
-                                            setShowDictionary(false);
-                                        }}
-                                        className={`w-full text-left px-4 py-2 rounded-lg transition-all border-l-2 ${activeCategory === cat.id && !showDictionary
-                                            ? 'bg-slate-800 text-white border-white'
-                                            : 'bg-transparent text-slate-400 hover:text-slate-200 border-transparent hover:bg-slate-800/50'
-                                            }`}
-                                    >
-                                        <span className="text-sm font-medium truncate block pr-6">
-                                            {cat.id.startsWith('custom') ? '🔹 ' : ''}
-                                            {cat.title}
-                                        </span>
-                                    </button>
+                                <div key={cat.id} className="group">
+                                    <div className={`rounded-lg transition-all ${activeCategory === cat.id ? 'bg-slate-800' : 'hover:bg-slate-800/50'}`}>
+                                        <button onClick={() => setActiveCategory(cat.id)} className={`w-full text-left px-4 py-3 flex items-center justify-between ${activeCategory === cat.id ? 'text-blue-400 font-bold' : 'text-slate-400'}`}>
+                                            <span className="truncate">{cat.title}</span>
+                                        </button>
 
-                                    {/* DELETE BUTTON FOR CUSTOM CATEGORIES */}
-                                    {cat.isCustom && (
-                                        <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex gap-1">
-                                            {/* GHOST / RELATED TOPICS BUTTON */}
-                                            <button
-                                                onClick={async (e) => {
-                                                    e.stopPropagation();
-                                                    if (showingGhostFor === cat.id) {
-                                                        setShowingGhostFor(null);
-                                                        setGhostTopics([]);
-                                                        return;
-                                                    }
-                                                    setShowingGhostFor(cat.id);
-                                                    const related = await generateRelatedTopics(cat.title);
-                                                    setGhostTopics(related || []);
-                                                    setActiveCategory(cat.id);
-                                                    // Scroll to bottom
-                                                    setTimeout(() => {
-                                                        const bottom = document.getElementById('ghost-topics-section');
-                                                        if (bottom) bottom.scrollIntoView({ behavior: 'smooth' });
-                                                    }, 500);
-                                                }}
-                                                className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${showingGhostFor === cat.id ? 'bg-purple-500 text-white' : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500 hover:text-white'
-                                                    }`}
-                                                title="Benzer Konuları Göster"
-                                            >
-                                                BENZER
-                                            </button>
+                                        {/* CUSTOM CATEGORY TOOLS */}
+                                        {cat.isCustom && (
+                                            <div className="px-4 pb-2">
+                                                <div className="flex gap-3 border-t border-slate-700/50 pt-2 mb-2">
+                                                    <button onClick={(e) => { e.stopPropagation(); deleteCurriculum(cat.id); }} className="text-[10px] text-red-500 hover:text-red-400 flex items-center gap-1 hover:bg-red-900/20 px-2 py-1 rounded"><Trash2 size={10} /> Sil</button>
+                                                    <button onClick={(e) => { e.stopPropagation(); handleGenerateGhost(cat.id, cat.title); }} className="text-[10px] text-purple-500 hover:text-purple-400 flex items-center gap-1 hover:bg-purple-900/20 px-2 py-1 rounded">
+                                                        {loadingGhost[cat.id] ? <div className="w-2 h-2 rounded-full border border-purple-500 animate-spin" /> : <Wand2 size={10} />}
+                                                        {loadingGhost[cat.id] ? '...' : 'Benzer Ekle'}
+                                                    </button>
+                                                </div>
 
-                                            {/* DELETE BUTTON */}
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    const newList = allCategories.filter(c => c.id !== cat.id);
-                                                    setAllCategories(newList);
-                                                    const customOnly = newList.filter((c: any) => c.isCustom);
-                                                    localStorage.setItem("customCurriculums", JSON.stringify(customOnly));
-                                                    if (activeCategory === cat.id) setActiveCategory(newList[0]?.id || "");
-                                                }}
-                                                className="px-2 py-1 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded text-[10px] font-bold transition-all"
-                                                title="Sil"
-                                            >
-                                                SİL
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-
-                            {/* DICTIONARY MENU BUTTON */}
-                            <button
-                                onClick={() => {
-                                    setShowDictionary(true);
-                                    setActiveCategory('');
-                                }}
-                                className={`w-full text-left px-4 py-2 rounded-lg transition-all flex items-center gap-2 border-l-2 ${showDictionary
-                                    ? 'bg-slate-800 text-white border-white'
-                                    : 'bg-transparent text-slate-400 hover:text-slate-200 border-transparent hover:bg-slate-800/50'
-                                    }`}
-                            >
-                                <BookOpen size={16} />
-                                <span className="text-sm font-medium">Sözlük ({CURRICULUM.dictionary.length})</span>
-                            </button>
-                        </div>
-
-                        {/* ABOUT SECTION - BOTTOM OF SIDEBAR */}
-                        <div className="border-t border-slate-700/50 p-4 bg-slate-800/80">
-                            <h3 className="text-xs font-bold text-amber-400 mb-3 flex items-center gap-2">
-                                <Info size={16} />
-                                HAKKINDA
-                            </h3>
-
-                            <div className="space-y-4 text-xs text-slate-400">
-                                {/* Developer Info Mini */}
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xs ring-2 ring-slate-700">ET</div>
-                                    <div>
-                                        <p className="font-bold text-slate-200">Emre Tufan</p>
-                                        <p className="text-[10px] text-amber-500 leading-tight">Kontrol ve Otomasyon Teknolojisi<br />Önlisans Öğrencisi</p>
-                                    </div>
-                                </div>
-
-                                {/* Open Detailed Manual Button */}
-                                <button
-                                    onClick={() => setShowAboutModal(true)}
-                                    className="w-full flex items-center justify-center gap-2 p-3 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 hover:border-amber-500/50 rounded-xl transition-all group"
-                                >
-                                    <Book size={16} className="text-amber-400 group-hover:scale-110 transition-transform" />
-                                    <span className="font-semibold text-slate-300 group-hover:text-white">Sistem Manuelini Aç</span>
-                                </button>
-
-                                {/* Social Links */}
-                                <div className="flex gap-2">
-                                    <a
-                                        href="https://instagram.com/emretufan"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 rounded-lg text-white transition-all text-xs"
-                                    >
-                                        <Instagram size={14} />
-                                        Instagram
-                                    </a>
-                                    <a
-                                        href="https://linkedin.com/in/emretufan"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 rounded-lg text-white transition-all text-xs"
-                                    >
-                                        <Linkedin size={14} />
-                                        LinkedIn
-                                    </a>
-                                </div>
-                            </div>
-
-                            <motion.div
-                                className="pt-2 border-t border-slate-700/50 text-center"
-                                initial="hidden"
-                                animate="visible"
-                                variants={{
-                                    hidden: { opacity: 0 },
-                                    visible: { opacity: 1 }
-                                }}
-                            >
-                                <p className="italic text-slate-500 text-xs">
-                                    Designed by Emre Tufan © 2026
-                                </p>
-                            </motion.div>
-                        </div>
-                    </aside>
-
-                    {/* MAIN */}
-                    <main className="flex-1 flex flex-col overflow-hidden">
-                        {/* GLOBAL SEARCH TERMINAL - FIXED TOP */}
-                        <div className="bg-slate-900 border-b border-slate-800 p-4">
-                            <div className="flex items-center gap-4 max-w-5xl mx-auto">
-                                <div className="flex-1 relative group">
-                                    <input
-                                        type="text"
-                                        placeholder="Ara..."
-                                        className="w-full px-4 py-3 pl-10 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-slate-500 transition-all font-medium"
-                                        value={globalSearch}
-                                        onChange={(e) => setGlobalSearch(e.target.value)}
-                                    />
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-slate-300 transition-colors" size={18} />
-                                </div>
-                                <div className="hidden md:flex flex-col items-end gap-1 px-2 border-l border-slate-800 pl-6">
-                                    <button
-                                        onClick={() => setRunTutorial(true)}
-                                        className="text-slate-600 hover:text-slate-400 transition-colors"
-                                        title="Help"
-                                    >
-                                        <HelpCircle size={20} />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-
-
-                        <header className="border-b border-slate-800 bg-slate-900 px-8 py-6 relative">
-                            <h2 className="text-2xl font-semibold mb-2 text-slate-100 tracking-tight flex items-center gap-3">
-                                {showDictionary
-                                    ? (activeData ? `📘 ${activeData.title} Sözlüğü` : "Mühendislik Sözlüğü")
-                                    : activeData?.title}
-                            </h2>
-
-                            {/* TOPIC DICTIONARY TOGGLE IN HEADER */}
-                            {activeData && (
-                                <button
-                                    onClick={() => setShowDictionary(!showDictionary)}
-                                    className={`absolute right-8 top-6 px-4 py-2 rounded-lg text-sm font-bold transition-all border ${showDictionary
-                                        ? 'bg-blue-600 text-white border-blue-500 hover:bg-blue-500'
-                                        : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white hover:border-slate-500'
-                                        }`}
-                                >
-                                    {showDictionary ? 'Müfredata Dön' : '📘 Terimler Sözlüğü'}
-                                </button>
-                            )}
-
-                            {!showDictionary && (
-                                <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
-                                    <motion.div
-                                        className="h-full bg-slate-500"
-                                        animate={{
-                                            width: `${progress}%`
-                                        }}
-                                        transition={{
-                                            width: { duration: 0.5 }
-                                        }}
-                                    />
-                                </div>
-                            )}
-                        </header>
-
-                        <div className="flex-1 overflow-y-auto p-6">
-                            {showDictionary ? (
-                                /* DICTIONARY VIEW (GLOBAL OR TOPIC SPECIFIC) */
-                                <div className="space-y-6">
-                                    <div className="flex justify-between items-center mb-6">
-                                        <h3 className="text-xl font-bold text-slate-300">
-                                            {activeData ? `${activeData.title} Terimleri` : "Tüm Teknik Terimler"}
-                                        </h3>
-
-                                        {/* AI DICTIONARY GENERATOR FOR CUSTOM TOPICS */}
-                                        {activeData && activeData.isCustom && (
-                                            <button
-                                                onClick={async () => {
-                                                    if (isGenerating) return;
-                                                    const count = Number(prompt("Kaç adet terim üretilsin? (Max 200)", "50")) || 50;
-                                                    if (count < 1) return;
-
-                                                    setIsGenerating(true);
-                                                    try {
-                                                        const terms = await generateDictionary(activeData.title, count);
-                                                        if (terms && terms.length > 0) {
-                                                            const updatedList = allCategories.map(cat => {
-                                                                if (cat.id === activeData.id) {
-                                                                    return {
-                                                                        ...cat,
-                                                                        dictionary: [...(cat.dictionary || []), ...terms]
-                                                                    };
-                                                                }
-                                                                return cat;
-                                                            });
-                                                            setAllCategories(updatedList);
-                                                            localStorage.setItem("customCurriculums", JSON.stringify(updatedList.filter(c => c.isCustom)));
-                                                            alert(`${terms.length} terim sözlüğe eklendi!`);
-                                                        } else {
-                                                            alert("Sözlük üretilemedi (İnternette kaynak bulunamadı).");
-                                                        }
-                                                    } catch (e) {
-                                                        alert("Hata oluştu.");
-                                                    } finally {
-                                                        setIsGenerating(false);
-                                                    }
-                                                }}
-                                                disabled={isGenerating}
-                                                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg font-bold text-sm"
-                                            >
-                                                {isGenerating ? <div className="animate-spin w-4 h-4 border-2 border-white/50 border-t-white rounded-full" /> : <Sparkles size={16} />}
-                                                {isGenerating ? 'Taranıyor...' : 'İnternetten Sözlük Getir'}
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {(() => {
-                                            // Source: Global Dictionary OR Custom Local Dict + Active Topic Dict
-                                            const source = activeData
-                                                ? (activeData.dictionary || [])
-                                                : [...CURRICULUM.dictionary, ...customDict];
-
-                                            return source
-                                                .sort((a: any, b: any) => a.term.localeCompare(b.term))
-                                                .filter((entry: any) => {
-                                                    if (!globalSearch.trim()) return true;
-                                                    const searchLower = globalSearch.toLowerCase();
-                                                    return (
-                                                        entry.term.toLowerCase().includes(searchLower) ||
-                                                        entry.tr.toLowerCase().includes(searchLower)
-                                                    );
-                                                })
-                                                .map((entry: any, idx: number) => (
-                                                    <motion.div
-                                                        key={idx}
-                                                        initial={{ opacity: 0, y: 20 }}
-                                                        animate={{ opacity: 1, y: 0 }}
-                                                        transition={{ delay: idx * 0.01 }}
-                                                        className="bg-slate-800/50 border border-slate-700 hover:border-blue-500/50 rounded-xl p-4 hover:bg-slate-800 transition-all group"
-                                                    >
-                                                        <div className="flex items-start justify-between mb-2">
-                                                            <h3 className="text-lg font-bold text-slate-200 group-hover:text-blue-400 transition-colors">{entry.term}</h3>
-                                                        </div>
-                                                        <p className="text-sm text-blue-400 mb-2 font-medium">🇹🇷 {entry.tr}</p>
-                                                        {entry.definition && (
-                                                            <p className="text-xs text-slate-400 italic leading-relaxed border-t border-slate-700/50 pt-2">{entry.definition}</p>
-                                                        )}
-                                                    </motion.div>
-                                                ));
-                                        })()}
-
-                                        {(!activeData || (activeData.dictionary?.length || 0) === 0) && (
-                                            <div className="col-span-full text-center py-10 text-slate-500 italic">
-                                                {activeData ? "Henüz terim eklenmemiş. Yapay zeka ile oluşturun!" : "Sözlük boş."}
+                                                {/* GHOST TOPICS LIST */}
+                                                {ghostTopics[cat.id] && ghostTopics[cat.id].length > 0 && (
+                                                    <div className="space-y-1 pl-1 border-l border-slate-700/50 ml-1">
+                                                        {ghostTopics[cat.id].map((topic, i) => (
+                                                            <button key={i} onClick={() => handleCreateGhost(topic)} className="block w-full text-left text-[10px] text-slate-500 hover:text-blue-400 py-1 px-2 hover:bg-slate-700/30 rounded flex items-center gap-2">
+                                                                <Plus size={8} /> {topic}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
                                 </div>
-                            ) : globalSearch ? (
-                                /* SEARCH RESULTS VIEW */
-                                <div className="space-y-8 max-w-4xl mx-auto">
-                                    <div className="flex items-center gap-2 mb-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-2xl">
-                                        <Search className="text-blue-400" size={20} />
-                                        <span className="text-blue-100 font-bold uppercase tracking-widest text-sm">Arama Sonuçları (Kütüphane + Özel)</span>
-                                    </div>
+                            ))}
+                        </div>
 
-                                    {(() => {
-                                        const searchTerms = globalSearch.toLowerCase().trim();
-                                        let anyMatch = false;
+                        <div className="p-4 border-t border-slate-700/50 mt-auto">
+                            <button onClick={() => setShowAboutModal(true)} className="w-full flex items-center justify-center gap-2 p-2 text-xs text-amber-500 hover:bg-slate-800 rounded"><Info size={14} /> Sistem Hakkında</button>
+                        </div>
+                    </aside>
 
-                                        const content = [...CURRICULUM.categories, ...allCategories].map((cat: any) => {
-                                            const hasMatch = (items: any[]): boolean => {
-                                                if (!items) return false;
-                                                return items.some(item => {
-                                                    const mTitle = item.title.toLowerCase().includes(searchTerms);
-                                                    const mKey = item.keywords && item.keywords.some((k: string) => k.toLowerCase().includes(searchTerms));
-                                                    if (mTitle || mKey) return true;
-                                                    if (item.subtopics) return hasMatch(item.subtopics);
-                                                    return false;
-                                                });
-                                            };
+                    <main className="flex-1 flex flex-col overflow-hidden bg-slate-900/50 relative">
+                        <div className="border-b border-slate-800 bg-slate-900 p-4 flex gap-4">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                                <input type="text" placeholder="Ara..." className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500" value={globalSearch} onChange={(e) => setGlobalSearch(e.target.value)} />
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-600 font-mono">CMD+K</div>
+                            </div>
+                            <button onClick={() => setRunTutorial(true)} className="p-2 hover:bg-slate-800 rounded text-slate-500 hover:text-slate-300"><HelpCircle size={20} /></button>
+                        </div>
 
-                                            if (hasMatch(cat.topics || [])) {
-                                                anyMatch = true;
-                                                return (
-                                                    <div key={cat.id} className="mb-10">
-                                                        <div className="flex items-center gap-2 mb-4 p-3 bg-slate-800/80 border-l-4 border-amber-500 rounded-r-xl">
-                                                            <Layout size={18} className="text-amber-500" />
-                                                            <h2 className="text-lg font-black text-slate-100 uppercase tracking-wider">{cat.title}</h2>
-                                                        </div>
-                                                        {cat.topics?.map((topic: any) => {
-                                                            const topicMatch = (t: any): boolean => {
-                                                                if (t.title.toLowerCase().includes(searchTerms)) return true;
-                                                                if (t.keywords && t.keywords.some((k: string) => k.toLowerCase().includes(searchTerms))) return true;
-                                                                if (t.subtopics) return t.subtopics.some((st: any) => topicMatch(st));
-                                                                return false;
-                                                            };
-                                                            if (topicMatch(topic)) return renderRecursive(topic);
-                                                            return null;
-                                                        })}
-                                                    </div>
-                                                );
-                                            }
-                                            return null;
-                                        });
+                        <div className="flex-1 overflow-y-auto p-4 sm:p-8">
+                            {/* CONTENT RENDER */}
+                            {globalSearch ? (
+                                <div className="max-w-4xl mx-auto">
+                                    <div className="mb-4 p-2 bg-blue-900/20 text-blue-400 text-sm font-bold rounded border border-blue-500/20 flex items-center gap-2"><Search size={16} /> SONUÇLAR: "{globalSearch}"</div>
+                                    {/* SEARCH RESULTS LOGIC (Simplified for view) */}
+                                    {allCategories.map(cat => {
+                                        // Reuse recursive render
+                                        const results = cat.topics?.map((t: any) => renderRecursive(t)).filter((x: any) => x != null); // Note: renderRecursive handles pulsing check internally
+                                        if (!results) return null;
+                                        // Need filter logic here actually?
+                                        // The renderRecursive uses 'isPulsing' logic but doesn't hide non-matches unless we enforce it.
+                                        // For correct search view, we should probably stick to previous logic or just let 'pulsing' guide users.
+                                        // The previous logic filtered items. I will bring back concise filtering.
+                                        const matches = (node: any): boolean => node.title.toLowerCase().includes(globalSearch.toLowerCase()) || (node.keywords && node.keywords.some((k: string) => k.toLowerCase().includes(globalSearch.toLowerCase()))) || (node.subtopics && node.subtopics.some(matches));
 
-                                        return (
-                                            <>
-                                                {content}
-                                                {!anyMatch && (
-                                                    <div className="text-center py-20 bg-slate-800/20 rounded-3xl border-2 border-dashed border-slate-700">
-                                                        <HelpCircle size={48} className="mx-auto text-slate-600 mb-4" />
-                                                        <h3 className="text-xl font-bold text-slate-300 mb-2">Sonuç Bulunamadı</h3>
-                                                        <p className="text-slate-500 mb-8">"{globalSearch}" için kütüphanede bir eşleşme yok.</p>
-
-                                                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                                                            <button
-                                                                onClick={async () => {
-                                                                    if (isGenerating) return;
-                                                                    const confirmWiki = confirm(`"${globalSearch}" için Wikipedia üzerinden müfredat oluşturulsun mu?\n(Bu işlem AI kredisi harcamaz)`);
-                                                                    if (!confirmWiki) return;
-
-                                                                    setIsGenerating(true);
-                                                                    try {
-                                                                        const res = await fetch(`/api/wiki-curriculum?query=${encodeURIComponent(globalSearch)}`);
-                                                                        const data = await res.json();
-
-                                                                        if (!data.success || !data.curriculum || data.curriculum.length === 0) {
-                                                                            alert("Wikipedia'da yeterli bilgi bulunamadı. Lütfen AI ile oluşturmayı deneyin.");
-                                                                            return;
-                                                                        }
-
-                                                                        // Create new category from Wiki Data
-                                                                        const newCategory = {
-                                                                            id: `wiki-${Date.now()}`,
-                                                                            title: `📚 ${data.title} (Wiki)`,
-                                                                            isCustom: true,
-                                                                            topics: data.curriculum.map((section: any) => ({
-                                                                                ...section,
-                                                                                level: 1,
-                                                                                subtopics: section.subtopics?.map((sub: any) => ({
-                                                                                    ...sub,
-                                                                                    level: 2
-                                                                                }))
-                                                                            }))
-                                                                        };
-
-                                                                        const updated = [newCategory, ...allCategories];
-                                                                        setAllCategories(updated);
-                                                                        localStorage.setItem("customCurriculums", JSON.stringify(updated.filter(c => c.isCustom)));
-                                                                        setGlobalSearch(""); // Clear search to see the new category
-                                                                        alert(`"${data.title}" başarıyla kütüphanenize eklendi!`);
-
-                                                                    } catch (err) {
-                                                                        console.error(err);
-                                                                        alert("Wikipedia bağlantısında bir sorun oluştu.");
-                                                                    } finally {
-                                                                        setIsGenerating(false);
-                                                                    }
-                                                                }}
-                                                                disabled={isGenerating}
-                                                                className="px-6 py-3 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl font-bold transition-all shadow-lg flex items-center gap-2"
-                                                            >
-                                                                <Globe size={18} />
-                                                                {isGenerating ? 'Araştırılıyor...' : 'İnternetten Getir (Ücretsiz)'}
-                                                            </button>
-
-                                                            <button
-                                                                onClick={() => {
-                                                                    setAiPrompt(globalSearch);
-                                                                    setShowNewCurriculumModal(true);
-                                                                }}
-                                                                disabled={isGenerating}
-                                                                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-all shadow-lg flex items-center gap-2"
-                                                            >
-                                                                <Sparkles size={18} />
-                                                                Yapay Zeka ile Oluştur
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </>
-                                        );
-                                    })()}
+                                        if (matches({ title: cat.title, subtopics: cat.topics })) {
+                                            return (
+                                                <div key={cat.id} className="mb-8">
+                                                    <h2 className="text-xl font-bold text-slate-200 mb-4 pb-2 border-b border-slate-800">{cat.title}</h2>
+                                                    {cat.topics.filter(matches).map((t: any) => renderRecursive(t))}
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    })}
                                 </div>
                             ) : (
-                                /* TOPICS VIEW */
-                                <div className="max-w-4xl mx-auto space-y-4">
-                                    {activeData?.topics?.slice(0, visibleCount[activeCategory] || 20).map((topic: any) => renderRecursive(topic))}
-
-                                    {activeData?.topics && activeData.topics.length > (visibleCount[activeCategory] || 20) && (
-                                        <div className="flex justify-center pt-8 pb-12">
-                                            <button
-                                                onClick={() => setVisibleCount(prev => ({
-                                                    ...prev,
-                                                    [activeCategory]: (prev[activeCategory] || 20) + 30
-                                                }))}
-                                                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500 text-blue-400 font-black rounded-2xl transition-all shadow-xl flex items-center justify-center gap-3 group text-xs sm:text-sm"
-                                            >
-                                                <ChevronDown size={20} className="group-hover:translate-y-1 transition-transform" />
-                                                DAHA FAZLA GÖSTER ({activeData.topics.length - (visibleCount[activeCategory] || 20)} Konu Kaldı)
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* GHOST TOPICS (RELATED SUGGESTIONS) */}
-                            {showingGhostFor === activeCategory && ghostTopics.length > 0 && !showDictionary && (
-                                <div id="ghost-topics-section" className="max-w-4xl mx-auto mt-12 mb-20 border-t border-slate-800 pt-8">
-                                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                        <Sparkles size={16} /> Benzer Müfredatlar (Öneri)
-                                    </h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {ghostTopics.map((topic, idx) => (
-                                            <button
-                                                key={idx}
-                                                onClick={() => {
-                                                    setAiPrompt(topic);
-                                                    setTopicCount(50);
-                                                    setShowNewCurriculumModal(true);
-                                                }}
-                                                className="group relative p-4 rounded-xl border border-slate-800 bg-slate-900/50 hover:bg-slate-800 transition-all text-left opacity-60 hover:opacity-100 hover:scale-[1.02]"
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <span className="font-bold text-slate-300 group-hover:text-blue-400">{topic}</span>
-                                                    <Plus size={16} className="text-slate-600 group-hover:text-white" />
-                                                </div>
-                                            </button>
-                                        ))}
+                                <div className="max-w-4xl mx-auto">
+                                    <h2 className="text-3xl font-bold text-white mb-6 tracking-tight">{activeData?.title}</h2>
+                                    <div className="space-y-4">
+                                        {activeData?.topics?.slice(0, visibleCount[activeCategory] || 20).map((t: any) => renderRecursive(t))}
                                     </div>
+                                    {activeData?.topics && activeData.topics.length > (visibleCount[activeCategory] || 20) && (
+                                        <button onClick={() => setVisibleCount(p => ({ ...p, [activeCategory]: (p[activeCategory] || 20) + 20 }))} className="w-full py-4 mt-8 bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold rounded-xl flex items-center justify-center gap-2">DAHA FAZLA GÖSTER <ChevronDown size={16} /></button>
+                                    )}
                                 </div>
                             )}
                         </div>
                     </main>
-
-                    {/* FOOTER WATERMARK */}
-                    <div className="fixed bottom-4 right-6 pointer-events-none opacity-20 hidden lg:block">
-                        <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Designed & Programmed by Emre Tufan</span>
-                    </div>
                 </>
             )}
         </div>
     );
 }
-

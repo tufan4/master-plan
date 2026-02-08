@@ -6,6 +6,11 @@ const groq = new Groq({
     dangerouslyAllowBrowser: true // Client-side usage
 });
 
+// Helper to strip Markdown code blocks
+function cleanJson(text: string): string {
+    return text.replace(/```json/g, '').replace(/```/g, '').trim();
+}
+
 /**
  * AI-powered Translation
  */
@@ -105,7 +110,7 @@ Sadece JSON döndür.`;
         const rawText = completion.choices[0]?.message?.content?.trim();
         if (!rawText) throw new Error("AI response was empty.");
 
-        const parsed = JSON.parse(rawText);
+        const parsed = JSON.parse(cleanJson(rawText));
 
         // Recursive ID fixer helper (ensures unique IDs and levels for frontend)
         const fixStructure = (items: any[], parentLevel: number = 0): any[] => {
@@ -141,36 +146,6 @@ Sadece JSON döndür.`;
 
 function fallbackKeywords(topic: string): string[] {
     return [topic];
-}
-
-// Helper to strip Markdown code blocks
-function cleanJson(text: string): string {
-    return text.replace(/```json/g, '').replace(/```/g, '').trim();
-}
-
-/**
- * Technical Dictionary Generator (Web Scraper Mode)
- * Fetches terms from Wikipedia via internal API
- */
-export async function generateDictionary(topic: string, count: number = 200): Promise<any[]> {
-    try {
-        console.log("Fetching dictionary from Web for:", topic);
-        const res = await fetch(`/api/glossary?topic=${encodeURIComponent(topic)}`);
-
-        if (!res.ok) {
-            console.warn("Glossary API failed:", res.status);
-            return [];
-        }
-
-        const data = await res.json();
-        if (data.success && data.terms) {
-            return data.terms.slice(0, count);
-        }
-        return [];
-    } catch (e) {
-        console.error("Dictionary scraper failed:", e);
-        return [];
-    }
 }
 
 /**

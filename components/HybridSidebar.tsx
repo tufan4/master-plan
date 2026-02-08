@@ -3,8 +3,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    Menu, X, BookOpen, ChevronRight, Info, Instagram, Linkedin,
-    Settings, Search, Home, Plus, Trash2
+    Menu, X, ChevronRight, Info, Plus, Trash2, Sparkles, Wand2
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -12,24 +11,26 @@ interface HybridSidebarProps {
     categories: any[];
     activeCategory: string;
     setActiveCategory: (id: string) => void;
-    setShowDictionary: (show: boolean) => void;
-    showDictionary: boolean;
-    dictionaryCount: number;
     openAbout: () => void;
     setShowNewCurriculumModal: (show: boolean) => void;
     deleteCategory: (id: string) => void;
+    ghostTopics: Record<string, string[]>;
+    onGenerateGhost: (catId: string, title: string) => void;
+    onCreateGhost: (topic: string) => void;
+    loadingGhost: Record<string, boolean>;
 }
 
 export default function HybridSidebar({
     categories,
     activeCategory,
     setActiveCategory,
-    setShowDictionary,
-    showDictionary,
-    dictionaryCount,
     openAbout,
     setShowNewCurriculumModal,
-    deleteCategory
+    deleteCategory,
+    ghostTopics,
+    onGenerateGhost,
+    onCreateGhost,
+    loadingGhost
 }: HybridSidebarProps) {
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -50,7 +51,6 @@ export default function HybridSidebar({
 
     const handleCategoryClick = (id: string) => {
         setActiveCategory(id);
-        setShowDictionary(false);
         setIsExpanded(false);
     };
 
@@ -124,93 +124,110 @@ export default function HybridSidebar({
                     {/* Categories */}
                     <div className="space-y-1 mt-4">
                         {categories.map((cat: any) => {
-                            const isActive = activeCategory === cat.id && !showDictionary;
+                            const isActive = activeCategory === cat.id;
+                            const hasGhost = ghostTopics[cat.id] && ghostTopics[cat.id].length > 0;
+
                             return (
                                 <div key={cat.id} className="relative group">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            // Only allow category switch if expanded OR if already visible
-                                            if (isExpanded) handleCategoryClick(cat.id);
-                                            else setIsExpanded(true);
-                                        }}
-                                        className={`w-full flex items-center h-14 transition-all relative
+                                    <div className="flex flex-col">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                // Only allow category switch if expanded OR if already visible
+                                                if (isExpanded) handleCategoryClick(cat.id);
+                                                else setIsExpanded(true);
+                                            }}
+                                            className={`w-full flex items-center h-14 transition-all relative
                                             ${isActive ? 'bg-blue-600/20' : 'hover:bg-slate-800/50'}
                                         `}
-                                    >
-                                        {/* Icon / First Letter */}
-                                        <div className="w-[60px] flex justify-center shrink-0">
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border transition-all ${isActive ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/30' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
-                                                {cat.title ? cat.title.substring(0, 2).toUpperCase() : '??'}
-                                            </div>
-                                        </div>
-
-                                        {/* Label */}
-                                        <motion.span
-                                            className={`whitespace-nowrap text-sm flex-1 text-left ${isActive ? 'text-blue-300 font-bold' : 'text-slate-400'}`}
-                                            animate={{ opacity: isExpanded ? 1 : 0, x: isExpanded ? 0 : -10 }}
                                         >
-                                            {cat.title}
-                                        </motion.span>
+                                            {/* Icon / First Letter */}
+                                            <div className="w-[60px] flex justify-center shrink-0">
+                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border transition-all ${isActive ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/30' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
+                                                    {cat.title ? cat.title.substring(0, 2).toUpperCase() : '??'}
+                                                </div>
+                                            </div>
 
-                                        {/* DELETE BUTTON (VISIBLE ONLY WHEN EXPANDED) */}
+                                            {/* Label */}
+                                            <motion.span
+                                                className={`whitespace-nowrap text-sm flex-1 text-left ${isActive ? 'text-blue-300 font-bold' : 'text-slate-400'}`}
+                                                animate={{ opacity: isExpanded ? 1 : 0, x: isExpanded ? 0 : -10 }}
+                                            >
+                                                {cat.title}
+                                            </motion.span>
+                                        </button>
+
+                                        {/* EXPANDED ACTIONS (Mobile) */}
                                         <AnimatePresence>
-                                            {isExpanded && (
-                                                <motion.button
-                                                    initial={{ opacity: 0, scale: 0.8 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
-                                                    exit={{ opacity: 0, scale: 0.8 }}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (confirm(`'${cat.title}' müfredatını silmek istediğine emin misin?`)) {
-                                                            deleteCategory(cat.id);
-                                                        }
-                                                    }}
-                                                    className="p-3 mr-2 bg-red-900/20 text-red-500 hover:bg-red-600 hover:text-white rounded-lg transition-all"
+                                            {isExpanded && cat.isCustom && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, height: 0 }}
+                                                    animate={{ opacity: 1, height: 'auto' }}
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    className="bg-slate-900/50 border-b border-slate-800/50"
                                                 >
-                                                    <Trash2 size={16} />
-                                                </motion.button>
+                                                    <div className="flex items-center gap-2 pl-[60px] pr-4 py-2">
+                                                        {/* DELETE */}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (confirm(`'${cat.title}' müfredatını silmek istediğine emin misin?`)) {
+                                                                    deleteCategory(cat.id);
+                                                                }
+                                                            }}
+                                                            className="p-2 bg-red-900/20 text-red-500 hover:bg-red-600 hover:text-white rounded-lg transition-all"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+
+                                                        {/* BENZER EKLE */}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                onGenerateGhost(cat.id, cat.title);
+                                                            }}
+                                                            className="flex-1 flex items-center justify-center gap-2 py-2 bg-purple-900/20 text-purple-400 hover:bg-purple-600 hover:text-white rounded-lg transition-all text-xs font-bold"
+                                                        >
+                                                            {loadingGhost[cat.id] ? (
+                                                                <div className="w-3 h-3 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
+                                                            ) : (
+                                                                <Wand2 size={14} />
+                                                            )}
+                                                            {loadingGhost[cat.id] ? 'Üretiliyor...' : 'Benzer Ekle'}
+                                                        </button>
+                                                    </div>
+
+                                                    {/* GHOST TOPICS LIST */}
+                                                    {hasGhost && (
+                                                        <div className="pl-[60px] pr-4 pb-3 space-y-1">
+                                                            {ghostTopics[cat.id].map((topic, idx) => (
+                                                                <button
+                                                                    key={idx}
+                                                                    onClick={() => {
+                                                                        onCreateGhost(topic);
+                                                                        setIsExpanded(false);
+                                                                    }}
+                                                                    className="w-full text-left text-[10px] text-slate-500 hover:text-blue-400 py-1 px-2 border-l border-slate-700 hover:border-blue-500 flex items-center gap-2 transition-colors"
+                                                                >
+                                                                    <Plus size={10} />
+                                                                    {topic}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </motion.div>
                                             )}
                                         </AnimatePresence>
 
                                         {/* Active Indicator */}
                                         {isActive && (
-                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+                                            <div className="absolute left-0 top-0 h-14 w-1 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
                                         )}
-                                    </button>
+                                    </div>
                                 </div>
                             );
                         })}
                     </div>
-
-                    <div className="my-4 border-t border-slate-800 mx-2" />
-
-                    {/* Dictionary */}
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (!isExpanded) setIsExpanded(true);
-                            else {
-                                setShowDictionary(true);
-                                setActiveCategory('');
-                                setIsExpanded(false);
-                            }
-                        }}
-                        className={`w-full flex items-center h-12 transition-all relative
-                            ${showDictionary ? 'bg-purple-600/20' : 'hover:bg-slate-800'}
-                        `}
-                    >
-                        <div className="w-[60px] flex justify-center shrink-0">
-                            <BookOpen size={20} className={showDictionary ? 'text-purple-400' : 'text-slate-500'} />
-                        </div>
-                        <motion.span
-                            className={`whitespace-nowrap text-sm ${showDictionary ? 'text-purple-300 font-bold' : 'text-slate-400'}`}
-                            animate={{ opacity: isExpanded ? 1 : 0, x: isExpanded ? 0 : -10 }}
-                        >
-                            Sözlük
-                        </motion.span>
-                    </button>
-
                 </div>
 
                 {/* BOTTOM ACTIONS */}
