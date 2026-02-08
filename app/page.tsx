@@ -54,13 +54,12 @@ export default function MasterTufanOS() {
     const [activeCategory, setActiveCategory] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
     const [aiPrompt, setAiPrompt] = useState("");
-    const [topicCount, setTopicCount] = useState(100);
+    const [topicCount, setTopicCount] = useState(300);
 
     const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
     const [isDeepening, setIsDeepening] = useState<Record<string, boolean>>({});
     const [activeControlPanel, setActiveControlPanel] = useState<string | null>(null);
-    const [activePlatformPanel, setActivePlatformPanel] = useState<{ topicId: string; platform: string } | null>(null);
     const [showNewCurriculumModal, setShowNewCurriculumModal] = useState(false);
     const [showAboutModal, setShowAboutModal] = useState(false);
     const [runTutorial, setRunTutorial] = useState(false);
@@ -69,36 +68,26 @@ export default function MasterTufanOS() {
     const [loadingImages, setLoadingImages] = useState(false);
     const [showImageGallery, setShowImageGallery] = useState<string | null>(null);
     const [visibleCount, setVisibleCount] = useState<Record<string, number>>({});
-
-    const [ghostTopics, setGhostTopics] = useState<Record<string, string[]>>({});
     const [loadingGhost, setLoadingGhost] = useState<Record<string, boolean>>({});
     const [sidebarExpanded, setSidebarExpanded] = useState(false);
+    const [ghostTopics, setGhostTopics] = useState<Record<string, string[]>>({});
 
-    // LOAD SAVED STATE & STATIC DATA
+    // LOAD SAVED STATE
     useEffect(() => {
-        // Only load custom curriculums from localStorage
         let customList = [];
         const savedCustom = localStorage.getItem("customCurriculums");
         if (savedCustom) {
-            try { customList = JSON.parse(savedCustom); } catch (e) { console.error("Custom load failed", e); }
+            try { customList = JSON.parse(savedCustom); } catch (e) { }
         }
-
         setAllCategories(customList);
-
-        // Auto-select first category if nothing selected
-        if (customList.length > 0 && !activeCategory) {
-            setActiveCategory(customList[0].id);
-        }
-
-        // Other loads
-        const savedGhosts = localStorage.getItem("ghostTopics");
-        if (savedGhosts) { try { setGhostTopics(JSON.parse(savedGhosts)); } catch (e) { } }
+        if (customList.length > 0 && !activeCategory) setActiveCategory(customList[0].id);
 
         const savedCompleted = localStorage.getItem("completedTopics");
         if (savedCompleted) { try { setCompletedItems(new Set(JSON.parse(savedCompleted))); } catch (e) { } }
+
+        const savedGhosts = localStorage.getItem("ghostTopics");
+        if (savedGhosts) { try { setGhostTopics(JSON.parse(savedGhosts)); } catch (e) { } }
     }, []);
-
-
 
     const normalizeTopic = (text: string): string => {
         const acronyms = ["plc", "kpss", "hmi", "scada", "api", "rest", "sql", "html", "css", "js", "vfd", "pid", "cad", "cam", "cnc", "iot", "ai", "ml", "nlp", "aws", "os", "ram", "cpu", "io", "usb", "tcp", "ip", "udp", "http", "https", "ssl", "tls", "git", "npm", "json", "xml", "pdf", "tyt", "ayt", "dgs", "ales", "yds", "yökdil", "lgs"];
@@ -109,74 +98,39 @@ export default function MasterTufanOS() {
         }).join(' ');
     };
 
-    const createCurriculum = async (topic: string, count: number = 50) => {
+    const createCurriculum = async (topic: string, count: number = 300) => {
         if (!topic.trim()) return;
-        const normalized = normalizeTopic(topic);
         setIsGenerating(true);
         try {
-            const result = await generateFullCurriculum(normalized, count);
-            if (result && result.topics && result.topics.length > 0) {
+            const result = await generateFullCurriculum(topic, count);
+            if (result && result.topics) {
                 const mainContainer = {
                     id: `custom-${Date.now()}`,
-                    title: result.title || normalized,
+                    title: result.title || topic,
                     isCustom: true,
                     topics: result.topics
                 };
-
                 const updatedList = [...allCategories, mainContainer];
                 setAllCategories(updatedList);
-
-                // Save ONLY custom ones to localStorage
-                const customOnly = updatedList.filter(c => c.isCustom);
-                localStorage.setItem("customCurriculums", JSON.stringify(customOnly));
-
+                localStorage.setItem("customCurriculums", JSON.stringify(updatedList.filter(c => c.isCustom)));
                 setActiveCategory(mainContainer.id);
                 setAiPrompt("");
                 setShowNewCurriculumModal(false);
-                setVisibleCount(prev => ({ ...prev, [mainContainer.id]: 30 }));
-            } else {
-                alert("AI müfredat üretemedi.");
             }
-        } catch (error) {
-            console.error(error);
-            alert("Hata oluştu.");
-        } finally {
-            setIsGenerating(false);
-        }
+        } catch (e) { console.error(e); } finally { setIsGenerating(false); }
     };
 
     const deleteCurriculum = (id: string) => {
-        const cat = allCategories.find(c => c.id === id);
-        if (!cat) return;
-        if (!cat.isCustom) {
-            alert("Varsayılan müfredatlar silinemez.");
-            return;
-        }
-        if (!confirm("Bu müfredatı silmek istediğinize emin misiniz?")) return;
-
+        if (!confirm("Silmek istediğinize emin misiniz?")) return;
         const newList = allCategories.filter(c => c.id !== id);
         setAllCategories(newList);
-
-        const customOnly = newList.filter(c => c.isCustom);
-        localStorage.setItem("customCurriculums", JSON.stringify(customOnly));
-
-        if (activeCategory === id) setActiveCategory(newList.length > 0 ? newList[0].id : "");
+        localStorage.setItem("customCurriculums", JSON.stringify(newList.filter(c => c.isCustom)));
+        if (activeCategory === id) setActiveCategory(newList[0]?.id || "");
     };
 
     const handleDeepDive = (platformId: string, item: any, lang: 'tr' | 'en') => {
-        const isEn = lang === 'en';
-
-        // 1. Get Base Query: Priority q_en/q_tr (AI) > en/title (Static)
-        let qBase = "";
-        if (isEn) {
-            qBase = item.q_en || item.en || item.title;
-        } else {
-            qBase = item.q_tr || item.title;
-        }
-
-        let finalQuery = qBase;
-
-        const encoded = encodeURIComponent(finalQuery);
+        const query = lang === 'en' ? (item.q_en || item.title) : (item.q_tr || item.title);
+        const encoded = encodeURIComponent(query);
         const searchUrlMap: Record<string, string> = {
             'youtube': `https://www.youtube.com/results?search_query=${encoded}`,
             'google': `https://www.google.com/search?q=${encoded}`,
@@ -185,13 +139,10 @@ export default function MasterTufanOS() {
             'github': `https://github.com/search?q=${encoded}`,
             'stackoverflow': `https://stackoverflow.com/search?q=${encoded}`,
             'udemy': `https://www.udemy.com/courses/search/?q=${encoded}`,
-            'coursera': `https://www.coursera.org/courses?query=${encoded}`,
             'mdn': `https://developer.mozilla.org/en-US/search?q=${encoded}`,
             'arxiv': `https://arxiv.org/search/?query=${encoded}&searchtype=all`,
         };
-
-        const url = searchUrlMap[platformId] || `https://www.google.com/search?q=${encoded}`;
-        window.open(url, '_blank');
+        window.open(searchUrlMap[platformId] || `https://www.google.com/search?q=${encoded}`, '_blank');
     };
 
     const loadImagesFromAPI = async (topic: string, topicId: string, count: number) => {
@@ -199,16 +150,12 @@ export default function MasterTufanOS() {
         const cached = getCachedImages(topicId);
         if (cached && cached.length >= count) { setGalleryImages(cached.slice(0, count)); setLoadingImages(false); return; }
         try {
-            const key = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
-            if (!key) throw new Error("Key missing");
-            const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(topic + ' engineering technical')}&per_page=${count}&client_id=${key}`);
+            const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(topic + ' engineering')}&per_page=${count}&client_id=${process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY}`);
             const data = await res.json();
             const imgs = data.results.map((img: any) => img.urls.regular);
             cacheImage(topicId, imgs);
             setGalleryImages(imgs);
-        } catch (e) {
-            setGalleryImages(Array.from({ length: 10 }, (_, i) => `https://via.placeholder.com/400x300/1e293b/94a3b8?text=${encodeURIComponent(topic)}+${i + 1}`));
-        } finally { setLoadingImages(false); }
+        } catch (e) { setGalleryImages([]); } finally { setLoadingImages(false); }
     };
 
     const toggleComplete = (id: string) => {
@@ -228,43 +175,27 @@ export default function MasterTufanOS() {
         setIsDeepening(p => ({ ...p, [itemId]: true }));
         try {
             const results = await generateSubtopicTree(topicTitle);
-            if (!results || results.length === 0) return;
-
-            // Fix Structure for new results
-            const fixResults = (items: any[], parentLevel: number): any[] => {
-                return items.map(item => ({
-                    id: item.id || `deep-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-                    title: item.title,
-                    q_tr: item.q_tr || item.title,
-                    q_en: item.q_en || item.title,
-                    level: parentLevel + 1,
-                    keywords: [item.title.toLowerCase()],
-                    subtopics: item.subtopics && Array.isArray(item.subtopics) ? fixResults(item.subtopics, parentLevel + 1) : []
-                }));
-            };
-
-            const updatedCategories = allCategories.map(cat => {
+            const fixResults = (items: any[], parentLevel: number): any[] => items.map(t => ({
+                id: t.id || `deep-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                title: t.title,
+                q_tr: t.q_tr || t.title,
+                q_en: t.q_en || t.title,
+                level: parentLevel + 1,
+                subtopics: t.subtopics ? fixResults(t.subtopics, parentLevel + 1) : []
+            }));
+            const updated = allCategories.map(cat => {
                 if (cat.id !== activeCategory) return cat;
-                const updateNode = (nodes: any[]): any[] => {
-                    return nodes.map(node => {
-                        if (node.id === itemId) {
-                            return { ...node, subtopics: [...(node.subtopics || []), ...fixResults(results, node.level)] };
-                        }
-                        if (node.subtopics) return { ...node, subtopics: updateNode(node.subtopics) };
-                        return node;
-                    });
-                };
+                const updateNode = (nodes: any[]): any[] => nodes.map(node => {
+                    if (node.id === itemId) return { ...node, subtopics: [...(node.subtopics || []), ...fixResults(results, node.level)] };
+                    if (node.subtopics) return { ...node, subtopics: updateNode(node.subtopics) };
+                    return node;
+                });
                 return { ...cat, topics: updateNode(cat.topics || []) };
             });
-
-            setAllCategories(updatedCategories);
-            localStorage.setItem("customCurriculums", JSON.stringify(updatedCategories));
-            setExpandedItems(p => { const s = new Set(p); s.add(itemId); return s; });
-        } catch (e) {
-            console.error("Deepen branch failed", e);
-        } finally {
-            setIsDeepening(p => ({ ...p, [itemId]: false }));
-        }
+            setAllCategories(updated);
+            localStorage.setItem("customCurriculums", JSON.stringify(updated.filter(c => c.isCustom)));
+            setExpandedItems(p => new Set(p).add(itemId));
+        } catch (e) { } finally { setIsDeepening(p => ({ ...p, [itemId]: false })); }
     };
 
     const renderRecursive = (item: any, depth: number = 0) => {
@@ -272,102 +203,77 @@ export default function MasterTufanOS() {
         const isCompleted = completedItems.has(item.id);
         const hasChildren = item.subtopics && item.subtopics.length > 0;
         const showPanel = activeControlPanel === item.id;
+        const isMaster = depth === 0;
+
+        const masterColors = ['border-l-blue-500 text-blue-400', 'border-l-amber-500 text-amber-400', 'border-l-emerald-500 text-emerald-400', 'border-l-purple-500 text-purple-400', 'border-l-rose-500 text-rose-400'];
+        const colorClass = isMaster ? masterColors[item.title.length % masterColors.length] : 'border-l-slate-700 text-slate-100';
 
         return (
-            <div key={item.id} style={{ marginLeft: `${depth * 16}px` }} className="mb-1">
+            <div key={item.id} className="w-full">
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className={`flex items-center gap-2 p-3 rounded-2xl cursor-pointer transition-all ${isCompleted ? 'bg-emerald-900/20 border-l-4 border-emerald-500' : 'bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50'}`}
+                    initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }}
+                    className={`relative group flex items-center gap-3 p-4 mb-1.5 rounded-2xl cursor-pointer transition-all duration-200
+                        ${isMaster ? 'bg-slate-900/60 border-l-4 shadow-lg' : 'bg-slate-800/20 border-l-2 hover:bg-slate-800/40'}
+                        ${isCompleted ? 'opacity-40 grayscale-[0.5]' : ''}
+                        ${colorClass.split(' ')[0]} ${showPanel ? 'ring-2 ring-blue-500/30 bg-slate-800/80 shadow-2xl' : ''}`}
+                    style={{ marginLeft: `${Math.min(depth * 8, 32)}px` }}
                     onClick={() => setActiveControlPanel(showPanel ? null : item.id)}
                 >
-                    {hasChildren && <button onClick={(e) => { e.stopPropagation(); toggleExpand(item.id); }}>{isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}</button>}
-                    <button onClick={(e) => { e.stopPropagation(); toggleComplete(item.id); }} className={isCompleted ? "text-emerald-400" : "text-slate-500"}>{isCompleted ? <CheckCircle2 size={20} /> : <Circle size={20} />}</button>
-                    <span className={`text-sm font-medium flex-1 ${isCompleted ? 'text-emerald-300 line-through opacity-50' : 'text-slate-100'}`}>{item.title}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                        {hasChildren ? (
+                            <button onClick={(e) => { e.stopPropagation(); toggleExpand(item.id); }} className={`p-1 transition-transform ${isExpanded ? '' : '-rotate-90'}`}>
+                                <ChevronDown size={14} className="text-slate-500" />
+                            </button>
+                        ) : <div className="w-5 h-5 flex items-center justify-center"><div className="w-1 h-1 bg-slate-700 rounded-full" /></div>}
+                        <button onClick={(e) => { e.stopPropagation(); toggleComplete(item.id); }} className={`transition-all ${isCompleted ? "text-emerald-500" : "text-slate-600 hover:text-slate-400"}`}>
+                            {isCompleted ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                        </button>
+                    </div>
+                    <span className={`text-sm font-bold flex-1 truncate ${isMaster ? 'text-base tracking-tight uppercase ' + colorClass.split(' ')[1] : 'text-slate-300'} ${isCompleted ? 'line-through opacity-50' : ''}`}>
+                        {item.title}
+                    </span>
+                    {hasChildren && isMaster && <span className="hidden sm:block text-[9px] font-black text-slate-600 bg-slate-950/50 px-2 py-0.5 rounded-full">{item.subtopics.length} ALT</span>}
                 </motion.div>
 
                 <AnimatePresence>
                     {showPanel && (
-                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="ml-6 mt-4 space-y-3">
-                            {/* SEARCH ENGINE CARDS */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {PLATFORMS.map(plat => {
-                                    const Icon = plat.icon;
-                                    return (
-                                        <div key={plat.id} className="group flex items-center bg-slate-900/40 hover:bg-slate-900/80 border border-slate-700/50 hover:border-blue-500/30 rounded-2xl p-2 transition-all duration-300">
-                                            {/* Brand & Icon (Left) */}
-                                            <div className="flex items-center gap-3 px-3 min-w-[120px]">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-slate-800 border border-slate-700`}>
-                                                    <Icon size={20} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
-                                                </div>
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-300 hidden sm:block">{plat.name}</span>
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-3">
+                            <div className="bg-slate-950/90 rounded-[28px] p-5 border border-white/5 shadow-2xl space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {PLATFORMS.slice(0, 8).map(plat => (
+                                        <div key={plat.id} className="flex items-center bg-slate-900/40 rounded-xl p-1.5 border border-slate-800/50 group">
+                                            <div className="flex items-center gap-2 px-2 min-w-[70px]">
+                                                <plat.icon size={14} className="text-slate-500 group-hover:text-blue-400" />
+                                                <span className="text-[8px] font-black uppercase text-slate-600">{plat.name}</span>
                                             </div>
-
-                                            {/* Action Buttons (Right) */}
-                                            <div className="flex-1 flex gap-2">
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleDeepDive(plat.id, item, 'tr'); }}
-                                                    className="flex-1 py-3 bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/20 rounded-xl text-[10px] font-black tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
-                                                >
-                                                    🇹🇷 <span className="hidden xs:inline">TR</span>
-                                                </button>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleDeepDive(plat.id, item, 'en'); }}
-                                                    className="flex-1 py-3 bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700/50 rounded-xl text-[10px] font-black tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
-                                                >
-                                                    🌍 <span className="hidden xs:inline">EN</span>
-                                                </button>
+                                            <div className="flex-1 flex gap-1">
+                                                <button onClick={(e) => { e.stopPropagation(); handleDeepDive(plat.id, item, 'tr'); }} className="flex-1 py-2 bg-blue-600/10 hover:bg-blue-600 rounded-lg text-blue-400 hover:text-white text-[8px] font-black">🇹🇷 TR</button>
+                                                <button onClick={(e) => { e.stopPropagation(); handleDeepDive(plat.id, item, 'en'); }} className="flex-1 py-2 bg-slate-800/50 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white text-[8px] font-black">🌍 EN</button>
                                             </div>
                                         </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* SPECIAL: BRANCH EXPANSION & GALLERY */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); handleDeepenBranch(item.id, item.title); }}
-                                    disabled={isDeepening[item.id]}
-                                    className="flex items-center justify-center gap-3 py-4 bg-blue-600/10 hover:bg-blue-600/20 border border-dashed border-blue-500/30 hover:border-blue-500/60 rounded-2xl text-blue-400 transition-all group disabled:opacity-50"
-                                >
-                                    <Sparkles size={20} className={isDeepening[item.id] ? "animate-spin" : "group-hover:scale-125 transition-transform"} />
-                                    <span className="text-xs font-black tracking-[0.2em] uppercase">Branşı Derinleştir</span>
-                                </button>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); setShowImageGallery(item.id); loadImagesFromAPI(item.title, item.id, 10); }}
-                                    className="flex items-center justify-center gap-3 py-4 bg-purple-900/10 hover:bg-purple-900/30 border border-dashed border-purple-500/30 hover:border-purple-500/60 rounded-2xl text-purple-400 transition-all group"
-                                >
-                                    <ImageIcon size={20} className="group-hover:animate-bounce" />
-                                    <span className="text-xs font-black tracking-[0.2em] uppercase text-slate-500 group-hover:text-purple-300">Görsel Kaynaklar</span>
-                                </button>
-                            </div>
-
-                            {/* IMAGE GALLERY CONTENT */}
-                            {showImageGallery === item.id && (
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 bg-slate-950/40 rounded-3xl border border-purple-500/20">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <span className="text-[10px] font-black text-purple-400 tracking-[0.3em] uppercase">Mühendislik Görselleri</span>
-                                        <button onClick={() => setShowImageGallery(null)} className="p-2 hover:bg-slate-800 rounded-lg text-slate-600 hover:text-white transition-colors"><X size={16} /></button>
+                                    ))}
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 pt-2">
+                                    <button onClick={(e) => { e.stopPropagation(); handleDeepenBranch(item.id, item.title); }} disabled={isDeepening[item.id]} className="flex items-center justify-center gap-2 py-3 bg-emerald-600/10 hover:bg-emerald-600/20 border border-dashed border-emerald-500/30 rounded-xl text-emerald-400 text-[9px] font-black uppercase tracking-widest disabled:opacity-30">
+                                        <Sparkles size={14} className={isDeepening[item.id] ? "animate-spin" : ""} /> {isDeepening[item.id] ? 'ANALİZ...' : 'DERİNLEŞTİR'}
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); setShowImageGallery(item.id); loadImagesFromAPI(item.title, item.id, 4); }} className="flex items-center justify-center gap-2 py-3 bg-purple-900/10 hover:bg-purple-900/30 border border-dashed border-purple-500/30 rounded-xl text-purple-400 text-[9px] font-black uppercase tracking-widest">
+                                        <ImageIcon size={14} /> GÖRSELLER
+                                    </button>
+                                </div>
+                                {showImageGallery === item.id && galleryImages.length > 0 && (
+                                    <div className="grid grid-cols-4 gap-2 pt-3 border-t border-white/5">
+                                        {galleryImages.slice(0, 4).map((src, i) => <img key={i} src={src} className="w-full h-12 object-cover rounded-lg border border-white/5" onClick={() => window.open(src)} />)}
                                     </div>
-                                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                                        {galleryImages.map((src, i) => (
-                                            <img
-                                                key={i}
-                                                src={src}
-                                                className="w-full h-24 object-cover rounded-xl cursor-pointer hover:ring-4 ring-purple-500/40 transition-all shadow-xl"
-                                                onClick={() => window.open(src)}
-                                            />
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            )}
+                                )}
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
                 <AnimatePresence>
-                    {hasChildren && isExpanded && (
-                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                    {isExpanded && hasChildren && (
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
                             {item.subtopics.map((child: any) => renderRecursive(child, depth + 1))}
                         </motion.div>
                     )}
@@ -377,23 +283,12 @@ export default function MasterTufanOS() {
     };
 
     const activeData = useMemo(() => allCategories.find((c: any) => c.id === activeCategory), [allCategories, activeCategory]);
-
     const activeStats = useMemo(() => {
-        let total = 0;
-        let completed = 0;
-        const traverse = (items: any[]) => {
-            items.forEach(item => {
-                total++;
-                if (completedItems.has(item.id)) completed++;
-                if (item.subtopics) traverse(item.subtopics);
-            });
-        };
+        let total = 0, completed = 0;
+        const traverse = (items: any[]) => items.forEach(t => { total++; if (completedItems.has(t.id)) completed++; if (t.subtopics) traverse(t.subtopics); });
         if (activeData?.topics) traverse(activeData.topics);
-        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-        return { total, completed, percent };
+        return { total, completed, percent: total > 0 ? Math.round((completed / total) * 100) : 0 };
     }, [activeData, completedItems]);
-
-    const hasCurriculum = allCategories.length > 0;
 
     return (
         <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
@@ -402,24 +297,19 @@ export default function MasterTufanOS() {
 
             {showNewCurriculumModal && (
                 <div className="fixed inset-0 z-[110] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6">
-                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-slate-900 border border-slate-700 rounded-[40px] p-10 max-w-xl w-full shadow-2xl relative border-t-blue-500/50">
-                        <button onClick={() => setShowNewCurriculumModal(false)} className="absolute right-8 top-8 text-slate-500 hover:text-white transition-colors"><X size={28} /></button>
-                        <h3 className="text-3xl font-black text-white mb-10 tracking-tight uppercase flex items-center gap-4">
-                            <Plus className="text-blue-400" size={32} /> YOL HARİTASI ÜRET
-                        </h3>
-                        <div className="space-y-8">
-                            <div className="space-y-4">
+                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-slate-900 border border-slate-700 rounded-[40px] p-8 max-w-xl w-full shadow-2xl relative border-t-blue-500/50">
+                        <button onClick={() => setShowNewCurriculumModal(false)} className="absolute right-6 top-6 text-slate-500 hover:text-white"><X size={24} /></button>
+                        <h3 className="text-2xl font-black text-white mb-8 tracking-tight uppercase flex items-center gap-3"><Plus className="text-blue-400" size={28} /> YOL HARİTASI ÜRET</h3>
+                        <div className="space-y-6">
+                            <div className="space-y-3">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Öğrenme Hedefi</label>
-                                <input type="text" value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} placeholder="Örn: Docker & Kubernetes, Modern Fizik..." className="w-full bg-slate-800/80 rounded-2xl p-6 text-xl font-bold text-white border border-slate-700 focus:border-blue-500 transition-all outline-none shadow-inner" />
+                                <input type="text" value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} placeholder="Örn: PLC Programlama, Docker..." className="w-full bg-slate-800 rounded-2xl p-5 text-lg font-bold text-white border border-slate-700 focus:border-blue-500 transition-all outline-none" />
                             </div>
-                            <div className="bg-slate-800/40 p-8 rounded-3xl border border-slate-700/50">
-                                <div className="flex justify-between items-end mb-4">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Kapsam Derinliği</label>
-                                    <span className="text-blue-400 font-black text-xl">{topicCount} <span className="text-[10px] text-slate-500">BAŞLIK</span></span>
-                                </div>
-                                <input type="range" min="50" max="1000" step="50" value={topicCount} onChange={(e) => setTopicCount(Number(e.target.value))} className="w-full h-3 bg-slate-700 rounded-full appearance-none cursor-pointer accent-blue-500" />
+                            <div className="bg-slate-800/40 p-6 rounded-3xl border border-slate-700/50">
+                                <div className="flex justify-between items-end mb-4"><label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Derinlik</label><span className="text-blue-400 font-black text-lg">{topicCount} BAŞLIK</span></div>
+                                <input type="range" min="50" max="1000" step="50" value={topicCount} onChange={(e) => setTopicCount(Number(e.target.value))} className="w-full h-2 bg-slate-700 rounded-full appearance-none cursor-pointer accent-blue-500" />
                             </div>
-                            <button onClick={() => createCurriculum(aiPrompt, topicCount)} disabled={!aiPrompt.trim() || isGenerating} className="w-full py-6 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-black text-lg transition-all shadow-xl shadow-blue-600/30 uppercase tracking-[0.1em]">
+                            <button onClick={() => createCurriculum(aiPrompt, topicCount)} disabled={!aiPrompt.trim() || isGenerating} className="w-full py-5 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-black transition-all shadow-xl shadow-blue-600/20 uppercase tracking-widest">
                                 {isGenerating ? 'ANALİZ EDİLİYOR...' : 'SİSTEME EKLE'}
                             </button>
                         </div>
@@ -432,101 +322,49 @@ export default function MasterTufanOS() {
                 openAbout={() => setShowAboutModal(true)} setShowNewCurriculumModal={setShowNewCurriculumModal} deleteCategory={deleteCurriculum}
                 ghostTopics={ghostTopics} onGenerateGhost={(id, title) => {
                     setLoadingGhost(p => ({ ...p, [id]: true }));
-                    generateRelatedTopics(title).then(results => {
-                        if (results) {
-                            const newGhosts = { ...ghostTopics, [id]: results };
-                            setGhostTopics(newGhosts);
-                            localStorage.setItem("ghostTopics", JSON.stringify(newGhosts));
-                        }
-                    }).finally(() => setLoadingGhost(p => ({ ...p, [id]: false })));
+                    generateRelatedTopics(title).then(results => { if (results) setGhostTopics(p => { const n = { ...p, [id]: results }; localStorage.setItem("ghostTopics", JSON.stringify(n)); return n; }); }).finally(() => setLoadingGhost(p => ({ ...p, [id]: false })));
                 }}
                 onCreateGhost={(topic) => createCurriculum(topic, 100)} loadingGhost={loadingGhost}
                 isExpanded={sidebarExpanded} setIsExpanded={setSidebarExpanded}
             />
 
-            {/* Desktop Sidebar Spacer */}
-            <div className="hidden lg:block w-[60px] shrink-0" />
-
-            <main className="flex-1 flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(30,41,59,0.3),transparent)] relative">
-                {/* Header */}
-                <header className="h-20 md:h-24 border-b border-white/5 bg-slate-950/40 backdrop-blur-2xl px-4 md:px-8 flex items-center gap-4 md:gap-8 z-10 shrink-0">
-                    <button
-                        onClick={() => setSidebarExpanded(true)}
-                        className="lg:hidden p-3 bg-slate-800/80 rounded-xl text-amber-400 hover:bg-slate-700 transition-all border border-slate-700/50"
-                    >
-                        <Menu size={24} />
-                    </button>
-                    <div className="flex-1 flex flex-col justify-center">
-                        <h1 className="text-xl font-black text-amber-500 tracking-[0.2em] uppercase font-[family-name:var(--font-syncopate)]">Master Tufan</h1>
-                        <p className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Mühendislik İşletim Sistemi</p>
+            <main className="flex-1 flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(30,41,59,0.3),transparent)] lg:ml-[60px]">
+                <header className="h-20 border-b border-white/5 bg-slate-950/40 backdrop-blur-2xl px-6 flex items-center gap-4 z-10">
+                    <button onClick={() => setSidebarExpanded(true)} className="lg:hidden p-2.5 bg-slate-800 rounded-xl text-amber-500 border border-slate-700/50"><Menu size={20} /></button>
+                    <div className="flex-1">
+                        <h1 className="text-lg font-black text-amber-500 tracking-[0.2em] uppercase font-[family-name:var(--font-syncopate)]">Master Tufan</h1>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Engineering OS</p>
                     </div>
-                    <button onClick={() => setRunTutorial(true)} className="p-4 bg-slate-800/80 hover:bg-slate-700 rounded-2xl text-slate-500 hover:text-white transition-all border border-slate-700/50"><HelpCircle size={28} /></button>
+                    <button onClick={() => setRunTutorial(true)} className="p-3 bg-slate-800 rounded-xl text-slate-500 hover:text-white transition-all"><HelpCircle size={24} /></button>
                 </header>
 
-                {/* Content Scroll Area */}
-                <div className="flex-1 overflow-y-auto p-8 md:p-16 custom-scrollbar relative">
-                    {!hasCurriculum ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center space-y-12 animate-in fade-in zoom-in duration-700">
-                            <div className="relative">
-                                <div className="absolute -inset-10 bg-blue-500/10 blur-[60px] rounded-full animate-pulse" />
-                                <div className="w-24 h-24 bg-slate-900 border border-slate-800 rounded-3xl flex items-center justify-center text-blue-500 shadow-2xl relative">
-                                    <Sparkles size={48} />
-                                </div>
-                            </div>
-                            <div className="space-y-4">
-                                <h2 className="text-4xl font-black text-white tracking-tight uppercase">Sistem Hazır</h2>
-                                <p className="text-slate-500 font-medium max-w-sm mx-auto">Henüz yüklü bir müfredatın yok. Sol menüdeki <span className="text-blue-400 font-bold">+</span> butonunu kullanarak ilk öğrenme yolculuğuna başlayabilirsin.</p>
-                            </div>
-                            <button
-                                onClick={() => setShowNewCurriculumModal(true)}
-                                className="px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl shadow-xl shadow-blue-600/20 transition-all active:scale-95 uppercase tracking-widest text-sm"
-                            >
-                                İlk Müfredatını Oluştur
-                            </button>
+                <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar">
+                    {!allCategories.length ? (
+                        <div className="h-full flex flex-col items-center justify-center text-center space-y-8 animate-in fade-in zoom-in duration-500">
+                            <div className="relative"><div className="absolute -inset-10 bg-blue-500/10 blur-[60px] animate-pulse" /><div className="w-20 h-20 bg-slate-900 border border-slate-800 rounded-3xl flex items-center justify-center text-blue-500 shadow-2xl relative"><Sparkles size={40} /></div></div>
+                            <div className="space-y-3"><h2 className="text-3xl font-black text-white uppercase">Sistem Hazır</h2><p className="text-slate-500 text-sm max-w-sm mx-auto">Henüz yüklü bir müfredatın yok. Sol menüdeki <span className="text-blue-400 font-bold">+</span> butonunu kullanarak başla.</p></div>
+                            <button onClick={() => setShowNewCurriculumModal(true)} className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl shadow-xl transition-all uppercase tracking-widest text-xs">İlk Müfredatını Oluştur</button>
                         </div>
                     ) : (
-                        <div className="max-w-5xl mx-auto">
-                            {/* Dashboard Header */}
-                            <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-20 animate-in fade-in slide-in-from-bottom-5 duration-700">
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-3">
-                                        <span className="px-3 py-1 bg-blue-600/20 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-blue-500/20">Master Veri Seti v1.4</span>
-                                        <span className="w-1.5 h-1.5 bg-slate-700 rounded-full"></span>
-                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{activeData?.isCustom ? 'Özel Müfredat' : 'Sistem Klasörü'}</span>
+                        <div className="max-w-4xl mx-auto pb-20">
+                            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 animate-in fade-in slide-in-from-bottom-3">
+                                <div>
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <span className="px-2.5 py-0.5 bg-blue-600/20 text-blue-400 text-[8px] font-black uppercase tracking-widest rounded-full border border-blue-500/20">v1.5 Enterprise</span>
+                                        <span className="text-[8px] font-black text-slate-600 uppercase">{activeData?.isCustom ? 'Özel Yol Haritası' : 'Sistem Verisi'}</span>
                                     </div>
-                                    <h2 className="text-6xl md:text-7xl font-black text-white tracking-tighter leading-[0.9]">{activeData?.title}</h2>
+                                    <h2 className="text-5xl md:text-6xl font-black text-white tracking-tighter leading-none">{activeData?.title}</h2>
                                 </div>
-
-                                <div className="flex items-center gap-6 bg-slate-800/20 p-3 rounded-[32px] border border-white/5 backdrop-blur-xl">
-                                    <div className="px-6 py-4 bg-slate-900/80 rounded-[24px] border border-slate-700 shadow-xl">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Toplam Konu</span>
-                                        </div>
-                                        <span className="text-3xl font-black text-white leading-none">{activeStats.total}</span>
-                                    </div>
-                                    <div className="px-6 py-4 bg-emerald-900/10 rounded-[24px] border border-emerald-500/20 shadow-xl">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
-                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">İlerleme</span>
-                                        </div>
-                                        <span className="text-3xl font-black text-emerald-400 leading-none">%{activeStats.percent}</span>
-                                    </div>
+                                <div className="flex gap-4">
+                                    <div className="px-5 py-3 bg-slate-900 rounded-2xl border border-slate-800 shadow-lg text-center"><div className="text-[8px] font-black text-slate-500 uppercase mb-1">Konu</div><span className="text-2xl font-black text-white leading-none">{activeStats.total}</span></div>
+                                    <div className="px-5 py-3 bg-emerald-900/10 rounded-2xl border border-emerald-500/20 shadow-lg text-center"><div className="text-[8px] font-black text-slate-500 uppercase mb-1">İlerleme</div><span className="text-2xl font-black text-emerald-400 leading-none">%{activeStats.percent}</span></div>
                                 </div>
                             </div>
-
-                            {/* Recursive Topic Tree */}
                             <div className="space-y-4">
                                 {activeData?.topics?.slice(0, visibleCount[activeCategory] || 30).map((t: any) => renderRecursive(t))}
                             </div>
-
-                            {activeData?.topics && activeData.topics.length > (visibleCount[activeCategory] || 30) && (
-                                <button
-                                    onClick={() => setVisibleCount(p => ({ ...p, [activeCategory]: (p[activeCategory] || 30) + 30 }))}
-                                    className="w-full mt-16 py-8 bg-slate-800/30 hover:bg-slate-800 border-2 border-dashed border-slate-700 hover:border-blue-500/50 text-slate-500 hover:text-blue-400 font-black uppercase tracking-[0.2em] rounded-[32px] transition-all flex items-center justify-center gap-4"
-                                >
-                                    DAHA FAZLA VERİ YÜKLE <ChevronDown size={24} className="animate-bounce" />
-                                </button>
+                            {activeData?.topics?.length > (visibleCount[activeCategory] || 30) && (
+                                <button onClick={() => setVisibleCount(p => ({ ...p, [activeCategory]: (p[activeCategory] || 30) + 30 }))} className="w-full mt-12 py-6 bg-slate-900/50 hover:bg-slate-900 border border-dashed border-slate-800 text-slate-500 hover:text-blue-400 font-black uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-3 text-xs">DAHA FAZLA YÜKLE <ChevronDown size={18} className="animate-bounce" /></button>
                             )}
                         </div>
                     )}

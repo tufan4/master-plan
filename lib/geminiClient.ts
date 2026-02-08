@@ -57,7 +57,6 @@ export function normalizeTopic(text: string): string {
 
 /**
  * AI Curriculum Generator (Deep Recursive Tree Mode)
- * Improved Prompt System by User Request (Technical & Detailed)
  */
 export async function generateFullCurriculum(topic: string, count: number = 50): Promise<any> {
     if (!process.env.NEXT_PUBLIC_GROQ_API_KEY) {
@@ -67,57 +66,33 @@ export async function generateFullCurriculum(topic: string, count: number = 50):
     const normalizedTopic = normalizeTopic(topic);
 
     try {
-        const systemPrompt = `Sen bir uzman öğrenme yolu tasarımcısısın. Görevin, "${normalizedTopic}" konusunu derinlemesine analiz edip, sıfırdan ileri seviyeye kadar yapılandırılmış, akademik ve teknik bir müfredat ağacı oluşturmak.
+        const systemPrompt = `Sen bir uzman mühendislik müfredat mimarısın. "${normalizedTopic}" konusu için devasa ve ultra-spesifik bir ağaç oluştur.
 
-TEMEL KURALLAR:
-1. Her alt başlık MUTLAKA ana konuyla DOĞRUDAN bağlantılı, teknik ve detaylı olmalı.
-2. Genel başlıklar ASLA KULLANMA (❌ "Giriş", "Temel Bilgiler", "Tarihçe", "Avantajlar", "İleri Seviye", "Sonuç").
-3. Her başlık spesifik bir teknik kavramı veya beceriyi temsil etmeli.
-4. Hiyerarşik yapı kur: Ana Konu -> Alt Konu -> Detay Konu -> Mikro Konu (EN AZ 5-7 derinlik seviyesi).
-5. Kapsamlı olmalı: TOPLAM TAM OLARAK ${count} adet benzersiz başlık üretmelisin. Bu sayıya ulaşmak için konuyu en küçük bileşenlerine (atomik seviyeye) kadar parçalamalısın.
-6. HER BAŞLIK İÇİN iki farklı arama anahtarı ("q_tr", "q_en") ekle. Bu alanlar, o başlığı doğrudan aratmak için en temiz ve en teknik kelimeleri içermeli. Sonek (Örn: "ders notları", "belgeleri") ASLA EKLEME.
-7. Önemli: Çıktı çok uzun olacağı için gereksiz boşluk bırakma (minified JSON).
-
-BAŞLIK FORMATI ÖRNEKLERİ:
-✅ DOĞRU: "PLC Ladder Logic Programlama Temelleri"
-✅ DOĞRU: "Siemens S7-1200 Timer ve Counter Fonksiyonları"
-✅ DOĞRU: "Hızlı Sayıcı (HSC) Donanım Konfigürasyonu ve Interrupt Yönetimi"
-❌ YANLIŞ: "PLC Nedir?", "Giriş", "Temel Kavramlar", "Özet", "Sonuç", "Tarihçe"
-
-BAŞLIK FORMATI ÖRNEKLERİ:
-✅ DOĞRU: "PLC Ladder Logic Programlama Temelleri"
-✅ DOĞRU: "Siemens S7-1200 Timer ve Counter Fonksiyonları"
-❌ YANLIŞ: "PLC Nedir?", "Giriş", "Temel Kavramlar", "Özet", "Sonuç", "Tarihçe"
+KRİTİK KURALLAR (ÖNEMLİ):
+1. KONTEKST BAĞIMLILIĞI: Alt başlıklar ASLA tek başına ("İşlemci", "Bellek", "Giriş") bırakılmamalı. Her zaman ana konuyu içermeli. 
+   ✅ Örnek: "PLC İşlemci Mimarisi", "PLC RAM ve ROM Bellek Yapısı", "PLC Dijital Giriş Modülleri".
+2. GENEL BAŞLIK YASAĞI: "Giriş", "Tarihçe", "Özet", "Sonuç" gibi kelimeleri ASLA kullanma.
+3. HİYERARŞİ: TOPLAM ${count} adet madde içerecek şekilde en az 5 katmanlı bir derinlik oluştur.
+4. ARAMA ODAKLI: q_tr ve q_en alanları, arama motorunda en iyi sonucu verecek şekilde "Konu + Teknik Detay" şeklinde olmalı.
 
 ÇIKTI FORMATI (JSON):
 {
   "title": "${normalizedTopic}",
   "topics": [
     {
-      "id": "1",
-      "title": "Üst Seviye Branş",
-      "q_tr": "...",
-      "q_en": "...",
-      "subtopics": [
-        { 
-          "id": "1-1", 
-          "title": "Alt Branş", 
-          "q_tr": "...", 
-          "q_en": "...", 
-          "subtopics": [
-             { "id": "1-1-1", "title": "Mikro Detay", ... }
-          ] 
-        }
-      ]
+      "title": "${normalizedTopic} Donanım Bileşenleri",
+      "q_tr": "${normalizedTopic} hardware architecture details",
+      "q_en": "${normalizedTopic} hardware architecture technical guide",
+      "subtopics": [...]
     }
   ]
 }
-Sadece JSON döndür.`;
+Sadece minified JSON döndür. Boşluk bırakma.`;
 
         const completion = await groq.chat.completions.create({
             messages: [
                 { role: "system", content: systemPrompt },
-                { role: "user", content: `"${normalizedTopic}" için TAMAMEN EKSİKSİZ, DEVASA ve ${count} başlıktan oluşan bir ağaç oluştur.` }
+                { role: "user", content: `"${normalizedTopic}" için ${count} başlıktan oluşan, her başlığı kendi bağlamında (context-aware) isimlendirilmiş devasa müfredat.` }
             ],
             model: "llama-3.3-70b-versatile",
             temperature: 0.2,
@@ -127,14 +102,12 @@ Sadece JSON döndür.`;
 
         const rawText = completion.choices[0]?.message?.content?.trim();
         if (!rawText) throw new Error("AI response was empty.");
-
         const parsed = JSON.parse(cleanJson(rawText));
 
-        // Recursive ID fixer helper (ensures unique IDs and levels for frontend)
         const fixStructure = (items: any[], parentLevel: number = 0): any[] => {
-            return items.map((item, idx) => ({
+            return items.map((item) => ({
                 id: item.id || `gen-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-                title: item.title,
+                title: normalizeTopic(item.title),
                 q_tr: item.q_tr || item.title,
                 q_en: item.q_en || item.title,
                 level: parentLevel + 1,
@@ -143,20 +116,10 @@ Sadece JSON döndür.`;
             }));
         };
 
-        let topics = [];
-        if (parsed.topics && Array.isArray(parsed.topics)) {
-            topics = fixStructure(parsed.topics, 0);
-        } else if (Array.isArray(parsed)) {
-            topics = fixStructure(parsed, 0);
-        } else {
-            topics = [];
-        }
-
         return {
             title: parsed.title || normalizedTopic,
-            topics: topics
+            topics: fixStructure(parsed.topics || [], 0)
         };
-
     } catch (error) {
         console.error('Curriculum generation failed:', error);
         throw error;
@@ -164,38 +127,28 @@ Sadece JSON döndür.`;
 }
 
 /**
- * AI Branch Expander (Deepens a specifically selected sub-topic)
+ * AI Branch Expander
  */
 export async function generateSubtopicTree(parentTopic: string): Promise<any[]> {
     if (!process.env.NEXT_PUBLIC_GROQ_API_KEY) return [];
 
     try {
-        const systemPrompt = `Sen bir uzman mühendissin. Görevin "${parentTopic}" başlığı altına 30-50 adet çok derin ve teknik alt başlık üretmek.
-Rules:
-1. Sadece "${parentTopic}" ile %100 ilgili teknik başlıklar üret.
-2. Derinlik: En az 3 alt seviye hiyerarşi oluştur.
-3. Çıktı JSON formatında (topics array) olmalı.
-4. q_tr ve q_en anahtarlarını unutma.
-
-Format:
-{
-  "topics": [
-    { "title": "X", "q_tr": "...", "q_en": "...", "subtopics": [...] }
-  ]
-}`;
+        const systemPrompt = `Sen bir uzman mühendissin. "${parentTopic}" başlığı altına 30-50 adet ultra-teknik alt başlık üret.
+KURALLAR:
+1. Her başlık "${parentTopic}" kelimesini veya bağlamını içermeli.
+   ✅ Örnek: "Modbus TCP Paket Yapısı", "Modbus Register Haritalama".
+2. Çıktı JSON olmalı. q_tr ve q_en anahtarları teknik ve temiz olmalı.
+3. Hiyerarşi kur.`;
 
         const completion = await groq.chat.completions.create({
             messages: [{ role: "user", content: systemPrompt }],
-            model: "llama-3.1-8b-instant", // Faster for sub-expansions
+            model: "llama-3.1-8b-instant",
             temperature: 0.4,
             max_tokens: 4000,
             response_format: { type: "json_object" }
         });
 
-        const raw = completion.choices[0]?.message?.content?.trim();
-        if (!raw) return [];
-
-        const parsed = JSON.parse(cleanJson(raw));
+        const parsed = JSON.parse(cleanJson(completion.choices[0]?.message?.content || "{}"));
         return parsed.topics || [];
     } catch (e) {
         console.error("Branch expansion failed:", e);
@@ -208,21 +161,12 @@ function fallbackKeywords(topic: string): string[] {
 }
 
 /**
- * AI Related Topics Generator (Ghost Mode)
+ * AI Related Topics Generator
  */
 export async function generateRelatedTopics(topic: string): Promise<string[]> {
     if (!process.env.NEXT_PUBLIC_GROQ_API_KEY) return [];
-
     try {
-        const systemPrompt = `Sen bir uzman mühendislik ve müfredat danışmanısın.
-Konu: "${topic}"
-Görev: Bu konuyu çalışmak isteyen birine önerilecek 20 adet TAMAMLAYICI veya İLERİ SEVİYE teknik eğitim başlığı öner.
-Kurallar:
-1. Başlıklar profesyonel ve teknik olmalı.
-2. "Python" -> ["Django Rest Framework Architecture", "Asynchronous Programming with Asyncio", "Pandas for Large Datasets", ...] gibi nokta atışı olmalı.
-3. Birbirinden farklı alt dalları kapsamalı.
-Sadece JSON string array döndür.`;
-
+        const systemPrompt = `Sen bir mühendislik danışmanısın. "${topic}" için 20 adet profesyonel teknik başlık öner. JSON array döndür.`;
         const completion = await groq.chat.completions.create({
             messages: [{ role: "user", content: systemPrompt }],
             model: "llama-3.3-70b-versatile",
@@ -230,19 +174,9 @@ Sadece JSON string array döndür.`;
             max_tokens: 1500,
             response_format: { type: "json_object" }
         });
-
-        const raw = completion.choices[0]?.message?.content?.trim();
-        if (!raw) return [];
-
-        const clean = cleanJson(raw);
-        const parsed = JSON.parse(clean);
-
-        if (Array.isArray(parsed)) return parsed;
-        if (parsed.topics) return parsed.topics;
-        return [];
-
+        const parsed = JSON.parse(cleanJson(completion.choices[0]?.message?.content || "{}"));
+        return Array.isArray(parsed) ? parsed : (parsed.topics || []);
     } catch (e) {
-        console.error("Related topics failed:", e);
         return [];
     }
 }
