@@ -245,17 +245,26 @@ export default function MasterTufanOS() {
                 <AnimatePresence>
                     {showPanel && (
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="ml-6 mt-2 bg-slate-900/60 p-5 rounded-[24px] overflow-hidden border border-slate-700/50 backdrop-blur-sm">
-                            <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
+                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
                                 {PLATFORMS.map(plat => {
                                     const Icon = plat.icon;
+                                    const isActive = activePlatformPanel?.topicId === item.id && activePlatformPanel?.platform === plat.id;
                                     return (
-                                        <button key={plat.id} onClick={(e) => { e.stopPropagation(); setActivePlatformPanel({ topicId: item.id, platform: plat.id }); }} className={`p-3 flex flex-col items-center rounded-2xl border transition-all ${activePlatformPanel?.topicId === item.id && activePlatformPanel?.platform === plat.id ? 'bg-blue-600/40 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'bg-slate-800/60 border-slate-700 hover:border-slate-500'}`}>
-                                            <Icon size={18} className={activePlatformPanel?.platform === plat.id ? 'text-white' : `text-${plat.color}-400`} />
-                                            <span className="text-[10px] mt-1.5 font-black uppercase text-slate-500 tracking-tighter">{plat.name}</span>
+                                        <button
+                                            key={plat.id}
+                                            onClick={(e) => { e.stopPropagation(); setActivePlatformPanel({ topicId: item.id, platform: plat.id }); }}
+                                            className={`group relative p-4 flex flex-col items-center justify-center rounded-[24px] border-2 transition-all duration-300 ${isActive ? 'bg-blue-600 border-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.5)] scale-105' : 'bg-slate-800/40 border-slate-700/50 hover:border-slate-500 hover:bg-slate-800'}`}
+                                        >
+                                            <Icon size={24} className={isActive ? 'text-white' : `text-slate-400 group-hover:text-white transition-colors`} />
+                                            <span className={`text-[10px] mt-2 font-black uppercase tracking-widest ${isActive ? 'text-blue-100' : 'text-slate-500 group-hover:text-slate-300'}`}>{plat.name}</span>
+                                            {isActive && <motion.div layoutId="plat-active" className="absolute -inset-1 rounded-[24px] border-2 border-blue-400 animate-pulse" />}
                                         </button>
                                     );
                                 })}
-                                <button onClick={(e) => { e.stopPropagation(); setShowImageGallery(item.id); loadImagesFromAPI(item.title, item.id, 10); }} className="p-3 flex flex-col items-center rounded-2xl border border-purple-500/30 bg-purple-900/20 hover:bg-purple-900/40"><ImageIcon size={18} className="text-purple-400" /><span className="text-[10px] mt-1.5 font-black uppercase text-slate-500 tracking-tighter">IMAGES</span></button>
+                                <button onClick={(e) => { e.stopPropagation(); setShowImageGallery(item.id); loadImagesFromAPI(item.title, item.id, 10); }} className="p-4 flex flex-col items-center justify-center rounded-[24px] border-2 border-dashed border-purple-500/30 bg-purple-900/10 hover:bg-purple-900/30 hover:border-purple-500/50 transition-all group">
+                                    <ImageIcon size={24} className="text-purple-400 group-hover:scale-110 transition-transform" />
+                                    <span className="text-[10px] mt-2 font-black uppercase tracking-widest text-slate-500 group-hover:text-purple-300">IMAGES</span>
+                                </button>
                             </div>
 
                             {activePlatformPanel?.topicId === item.id && (
@@ -267,9 +276,29 @@ export default function MasterTufanOS() {
                                         </div>
                                         <button onClick={() => setActivePlatformPanel(null)} className="text-slate-600 hover:text-white"><X size={16} /></button>
                                     </div>
-                                    <div className="flex gap-3">
-                                        <button onClick={() => handleDeepDive(activePlatformPanel!.platform, item, 'tr')} className="flex-1 py-4 bg-slate-800 hover:bg-blue-600/30 border border-slate-700 hover:border-blue-500/50 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2">🇹🇷 TÜRKÇE ARA</button>
-                                        <button onClick={() => handleDeepDive(activePlatformPanel!.platform, item, 'en')} className="flex-1 py-4 bg-slate-800 hover:bg-blue-600/30 border border-slate-700 hover:border-blue-500/50 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2">🇬🇧 GLOBAL SEARCH</button>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <button
+                                            onClick={() => handleDeepDive(activePlatformPanel!.platform, item, 'tr')}
+                                            className="group relative overflow-hidden py-6 bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 rounded-2xl text-white shadow-xl shadow-blue-900/40 transition-all flex items-center justify-center gap-4 border border-blue-400/30 active:scale-95"
+                                        >
+                                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_white_0%,_transparent_10%)] opacity-0 group-hover:opacity-10 transition-opacity" />
+                                            <span className="text-2xl">🇹🇷</span>
+                                            <div className="flex flex-col items-start">
+                                                <span className="text-sm font-black tracking-[0.1em] uppercase">TÜRKÇE ARA</span>
+                                                <span className="text-[9px] font-bold text-blue-200/60 uppercase">Yerel Video & Makale</span>
+                                            </div>
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeepDive(activePlatformPanel!.platform, item, 'en')}
+                                            className="group relative overflow-hidden py-6 bg-gradient-to-br from-slate-800 to-slate-950 hover:from-slate-700 hover:to-slate-900 rounded-2xl text-white shadow-xl shadow-black/40 transition-all flex items-center justify-center gap-4 border border-slate-700 active:scale-95"
+                                        >
+                                            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <span className="text-2xl">🌍</span>
+                                            <div className="flex flex-col items-start">
+                                                <span className="text-sm font-black tracking-[0.1em] uppercase">GLOBAL SEARCH</span>
+                                                <span className="text-[9px] font-bold text-slate-500 uppercase">World-class Resources</span>
+                                            </div>
+                                        </button>
                                     </div>
                                 </motion.div>
                             )}
